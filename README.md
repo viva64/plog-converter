@@ -14,7 +14,7 @@ You should use g++ (versions 5.4 or newer) or clang++ (versions 3.8 or newer) an
 ```
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release ...
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j8
 sudo make install
 ```
@@ -24,7 +24,7 @@ Compiling plog-converter with Clang:
 ```
 mkdir build
 cd build
-CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release ...
+CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j8
 sudo make install
 ```
