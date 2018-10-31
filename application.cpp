@@ -1,0 +1,233 @@
+//  2006-2008 (c) Viva64.com Team
+//  2008-2018 (c) OOO "Program Verification Systems"
+
+#include <args.hxx>
+#include "application.h"
+#include "configparser.h"
+#include "warning.h"
+#include "outputfactory.h"
+#include "utils.h"
+#include <iostream>
+#include <cstring>
+#include <iterator>
+
+namespace PlogConverter
+{
+
+Analyzer ParseEnabledAnalyzer(const std::string &str)
+{
+  Analyzer res;
+  auto pos = str.find(':');
+  if (pos != std::string::npos)
+  {
+    Split(str.substr(pos + 1), ",", std::back_inserter(res.levels), [](const std::string &s) { return std::stoi(s); });
+  }
+
+  const std::string &name = str.substr(0, pos);
+  if (name == "GA")
+    res.type = AnalyzerType::General;
+  else if (name == "64")
+    res.type = AnalyzerType::Viva64;
+  else if (name == "OP")
+    res.type = AnalyzerType::Optimization;
+  else if (name == "CS")
+    res.type = AnalyzerType::CustomerSpecific;
+  else
+    throw ConfigException("Wrong analyzer name: " + name);
+
+  return res;
+}
+
+void ParseEnabledAnalyzers(std::string str, std::vector<Analyzer>& analyzers)
+{
+  analyzers.clear();
+
+  try
+  {
+    if (str == "all" || str == "ALL")
+    {
+      return;
+    }
+
+    ReplaceAll(str, "+", ";");
+    Split(str, ";", std::back_inserter(analyzers), &ParseEnabledAnalyzer);
+  }
+  catch (std::exception&)
+  {
+    throw ConfigException("Wrong analyzers format: " + str);
+  }
+}
+
+void Application::AddWorker(std::unique_ptr<IWorker> worker)
+{
+  if (!worker)
+  {
+    throw std::invalid_argument("worker is nullptr");
+  }
+
+  m_workers.push_back(std::move(worker));
+}
+
+int Application::Exec(int argc, const char** argv)
+{
+  try
+  {
+    SetCmdOptions(argc, argv);
+    SetConfigOptions(m_options.configFile);
+
+    if (m_workers.empty())
+    {
+      throw std::logic_error("No workers set, nothing to do");
+    }
+
+    for (int i = 0; i < argc; ++i)
+    {
+      for (const char *arg = argv[i]; *arg != '\0'; ++arg)
+      {
+        char c = *arg;
+        if (isalpha(c) || isdigit(c) || strchr(".,_-/", c) != nullptr)
+        {
+          m_options.cmdLine += c;
+        }
+        else
+        {
+          m_options.cmdLine += '\\';
+          m_options.cmdLine += c;
+        }
+      }
+      m_options.cmdLine += ' ';
+    }
+
+    for (auto &worker : m_workers)
+    {
+      worker->Run(m_options);
+    }
+  }
+  catch (const ConfigException& e)
+  {
+    const char* err = e.what();
+    if (err != nullptr && err[0] != '\0')
+      std::cerr << e.what() << std::endl;
+    return 1;
+  }
+  catch (const std::exception& e)
+  {
+    std::cerr << "Exception: " << e.what() << std::endl;
+    return 1;
+  }
+  return 0;
+}
+
+void Application::SetCmdOptions(int argc, const char** argv)
+{
+  using namespace args;
+
+  ArgumentParser parser("");
+#ifdef _WIN32
+  parser.Prog("HtmlGenerator");
+#else
+  parser.Prog("plog-converter");
+#endif
+  parser.helpParams.usageString = "Usage:";
+  parser.helpParams.progindent = 0;
+  parser.helpParams.width = 70;
+  parser.helpParams.progtailindent = unsigned(parser.helpParams.usageString.length() + parser.Prog().length() + 2);
+  parser.helpParams.helpindent = 30;
+  parser.helpParams.flagindent = 4;
+  parser.helpParams.optionsString = "Options:";
+  parser.helpParams.proglineShowFlags = true;
+  parser.helpParams.proglinePreferShortFlags = true;
+  parser.helpParams.showTerminator = false;
+  parser.helpParams.showValueName = false;
+  parser.helpParams.addDefault = true;
+  parser.helpParams.addChoices = true;
+
+  //todo case-insensitive flags/args
+  HelpFlag helpFlag(parser, "HELP", "Show this help page", { 'h', "help" }, Options::Hidden);
+
+  args::MapFlagList<std::string, OutputFactory::AllocFunction> renderTypes(parser, "TYPES", "Render types for output.",
+                                         { 't', "renderTypes" }, outputFactory.getMap());
+  ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
+  outputFile.HelpDefault("<stdout>");
+  ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
+  ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3'",
+                                  { 'a', "analyzer" }, "GA:1,2", Options::Single);
+  ValueFlag<std::string> excludedCodes(parser, "CODES", "Error codes to disable, i.e. V112,V122.", { 'd', "excludedCodes" }, Options::Single);
+  ValueFlag<std::string> settings(parser, "FILE", "Path to PVS-Studio settings file. Can be used to specify additional disabled error codes.",
+                                  { 's', "settings" }, Options::Single);
+  ValueFlag<std::string> name(parser, "FILENAME", "Template name for resulting output files.", { 'n', "name" }, Options::Single);
+  MapFlagList<std::string, SecurityCodeMapping> mappingTypes(parser, "NAME", "Enable mapping of PVS-Studio error codes to other rule sets.",
+                                                             { 'm',"errorCodeMapping" }, { { "cwe", SecurityCodeMapping::CWE } });
+  ValueFlag<std::string> projectName(parser, "PROJNAME", "Name of the project for fullhtml render type.", { 'p', "projectName" }, "", Options::Single);
+  ValueFlag<std::string> projectVersion(parser, "PROJVERSION", "Version of the project for fullhtml render type.", { 'v', "projectVersion" }, "", Options::Single);
+  Flag useCerr(parser, "CERR", "Use stderr instead of stdout.", { 'e', "cerr" }, Options::Single);
+  PositionalList<std::string> logs(parser, "logs", "Input files.", Options::Required | Options::HiddenFromDescription);
+  CompletionFlag comp(parser, {"complete"});
+
+  try
+  {
+    parser.ParseCLI(argc, argv);
+
+    m_options.output = Expand(get(outputFile));
+    std::transform(get(logs).begin(), get(logs).end(), std::back_inserter(m_options.inputFiles), &Expand);
+    m_options.projectRoot = Expand(get(sourceRoot));
+    m_options.formats = get(renderTypes);
+    m_options.projectName = get(projectName);
+    m_options.projectVersion = get(projectVersion);
+    m_options.codeMappings = get(mappingTypes);
+    m_options.configFile = Expand(get(settings));
+    m_options.outputName = Expand(get(name));
+    m_options.useStderr = useCerr;
+    Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
+    ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
+  }
+  catch (Completion &e)
+  {
+    std::cout << e.what();
+    exit(0);
+  }
+  catch (Help&)
+  {
+    std::cout << parser;
+    throw ConfigException("");
+  }
+  catch (Error &e)
+  {
+    std::cerr << e.what() << std::endl;
+    std::cout << parser;
+    throw ConfigException("");
+  }
+}
+
+void Application::SetConfigOptions(const std::string& path)
+{
+  if (path.empty())
+  {
+    return;
+  }
+
+  const static std::vector<std::string> multiArguments = { "exclude-path" };
+  std::string enabledAnalyzers;
+
+  ConfigParser configParser(path, multiArguments);
+  configParser.get("errors-off", m_options.disabledWarnings, " ");
+  configParser.getMulti("exclude-path", m_options.disabledPaths);
+  configParser.get("disabled-keywords", m_options.disabledKeywords);
+  configParser.get("enabled-analyzers", enabledAnalyzers);
+
+  if (m_options.projectRoot.empty())
+  {
+    configParser.get("sourcetree-root", m_options.projectRoot);
+    if (!m_options.projectRoot.empty())
+    {
+      m_options.projectRoot = Expand(m_options.projectRoot);
+    }
+  }
+
+  if (!enabledAnalyzers.empty())
+  {
+    ParseEnabledAnalyzers(enabledAnalyzers, m_options.enabledAnalyzers);
+  }
+}
+
+}
