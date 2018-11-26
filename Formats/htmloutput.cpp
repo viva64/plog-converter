@@ -65,6 +65,15 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
 
 HTMLOutput::~HTMLOutput() = default;
 
+static std::string GetLanguage()
+{
+#ifdef PVS_STUDIO_JAVA
+  return "java";
+#else
+  return "cpp";
+#endif
+}
+
 static char HtmlHead[] = R"(
 <!DOCTYPE HTML>
 <html>
@@ -120,8 +129,14 @@ static char SourceHead[] = R"(
   <script src="../jquery-3.2.1.min.js"></script>
 </head>
 <body>
-<pre><code class="cpp">
 )";
+
+static char SourceLanguage[] =
+#ifdef PVS_STUDIO_JAVA
+  R"(<pre><code class = "java">)";
+#else
+  R"(<pre><code class = "cpp">)";
+#endif
 
 static char SourceEndPre[] = R"(
 </code></pre>
@@ -402,7 +417,7 @@ void HTMLOutput::PrintFileSources()
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead << sourceHtml << SourceEndPre;
+      stream << SourceHead << SourceLanguage << sourceHtml << SourceEndPre;
 
       for (auto const &msg : m_messages)
       {
