@@ -65,15 +65,6 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
 
 HTMLOutput::~HTMLOutput() = default;
 
-static std::string GetLanguage()
-{
-#ifdef PVS_STUDIO_JAVA
-  return "java";
-#else
-  return "cpp";
-#endif
-}
-
 static char HtmlHead[] = R"(
 <!DOCTYPE HTML>
 <html>
