@@ -20,6 +20,14 @@ void ErrorFileOutput::Write(const Warning& msg)
   {
     if (security == SecurityCodeMapping::CWE && msg.HasCWE())
       securityPrefix += '[' + msg.GetCWEString() + ']';
+
+    if (security == SecurityCodeMapping::MISRA && msg.HasMISRA())
+    {
+      if (!securityPrefix.empty())
+        securityPrefix += " ";
+
+      securityPrefix += '[' + msg.GetMISRAString() + ']';
+    }
   }
 
   if (!securityPrefix.empty())

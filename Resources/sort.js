@@ -20,6 +20,8 @@ var table = function () {
               c[x].setAttribute('sort_attr', 'gsort');
             } else if (c[x].className == 'csort') {
               c[x].setAttribute('sort_attr', 'csort');
+            } else if (c[x].className == 'rsort') {
+              c[x].setAttribute('sort_attr', 'rsort');
             }
             c[x].className = 'head';
             c[x].onclick = new Function(this.n + '.work(this.cellIndex)')

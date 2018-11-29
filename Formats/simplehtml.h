@@ -18,7 +18,8 @@ public:
   void Write(const Warning& msg) override;
   void Finish() override;
 
-  static const int DefaultSecurityColumnWidth;
+  static const int DefaultCweColumnWidth;
+  static const int DefaultMISRAColumnWidth;
   static const int DefaultMessageColumnWidth;
 
 private:
@@ -26,10 +27,12 @@ private:
   std::vector<Warning> m_op;
   std::vector<Warning> m_64;
   std::vector<Warning> m_cs;
+  std::vector<Warning> m_misra;
   std::vector<Warning> m_info;
 
   int GetMessageColumnWidth() const;
-  int GetSecurityColumnWidth() const;
+  int GetCweColumnWidth() const;
+  int GetMISRAColumnWidth() const;
 
   void PrintHtmlStart();
   void PrintHtmlEnd();

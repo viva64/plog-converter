@@ -20,7 +20,7 @@ public:
 
 protected:
   bool ParseMessage(const std::string &line, Warning& msg);
-  unsigned ParseSecurityId(const std::vector<std::string> &alternativeNames, const std::string &idTypePrefix) const;
+  std::string ParseSecurityId(const std::vector<std::string> &alternativeNames, const std::string &idTypePrefix) const;
 
 private:
   std::vector<std::string> m_fields;

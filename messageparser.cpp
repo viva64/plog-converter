@@ -74,30 +74,33 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
   {
     std::vector<std::string> alternativeNames;
     Split(m_fields[13], ",", std::back_inserter(alternativeNames));
-    msg.cwe = ParseSecurityId(alternativeNames, Warning::CWEPrefix);
+    
+    //cwe
+    auto parseId = ParseSecurityId(alternativeNames, Warning::CWEPrefix);
+    if (!parseId.empty())
+      msg.cwe = static_cast<unsigned>(std::stoi(parseId));
+    else
+      msg.cwe = 0;
+    
+    //misra
+    msg.misra = ParseSecurityId(alternativeNames, Warning::MISRACorePrefix);
   }
   else
   {
     msg.cwe = 0;
+    msg.misra = "";
   }
 
   return true;
 }
 
-unsigned MessageParser::ParseSecurityId(const std::vector<std::string> &alternativeNames, const std::string &idTypePrefix) const
+std::string MessageParser::ParseSecurityId(const std::vector<std::string> &alternativeNames, const std::string &idTypePrefix) const
 {
-  unsigned parsedSecurityId = 0;
-
   for (const auto& security : alternativeNames)
-  {
     if (StartsWith(security, idTypePrefix))
-    {
-      std::string id = security.substr(idTypePrefix.length());
-      parsedSecurityId = static_cast<unsigned>(std::stoi(id));
-    }
-  }
+      return security.substr(idTypePrefix.length());
 
-  return parsedSecurityId;
+  return "";
 }
 
 void MessageParser::StringFromMessage(const Warning &msg, std::string &res)
@@ -147,7 +150,11 @@ void MessageParser::StringFromMessage(const Warning &msg, std::string &res)
   {
     res += msg.GetCWEString();
   }
+  res += delimiter;
+  if (msg.HasMISRA())
+  {
+    res += msg.GetMISRAString();
+  }
 }
 
 }
-

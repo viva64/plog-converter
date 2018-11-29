@@ -30,6 +30,9 @@ void CSVOutput::Start()
   {
     if (security == SecurityCodeMapping::CWE)
       m_ostream << "CWE" << ',';
+    
+    if (security == SecurityCodeMapping::MISRA)
+      m_ostream << "MISRA" << ',';
   }
 
   m_ostream << "Message" << ','
@@ -50,6 +53,14 @@ void CSVOutput::Write(const Warning& msg)
     {
       if (msg.HasCWE())
         m_ostream << "\"=HYPERLINK(\"\"" << msg.GetCWEUrl() << "\"\", \"\"" << msg.GetCWEString() << "\"\")\"" << ',';
+      else
+        m_ostream << " ,";
+    }
+    
+    if (security == SecurityCodeMapping::MISRA)
+    {
+      if (msg.HasMISRA())
+        m_ostream << "\"=HYPERLINK(\"\"" << msg.GetVivaUrl() << "\"\", \"\"" << msg.GetMISRAString() << "\"\")\"" << ',';
       else
         m_ostream << " ,";
     }

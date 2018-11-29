@@ -55,8 +55,8 @@ TEST_CASE("plog-converter -a")
   ParseEnabledAnalyzers("ALL", analyzers);
   REQUIRE(analyzers.empty());
 
-  ParseEnabledAnalyzers("GA:1,2;64:1;OP:1,2,3;CS:1", analyzers);
-  REQUIRE(analyzers.size() == 4);
+  ParseEnabledAnalyzers("GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2", analyzers);
+  REQUIRE(analyzers.size() == 5);
   REQUIRE(analyzers[0].type == AnalyzerType::General);
   REQUIRE(analyzers[0].levels == (std::vector<int>{1, 2}));
   REQUIRE(analyzers[1].type == AnalyzerType::Viva64);
@@ -65,5 +65,6 @@ TEST_CASE("plog-converter -a")
   REQUIRE(analyzers[2].levels == (std::vector<int>{1, 2, 3}));
   REQUIRE(analyzers[3].type == AnalyzerType::CustomerSpecific);
   REQUIRE(analyzers[3].levels == (std::vector<int>{1}));
+  REQUIRE(analyzers[4].type == AnalyzerType::Misra);
+  REQUIRE(analyzers[4].levels == (std::vector<int>{1, 2}));
 }
-

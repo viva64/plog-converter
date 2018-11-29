@@ -22,7 +22,8 @@ enum class AnalyzerType
   Viva64           = 2,
   Optimization     = 3,
   CustomerSpecific = 4,
-  Unknown          = 5
+  Misra            = 5,
+  Unknown          = 6
 };
 
 struct Analyzer
@@ -85,7 +86,11 @@ struct WarningPosition
 struct Warning
 {
   constexpr static const char*      CWEPrefix = "CWE-";
-
+  
+  constexpr static const char*      MISRACorePrefix = "MISRA: ";
+  constexpr static const char*      MISRAPrefixC = "MISRA C ";
+  constexpr static const char*      MISRAPrefixCPlusPlus = "MISRA C++ ";
+  
   std::string                       code;
   std::string                       message;
   std::vector<WarningPosition>      positions;
@@ -93,7 +98,7 @@ struct Warning
   std::vector<std::string>          stacktrace;
   std::vector<std::string>          projects;
   unsigned                          cwe = 0;
-  unsigned                          misra = 0;
+  std::string                       misra;
   unsigned                          level = 0;
   bool                              favorite = false;
   bool                              falseAlarm = false;
@@ -121,6 +126,7 @@ struct Warning
   bool                              IsRenewMessage() const;
   bool                              HasProjects() const;
   bool                              HasCWE() const;
+  bool                              HasMISRA() const;
 
   AnalyzerType                      GetType() const;
   unsigned                          GetErrorCode() const;
@@ -130,6 +136,7 @@ struct Warning
   std::string                       GetVivaUrl() const;
   std::string                       GetCWEUrl() const;
   std::string                       GetCWEString() const;
+  std::string                       GetMISRAString() const;
   std::vector<unsigned>             GetExtendedLines() const;
 
   std::string                       GetLevelString() const;
@@ -142,4 +149,3 @@ struct Warning
 }
 
 #endif // ANALYZERMESSAGE
-

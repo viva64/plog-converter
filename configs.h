@@ -14,7 +14,8 @@ namespace PlogConverter
 
 enum class SecurityCodeMapping
 {
-  CWE
+  CWE,
+  MISRA
 };
 
 struct Analyzer;
@@ -41,8 +42,6 @@ struct ProgramOptions
   bool                                        useStderr = false;
 };
 
-
 }
 
 #endif // CONFIGS
-

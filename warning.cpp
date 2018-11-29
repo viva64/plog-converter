@@ -26,9 +26,13 @@ AnalyzerType Warning::GetType() const
   {
     return AnalyzerType::General;
   }
-  else if (errorCode >= 2000 && errorCode <= 2999)
+  else if (errorCode >= 2000 && errorCode <= 2499)
   {
     return AnalyzerType::CustomerSpecific;
+  }
+  else if (errorCode >= 2500 && errorCode <= 2999)
+  {
+    return AnalyzerType::Misra;
   }
   else if (errorCode >= 3000 && errorCode <= 3999)
   {
@@ -105,9 +109,24 @@ std::string Warning::GetCWEString() const
   return cwe == 0 ? "" : CWEPrefix + std::to_string(cwe);
 }
 
+std::string Warning::GetMISRAString() const
+{
+  if (misra.find('-') != std::string::npos)
+    return MISRAPrefixCPlusPlus + misra;
+  else if (misra.find('.') != std::string::npos)
+    return MISRAPrefixC + misra;
+  else
+    return "";
+}
+
 bool Warning::HasCWE() const
 {
   return cwe != 0;
+}
+
+bool Warning::HasMISRA() const
+{
+  return !misra.empty();
 }
 
 bool Warning::HasProjects() const

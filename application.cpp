@@ -32,6 +32,8 @@ Analyzer ParseEnabledAnalyzer(const std::string &str)
     res.type = AnalyzerType::Optimization;
   else if (name == "CS")
     res.type = AnalyzerType::CustomerSpecific;
+  else if (name == "MISRA")
+    res.type = AnalyzerType::Misra;
   else
     throw ConfigException("Wrong analyzer name: " + name);
 
@@ -150,14 +152,14 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
   outputFile.HelpDefault("<stdout>");
   ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
-  ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3'",
+  ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2'",
                                   { 'a', "analyzer" }, "GA:1,2", Options::Single);
   ValueFlag<std::string> excludedCodes(parser, "CODES", "Error codes to disable, i.e. V112,V122.", { 'd', "excludedCodes" }, Options::Single);
   ValueFlag<std::string> settings(parser, "FILE", "Path to PVS-Studio settings file. Can be used to specify additional disabled error codes.",
                                   { 's', "settings" }, Options::Single);
   ValueFlag<std::string> name(parser, "FILENAME", "Template name for resulting output files.", { 'n', "name" }, Options::Single);
   MapFlagList<std::string, SecurityCodeMapping> mappingTypes(parser, "NAME", "Enable mapping of PVS-Studio error codes to other rule sets.",
-                                                             { 'm',"errorCodeMapping" }, { { "cwe", SecurityCodeMapping::CWE } });
+                                                             { 'm',"errorCodeMapping" }, { { "cwe", SecurityCodeMapping::CWE }, { "misra", SecurityCodeMapping::MISRA } });
   ValueFlag<std::string> projectName(parser, "PROJNAME", "Name of the project for fullhtml render type.", { 'p', "projectName" }, "", Options::Single);
   ValueFlag<std::string> projectVersion(parser, "PROJVERSION", "Version of the project for fullhtml render type.", { 'v', "projectVersion" }, "", Options::Single);
   Flag useCerr(parser, "CERR", "Use stderr instead of stdout.", { 'e', "cerr" }, Options::Single);

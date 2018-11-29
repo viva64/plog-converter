@@ -34,6 +34,11 @@ void XMLOutput::Write(const Warning& msg)
     m_ostream << "    <CWECode>" << msg.GetCWEString() << "</CWECode>" << std::endl;
   }
 
+  if (msg.HasMISRA())
+  {
+    m_ostream << "    <MISRA>" << msg.GetMISRAString() << "</MISRA>" << std::endl;
+  }
+
   m_ostream << "  </PVS-Studio_Analysis_Log>" << std::endl;
 }
 
