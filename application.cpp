@@ -82,6 +82,13 @@ int Application::Exec(int argc, const char** argv)
       throw std::logic_error("No workers set, nothing to do");
     }
 
+    if (std::find(m_options.codeMappings.cbegin(), m_options.codeMappings.cend(), SecurityCodeMapping::MISRA) != m_options.codeMappings.cend() &&
+        !m_options.enabledAnalyzers.empty() &&
+        std::find_if(m_options.enabledAnalyzers.cbegin(), m_options.enabledAnalyzers.cend(), [](const Analyzer& item) { return item.type == AnalyzerType::Misra; }) == m_options.enabledAnalyzers.cend())
+    {
+      std::cout << "MISRA mapping is specified, but MISRA rules group is not enabled. Check the '-" << CmdAnalyzerFlagName_Short <<"' flag." << std::endl;
+    }
+
     for (int i = 0; i < argc; ++i)
     {
       for (const char *arg = argv[i]; *arg != '\0'; ++arg)
@@ -120,6 +127,9 @@ int Application::Exec(int argc, const char** argv)
   return 0;
 }
 
+const char Application::CmdAnalyzerFlagName_Short = 'a';
+const std::string Application::CmdAnalyzerFlagName_Full = "analyzer";
+
 void Application::SetCmdOptions(int argc, const char** argv)
 {
   using namespace args;
@@ -153,7 +163,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   outputFile.HelpDefault("<stdout>");
   ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
   ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2'",
-                                  { 'a', "analyzer" }, "GA:1,2", Options::Single);
+                                  { CmdAnalyzerFlagName_Short, CmdAnalyzerFlagName_Full }, "GA:1,2", Options::Single);
   ValueFlag<std::string> excludedCodes(parser, "CODES", "Error codes to disable, i.e. V112,V122.", { 'd', "excludedCodes" }, Options::Single);
   ValueFlag<std::string> settings(parser, "FILE", "Path to PVS-Studio settings file. Can be used to specify additional disabled error codes.",
                                   { 's', "settings" }, Options::Single);

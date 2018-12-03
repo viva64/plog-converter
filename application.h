@@ -18,6 +18,9 @@ void ParseEnabledAnalyzers(std::string str, std::vector<Analyzer>& analyzers);
 class Application
 {
 public:
+  static const char CmdAnalyzerFlagName_Short;
+  static const std::string CmdAnalyzerFlagName_Full;
+
   int Exec(int argc, const char **argv);
   void AddWorker(std::unique_ptr<IWorker> worker);
 
