@@ -111,6 +111,11 @@ std::string Warning::GetCWEString() const
 
 std::string Warning::GetMISRAString() const
 {
+  return std::string(Warning::MISRACorePrefix) + misra;
+}
+
+std::string Warning::GetMISRAStringWithLanguagePrefix() const
+{
   if (misra.find('-') != std::string::npos)
     return MISRAPrefixCPlusPlus + misra;
   else if (misra.find('.') != std::string::npos)

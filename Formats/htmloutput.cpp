@@ -368,7 +368,7 @@ void HTMLOutput::PrintTableBody()
       {
         if (err.HasMISRA())
           m_ofstream << R"(      <td id="col_misra"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)"
-                     << err.GetMISRAString() << R"(</td>)" << std::endl;
+                     << err.GetMISRAStringWithLanguagePrefix() << R"(</td>)" << std::endl;
         else
           m_ofstream << R"(      <td id="col_misra"></td>)" << std::endl;
       }

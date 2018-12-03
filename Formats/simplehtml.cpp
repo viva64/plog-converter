@@ -175,7 +175,7 @@ void SimpleHTMLOutput::PrintMessages(const std::vector<Warning> &messages, const
       {
         if (err.HasMISRA())
           m_ostream << R"(      <td style='width: )" << GetMISRAColumnWidth() << R"(%;'><a target="_blank" href=')"
-                    << err.GetVivaUrl() << R"('>)" << err.GetMISRAString() << R"(</a></td>)" << endl;
+                    << err.GetVivaUrl() << R"('>)" << err.GetMISRAStringWithLanguagePrefix() << R"(</a></td>)" << endl;
         else
           m_ostream << R"(      <th style="width: )" << GetMISRAColumnWidth() << R"(%;"></th>)" << endl;
       }

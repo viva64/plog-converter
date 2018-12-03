@@ -60,7 +60,7 @@ void CSVOutput::Write(const Warning& msg)
     if (security == SecurityCodeMapping::MISRA)
     {
       if (msg.HasMISRA())
-        m_ostream << "\"=HYPERLINK(\"\"" << msg.GetVivaUrl() << "\"\", \"\"" << msg.GetMISRAString() << "\"\")\"" << ',';
+        m_ostream << "\"=HYPERLINK(\"\"" << msg.GetVivaUrl() << "\"\", \"\"" << msg.GetMISRAStringWithLanguagePrefix() << "\"\")\"" << ',';
       else
         m_ostream << " ,";
     }

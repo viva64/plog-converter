@@ -36,7 +36,7 @@ void XMLOutput::Write(const Warning& msg)
 
   if (msg.HasMISRA())
   {
-    m_ostream << "    <MISRA>" << msg.GetMISRAString() << "</MISRA>" << std::endl;
+    m_ostream << "    <MISRA>" << msg.GetMISRAStringWithLanguagePrefix() << "</MISRA>" << std::endl;
   }
 
   m_ostream << "  </PVS-Studio_Analysis_Log>" << std::endl;

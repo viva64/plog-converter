@@ -146,13 +146,19 @@ void MessageParser::StringFromMessage(const Warning &msg, std::string &res)
   res += delimiter;
   join(msg.GetExtendedLines(), ",", [](auto &s) { return std::to_string(s); });
   res += delimiter;
+  
   if(msg.HasCWE())
   {
     res += msg.GetCWEString();
   }
-  res += delimiter;
+
   if (msg.HasMISRA())
   {
+    if (msg.HasCWE())
+    {
+      res += ',';
+    }
+
     res += msg.GetMISRAString();
   }
 }

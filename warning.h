@@ -137,6 +137,7 @@ struct Warning
   std::string                       GetCWEUrl() const;
   std::string                       GetCWEString() const;
   std::string                       GetMISRAString() const;
+  std::string                       GetMISRAStringWithLanguagePrefix() const;
   std::vector<unsigned>             GetExtendedLines() const;
 
   std::string                       GetLevelString() const;

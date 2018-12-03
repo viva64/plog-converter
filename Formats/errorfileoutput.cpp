@@ -26,7 +26,7 @@ void ErrorFileOutput::Write(const Warning& msg)
       if (!securityPrefix.empty())
         securityPrefix += " ";
 
-      securityPrefix += '[' + msg.GetMISRAString() + ']';
+      securityPrefix += '[' + msg.GetMISRAStringWithLanguagePrefix() + ']';
     }
   }
 
