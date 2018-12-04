@@ -88,7 +88,7 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
   else
   {
     msg.cwe = 0;
-    msg.misra = "";
+    msg.misra.clear();
   }
 
   return true;
