@@ -26,19 +26,21 @@ void TaskListOutput::Write(const Warning& msg)
   for (const auto& security : m_errorCodeMappings)
   {
     if (security == SecurityCodeMapping::CWE && msg.HasCWE())
-      securityPrefix += '[' + msg.GetCWEString() + ']';
+      securityPrefix += msg.GetCWEString();
 
     if (security == SecurityCodeMapping::MISRA && msg.HasMISRA())
     {
       if (!securityPrefix.empty())
-        securityPrefix += " ";
+        securityPrefix += ", ";
 
-      securityPrefix += '[' + msg.GetMISRAStringWithLanguagePrefix() + ']';
+      securityPrefix += msg.GetMISRAStringWithLanguagePrefix();
     }
   }
 
   if (!securityPrefix.empty())
-    securityPrefix += " ";
+  {
+    securityPrefix = '[' + securityPrefix + "] ";
+  }
 
   m_ostream << msg.GetFile() << "\t" << msg.GetLine() << "\t"
             << msg.GetLevelString("err", "warn", "note") << "\t"
