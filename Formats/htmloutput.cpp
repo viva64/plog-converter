@@ -123,13 +123,6 @@ static char SourceHead[] = R"(
 <body>
 )";
 
-static char SourceLanguage[] =
-#ifdef PVS_STUDIO_JAVA
-  R"(<pre><code class = "java">)";
-#else
-  R"(<pre><code class = "cpp">)";
-#endif
-
 static char SourceEndPre[] = R"(
 </code></pre>
 )";
@@ -423,11 +416,26 @@ void HTMLOutput::PrintFileSources()
     if (!sourceHtml.empty())
     {
       const auto shortFileName = FileBaseName(sourcePath);
+      const auto fileExt = ToLower(FileExtension(shortFileName));
       const auto htmlPath = m_directory + "/sources/" + shortFileName + "_" + std::to_string(p.second) + ".html";
+
+      std::string sourceLanguage;
+      if(fileExt == "java")
+      {
+        sourceLanguage = R"(<pre><code class = "java">)";
+      }
+      else if(fileExt == "cs")
+      {
+        sourceLanguage = R"(<pre><code class = "cs">)";
+      }
+      else
+      {
+        sourceLanguage = R"(<pre><code class = "cpp">)";
+      }
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead << SourceLanguage << sourceHtml << SourceEndPre;
+      stream << SourceHead << sourceLanguage << sourceHtml << SourceEndPre;
 
       for (auto const &msg : m_messages)
       {

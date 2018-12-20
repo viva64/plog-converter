@@ -162,6 +162,12 @@ std::string FileStem(const std::string &filePath)
   return filePath.substr(0, filePath.find_last_of('.'));
 }
 
+std::string FileExtension(const std::string &filePath)
+{
+  const size_t dotPos = filePath.find_last_of('.');
+  return (dotPos != std::string::npos) ? filePath.substr(dotPos + 1) : "";
+}
+
 bool IsDirectory(const std::string &path)
 {
 #ifdef _WIN32

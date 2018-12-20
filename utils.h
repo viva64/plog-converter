@@ -89,6 +89,7 @@ std::ifstream OpenFile(const std::string &path);
 std::string Expand(const std::string &path);
 std::string FileBaseName(const std::string &filePath);
 std::string FileStem(const std::string &path);
+std::string FileExtension(const std::string &path);
 
 bool IsDirectory(const std::string &path);
 bool MakeDirectory(const std::string &path);
