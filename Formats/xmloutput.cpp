@@ -29,6 +29,12 @@ void XMLOutput::Write(const Warning& msg)
             << "    <Line>" << msg.GetLine() << "</Line>" << std::endl
             << "    <File>" << msg.GetFile() << "</File>" << std::endl;
 
+  auto extendedLines = msg.GetExtendedLines();
+  if(extendedLines.size() > 1)
+  {
+    m_ostream << "    <LineExtension>" << Join(extendedLines, [](auto v) { return std::to_string(v); }, ",") << "</LineExtension>" << std::endl;
+  }
+
   if (msg.HasCWE())
   {
     m_ostream << "    <CWECode>" << msg.GetCWEString() << "</CWECode>" << std::endl;
