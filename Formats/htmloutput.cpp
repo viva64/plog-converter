@@ -435,7 +435,8 @@ void HTMLOutput::PrintFileSources()
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead << sourceLanguage << sourceHtml << SourceEndPre;
+      stream << SourceHead << sourceLanguage << std::endl;
+      stream << sourceHtml << SourceEndPre;
 
       for (auto const &msg : m_messages)
       {
