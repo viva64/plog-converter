@@ -1,5 +1,5 @@
 //  2006-2008 (c) Viva64.com Team
-//  2008-2018 (c) OOO "Program Verification Systems"
+//  2008-2019 (c) OOO "Program Verification Systems"
 
 #ifndef SIMPLEHTMLOUTPUT_H
 #define SIMPLEHTMLOUTPUT_H
