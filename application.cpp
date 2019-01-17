@@ -74,6 +74,13 @@ int Application::Exec(int argc, const char** argv)
 {
   try
   {
+#ifdef _WIN32
+    std::cout << AppName_Win << std::endl;
+#else
+    std::cout << AppName_Default << std::endl;
+#endif
+    std::cout << "Copyright (c) 2008-2019 OOO \"Program Verification Systems\"" << std::endl;
+    
     SetCmdOptions(argc, argv);
     SetConfigOptions(m_options.configFile);
 
@@ -127,6 +134,9 @@ int Application::Exec(int argc, const char** argv)
   return 0;
 }
 
+const std::string Application::AppName_Default = "plog-converter";
+const std::string Application::AppName_Win = "HtmlGenerator";
+
 const char Application::CmdAnalyzerFlagName_Short = 'a';
 const std::string Application::CmdAnalyzerFlagName_Full = "analyzer";
 
@@ -136,9 +146,9 @@ void Application::SetCmdOptions(int argc, const char** argv)
 
   ArgumentParser parser("");
 #ifdef _WIN32
-  parser.Prog("HtmlGenerator");
+  parser.Prog(AppName_Win);
 #else
-  parser.Prog("plog-converter");
+  parser.Prog(AppName_Default);
 #endif
   parser.helpParams.usageString = "Usage:";
   parser.helpParams.progindent = 0;
