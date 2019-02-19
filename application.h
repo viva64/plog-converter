@@ -20,6 +20,7 @@ class Application
 public:
   static const std::string AppName_Default;
   static const std::string AppName_Win;
+  static const std::string AboutPVSStudio;
 
   static const char CmdAnalyzerFlagName_Short;
   static const std::string CmdAnalyzerFlagName_Full;

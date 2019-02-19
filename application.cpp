@@ -80,6 +80,7 @@ int Application::Exec(int argc, const char** argv)
     std::cout << AppName_Default << std::endl;
 #endif
     std::cout << "Copyright (c) 2008-2019 OOO \"Program Verification Systems\"" << std::endl;
+    std::cout << AboutPVSStudio << std::endl;
     
     SetCmdOptions(argc, argv);
     SetConfigOptions(m_options.configFile);
@@ -134,8 +135,13 @@ int Application::Exec(int argc, const char** argv)
   return 0;
 }
 
-const std::string Application::AppName_Default = "plog-converter";
-const std::string Application::AppName_Win = "HtmlGenerator";
+const std::string Application::AppName_Default = "Analyzer log conversion tool.";
+const std::string Application::AppName_Win = "Analyzer log conversion tool.";
+const std::string Application::AboutPVSStudio = R"(
+PVS-Studio is a static code analyzer and SAST (static application security
+testing) tool that is available for C and C++ desktop and embedded development,
+C# and Java under Windows, Linux and macOS.
+)";
 
 const char Application::CmdAnalyzerFlagName_Short = 'a';
 const std::string Application::CmdAnalyzerFlagName_Full = "analyzer";
