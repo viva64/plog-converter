@@ -117,6 +117,7 @@ sorter.init("sorter",0);
 static char SourceHead[] = R"(
 <html>
 <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" href="../style.css"/>
   <script src="../jquery-3.2.1.min.js"></script>
 </head>
