@@ -45,7 +45,7 @@ private:
   void PrintTableInfo();
   void PrintTableCaption();
   void PrintTableBody();
-  std::string GenerateSourceHtml(const std::string &sourcePath);
+  std::string GenerateSourceHtml(std::stringstream &sourceFile);
 
 public:
   explicit HTMLOutput(const ProgramOptions &);

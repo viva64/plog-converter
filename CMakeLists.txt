@@ -46,6 +46,9 @@ add_library(plog STATIC
 
 target_include_directories(plog PUBLIC . ThirdParty "${CMAKE_CURRENT_BINARY_DIR}")
 
+add_subdirectory(ThirdParty/compact_enc_det)
+target_link_libraries(plog ced)
+
 add_executable(plog-converter main.cpp)
 target_link_libraries(plog-converter plog)
 

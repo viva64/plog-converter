@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "compact_enc_det/compact_enc_det.h"
+
 namespace PlogConverter
 {
 
@@ -114,10 +116,12 @@ sorter.init("sorter",0);
 </html>
 )";
 
-static char SourceHead[] = R"(
+static char SourceHead1[] = R"(
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=)";
+
+static char SourceHead2[] = R"(" />
   <link rel="stylesheet" href="../style.css"/>
   <script src="../jquery-3.2.1.min.js"></script>
 </head>
@@ -373,15 +377,8 @@ void HTMLOutput::PrintTableBody()
   }
 }
 
-std::string HTMLOutput::GenerateSourceHtml(const std::string &sourcePath)
+std::string HTMLOutput::GenerateSourceHtml(std::stringstream &sourceFile)
 {
-  std::ifstream sourceFile(sourcePath);
-  if (!sourceFile.is_open())
-  {
-    std::cerr << "Warning: Can't open file: " << sourcePath << '\n';
-    return {};
-  }
-
   std::string sourceHtml;
   std::string line;
   size_t i = 1;
@@ -403,7 +400,6 @@ std::string HTMLOutput::GenerateSourceHtml(const std::string &sourcePath)
     i++;
   }
 
-  sourceFile.close();
   return sourceHtml;
 }
 
@@ -412,13 +408,30 @@ void HTMLOutput::PrintFileSources()
   for (const auto &p : m_map)
   {
     const auto &sourcePath = p.first;
-    const auto sourceHtml = GenerateSourceHtml(sourcePath);
+
+    std::ifstream sourceFile(sourcePath);
+    if (!sourceFile.is_open())
+    {
+      std::cerr << "Warning: Can't open file: " << sourcePath << '\n';
+      continue;
+    }
+    std::stringstream sourceFileStr;
+    sourceFileStr << sourceFile.rdbuf();
+    sourceFile.close();
+    const auto sourceHtml = GenerateSourceHtml(sourceFileStr);
 
     if (!sourceHtml.empty())
     {
       const auto shortFileName = FileBaseName(sourcePath);
       const auto fileExt = ToLower(FileExtension(shortFileName));
       const auto htmlPath = m_directory + "/sources/" + shortFileName + "_" + std::to_string(p.second) + ".html";
+      int bytes_consumed;
+      bool is_reliable;
+      const auto fileEncoding = CompactEncDet::DetectEncoding(sourceFileStr.str().c_str(),
+        static_cast<int>(sourceFileStr.str().length()), nullptr, nullptr, nullptr,
+        UNKNOWN_ENCODING, UNKNOWN_LANGUAGE, CompactEncDet::TextCorpusType::QUERY_CORPUS, true,
+        &bytes_consumed, &is_reliable);
+      const auto mimeEncodingString = MimeEncodingName(fileEncoding);
 
       std::string sourceLanguage;
       if(fileExt == "java")
@@ -436,7 +449,8 @@ void HTMLOutput::PrintFileSources()
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead << sourceLanguage << std::endl;
+      stream << SourceHead1 << mimeEncodingString << SourceHead2;
+      stream << sourceLanguage << std::endl;
       stream << sourceHtml << SourceEndPre;
 
       for (auto const &msg : m_messages)
