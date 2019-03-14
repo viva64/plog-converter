@@ -2095,7 +2095,7 @@ void ApplyHints(const char* url_hint,
   if (hint_count == 0) {
     destatep->looking_for_latin_trigrams = true;    // Default needs trigrams
     destatep->declared_enc_2 = destatep->declared_enc_1;
-    hint_count += ApplyDefaultHint(corpus_type, destatep);
+    hint_count += ApplyDefaultHint(corpus_type, destatep); // NOLINT(clang-analyzer-deadcode.DeadStores)
   }
 
 
@@ -5348,7 +5348,7 @@ Encoding InternalDetectEncoding(
         // Saves byte pair and offset
         //printf("Interesting very last fast byte = 0x%02x\n", *src);
         IncrementAndBoostPrune(src, srctextlimit - src, &destate, 0, exit_reason);
-        very_last_byte_incremented = true;
+        very_last_byte_incremented = true; // NOLINT(clang-analyzer-deadcode.DeadStores)
       }
     }
 
@@ -5459,7 +5459,7 @@ Encoding InternalDetectEncoding(
     }
   } else {
     // [~ 3% of the web] Two or more hints that are inconsistent
-    one_hint = UNKNOWN_ENCODING;
+    one_hint = UNKNOWN_ENCODING; // NOLINT(clang-analyzer-deadcode.DeadStores)
     found_compatible_encoding = false;
   }
 
