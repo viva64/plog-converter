@@ -119,9 +119,9 @@ sorter.init("sorter",0);
 static char SourceHead1[] = R"(
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=)";
+)";
 
-static char SourceHead2[] = R"(" />
+static char SourceHead2[] = R"(
   <link rel="stylesheet" href="../style.css"/>
   <script src="../jquery-3.2.1.min.js"></script>
 </head>
@@ -449,7 +449,10 @@ void HTMLOutput::PrintFileSources()
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead1 << mimeEncodingString << SourceHead2;
+      stream << SourceHead1 << std::endl;
+      stream << R"(  <meta http-equiv="Content-Type" content="text/html; charset=)" << mimeEncodingString << R"(" />)" << std::endl;
+      stream << R"(  <title>)" << shortFileName << R"(</title>)" << std::endl;
+      stream << SourceHead2 << std::endl;
       stream << sourceLanguage << std::endl;
       stream << sourceHtml << SourceEndPre;
 
