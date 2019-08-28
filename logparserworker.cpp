@@ -4,19 +4,21 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "logparserworker.h"
-#include "utils.h"
-#include <string>
-#include <iostream>
-#include <cstdlib>
-#include <iterator>
-#include <functional>
-#include <unordered_set>
 #include <algorithm>
-#include "outputfactory.h"
-#include "messagefilter.h"
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <unordered_set>
+
+#include "application.h"
 #include "charmap.h"
+#include "logparserworker.h"
+#include "messagefilter.h"
 #include "multipleoutput.h"
+#include "outputfactory.h"
+#include "utils.h"
 
 namespace PlogConverter
 {

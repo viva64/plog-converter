@@ -5,11 +5,13 @@
 #define LOGPARSERWORKER_H
 #include <memory>
 #include <unordered_set>
+
+#include "application.h"
+#include "ioutput.h"
 #include "iworker.h"
+#include "messagefilter.h"
 #include "messageparser.h"
 #include "warning.h"
-#include "ioutput.h"
-#include "messagefilter.h"
 
 namespace PlogConverter
 {

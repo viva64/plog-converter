@@ -6,6 +6,7 @@
 #include "configparser.h"
 #include "warning.h"
 #include "outputfactory.h"
+#include "logparserworker.h"
 #include "utils.h"
 #include <iostream>
 #include <cstring>
@@ -132,6 +133,19 @@ int Application::Exec(int argc, const char** argv)
     std::cerr << "Exception: " << e.what() << std::endl;
     return 1;
   }
+
+  if (m_options.indicateWarnings)
+  {
+    for (auto &worker : m_workers)
+    {
+      auto logWorker = dynamic_cast<const PlogConverter::LogParserWorker*>(worker.get());
+      if (logWorker != nullptr && logWorker->GetPrintedWarnings() > 0)
+      {
+        return 2;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -189,6 +203,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> projectName(parser, "PROJNAME", "Name of the project for fullhtml render type.", { 'p', "projectName" }, "", Options::Single);
   ValueFlag<std::string> projectVersion(parser, "PROJVERSION", "Version of the project for fullhtml render type.", { 'v', "projectVersion" }, "", Options::Single);
   Flag useCerr(parser, "CERR", "Use stderr instead of stdout.", { 'e', "cerr" }, Options::Single);
+  Flag indicateWarnings(parser, "INDICATEWARNINGS", "Set this option to detect the presense of analyzer warnings after filtering analysis log by setting the converter exit code to '2'.", { 'w', "indicate-warnings" }, Options::Single);
   PositionalList<std::string> logs(parser, "logs", "Input files.", Options::Required | Options::HiddenFromDescription);
   CompletionFlag comp(parser, {"complete"});
 
@@ -206,6 +221,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.configFile = Expand(get(settings));
     m_options.outputName = Expand(get(name));
     m_options.useStderr = useCerr;
+    m_options.indicateWarnings = indicateWarnings;
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
   }

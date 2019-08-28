@@ -40,6 +40,7 @@ struct ProgramOptions
   std::string                                 projectName;
   std::string                                 projectVersion;
   bool                                        useStderr = false;
+  bool                                        indicateWarnings = false;
 };
 
 }
