@@ -44,6 +44,11 @@ void LogParserWorker::OnWarning(Warning &warning)
       m_output->Write(warning);
     }
 
+    if (warning.IsRenewMessage())
+    {
+      ++m_countNonError;
+    }
+
     ++m_countSuccess;
   }
 
@@ -183,7 +188,7 @@ size_t LogParserWorker::GetTotalWarnings() const
 
 size_t LogParserWorker::GetPrintedWarnings() const
 {
-  return m_countSuccess;
+  return m_countSuccess - m_countNonError;
 }
 
 }

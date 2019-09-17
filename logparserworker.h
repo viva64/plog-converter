@@ -48,6 +48,7 @@ private:
 
   MessageParser m_messageParser;
   size_t m_countSuccess = 0;
+  size_t m_countNonError = 0;
   size_t m_countTotal = 0;
   IMessageFilter *m_filter = nullptr;
   IOutput *m_output = nullptr;
