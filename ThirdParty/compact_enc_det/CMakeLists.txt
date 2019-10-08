@@ -1,10 +1,8 @@
 #  2006-2008 (c) Viva64.com Team
 #  2008-2019 (c) OOO "Program Verification Systems"
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 2.8.12)
 project(ced CXX)
-
-set(CMAKE_CXX_STANDARD 14)
 
 if (NOT PVS_STUDIO_SHARED)
     set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
