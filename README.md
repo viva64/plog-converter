@@ -1,4 +1,4 @@
-Plog Converter
+Plog Converter [![Build Status](https://travis-ci.org/viva64/homebrew-pvs-studio.svg?branch=master)](https://travis-ci.org/viva64/plog-converter) [![Docs](	https://img.shields.io/readthedocs/pip.svg)](https://www.viva64.com/en/m/0036/) ![Platforms](https://img.shields.io/badge/platform-linux%20|%20macos-green)
 ===============================
 
 To convert the analyzer bug report to different formats (xml, tasks and so on) you can use the Plog Converter.
@@ -9,24 +9,10 @@ More detailed description is available on the [documentation page](https://www.v
 Compilation
 --------------
 
-You should use g++ (versions 5.4 or newer) or clang++ (versions 3.8 or newer) and CMake to compile the utility. No additional libraries are required.
-
 ```
-mkdir build
-cd build
+mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j8
-sudo make install
-```
-
-Compiling plog-converter with Clang:
-
-```
-mkdir build
-cd build
-CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j8
-sudo make install
 ```
 
 Usage
