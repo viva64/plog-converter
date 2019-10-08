@@ -1,5 +1,7 @@
-Plog Converter [![Build Status](https://travis-ci.org/viva64/homebrew-pvs-studio.svg?branch=master)](https://travis-ci.org/viva64/plog-converter) [![Docs](	https://img.shields.io/readthedocs/pip.svg)](https://www.viva64.com/en/m/0036/) ![Platforms](https://img.shields.io/badge/platform-linux%20|%20macos-green)
-===============================
+Plog Converter
+==============
+[![Build Status](https://travis-ci.org/viva64/homebrew-pvs-studio.svg?branch=master)](https://travis-ci.org/viva64/plog-converter) [![Docs](	https://img.shields.io/readthedocs/pip.svg)](https://www.viva64.com/en/m/0036/) ![Platforms](https://img.shields.io/badge/platform-linux%20|%20macos-green)
+
 
 To convert the analyzer bug report to different formats (xml, tasks and so on) you can use the Plog Converter.
 It is applicable for cross-platform working scenarios (C++, Java) on all supported operating systems when checking Makefile, CMake, QMake, Ninja, WAF projects.
@@ -10,9 +12,10 @@ Compilation
 --------------
 
 ```
-mkdir build && cd build
+mkdir build
+cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j8
+make
 ```
 
 Usage
