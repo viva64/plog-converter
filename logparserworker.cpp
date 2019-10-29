@@ -39,17 +39,20 @@ void LogParserWorker::OnWarning(Warning &warning)
 
   if (m_filter == nullptr || m_filter->Check(warning))
   {
-    if (!warning.falseAlarm && m_output != nullptr)
+    if (!warning.falseAlarm)
     {
-      m_output->Write(warning);
+      if (m_output != nullptr)
+      {
+        m_output->Write(warning);
+      }
+
+      ++m_countSuccess;
     }
 
     if (warning.IsRenewMessage())
     {
       ++m_countNonError;
     }
-
-    ++m_countSuccess;
   }
 
   ++m_countTotal;
@@ -188,7 +191,7 @@ size_t LogParserWorker::GetTotalWarnings() const
 
 size_t LogParserWorker::GetPrintedWarnings() const
 {
-  return m_countSuccess - m_countNonError;
+  return std::max(m_countSuccess, m_countNonError) - m_countNonError;
 }
 
 }
