@@ -31,10 +31,11 @@ public:
   bool Check(const Warning& message) const override;
 
 private:
-  bool CheckLevel(const Warning& message) const;
   bool CheckCode(const Warning& message) const;
-  bool CheckPath(const Warning& message) const;
+  bool CheckFalseAlarm(const Warning& message) const;
   bool CheckKeywords(const Warning& message) const;
+  bool CheckLevel(const Warning& message) const;
+  bool CheckPath(const Warning& message) const;
 };
 
 }

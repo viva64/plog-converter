@@ -46,35 +46,26 @@ MessageFilter::MessageFilter(const ProgramOptions &options)
 
 MessageFilter::~MessageFilter() = default;
 
-bool MessageFilter::Check(const Warning& message) const
+bool MessageFilter::Check(const Warning &message) const
 {
-  return CheckLevel(message) &&
-         CheckCode(message) &&
-         CheckPath(message) &&
-         CheckKeywords(message);
+  return CheckCode(message)
+      && CheckFalseAlarm(message)
+      && CheckKeywords(message)
+      && CheckLevel(message)
+      && CheckPath(message);
 }
 
-bool MessageFilter::CheckLevel(const Warning& message) const
-{
-  AnalyzerType type = message.GetType();
-  return    message.level <= 0
-         || message.level > Analyzer::LevelsCount
-         || type == AnalyzerType::Unknown
-         || m_enabledAnalyzerLevels[AnalyzerLevelIndex(type, message.level)];
-}
-
-bool MessageFilter::CheckCode(const Warning& message) const
+bool MessageFilter::CheckCode(const Warning &message) const
 {
   return m_disabledWarnings.find(message.code) == m_disabledWarnings.end();
 }
 
-bool MessageFilter::CheckPath(const Warning& message) const
+bool MessageFilter::CheckFalseAlarm(const Warning &message) const
 {
-  return std::none_of(m_disabledPaths.begin(), m_disabledPaths.end(),
-                      [&](const std::string &path) { return message.GetFile().find(path) != std::string::npos;} );
+  return !message.falseAlarm;
 }
 
-inline bool MessageFilter::CheckKeywords(const Warning& message) const
+bool MessageFilter::CheckKeywords(const Warning &message) const
 {
   if (m_disabledKeywords.empty())
   {
@@ -108,6 +99,24 @@ inline bool MessageFilter::CheckKeywords(const Warning& message) const
   }
 
   return true;
+}
+
+bool MessageFilter::CheckLevel(const Warning &message) const
+{
+  const AnalyzerType type = message.GetType();
+  return message.level <= 0
+      || message.level > Analyzer::LevelsCount
+      || type == AnalyzerType::Unknown
+      || m_enabledAnalyzerLevels[AnalyzerLevelIndex(type, message.level)];
+}
+
+bool MessageFilter::CheckPath(const Warning& message) const
+{
+  return std::none_of(m_disabledPaths.begin(), m_disabledPaths.end(),
+                      [&](const std::string &path)
+                      {
+                      	return message.GetFile().find(path) != std::string::npos;
+                      });
 }
 
 }

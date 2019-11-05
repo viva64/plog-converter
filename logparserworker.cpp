@@ -39,15 +39,12 @@ void LogParserWorker::OnWarning(Warning &warning)
 
   if (m_filter == nullptr || m_filter->Check(warning))
   {
-    if (!warning.falseAlarm)
+    if (m_output != nullptr)
     {
-      if (m_output != nullptr)
-      {
-        m_output->Write(warning);
-      }
-
-      ++m_countSuccess;
+      m_output->Write(warning);
     }
+    
+    ++m_countSuccess;
 
     if (warning.IsRenewMessage())
     {
