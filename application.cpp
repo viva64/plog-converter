@@ -1,5 +1,5 @@
 //  2006-2008 (c) Viva64.com Team
-//  2008-2019 (c) OOO "Program Verification Systems"
+//  2008-2020 (c) OOO "Program Verification Systems"
 
 #include <args.hxx>
 #include "application.h"
@@ -80,7 +80,7 @@ int Application::Exec(int argc, const char** argv)
 #else
     std::cout << AppName_Default << std::endl;
 #endif
-    std::cout << "Copyright (c) 2008-2019 OOO \"Program Verification Systems\"" << std::endl;
+    std::cout << "Copyright (c) 2008-2020 OOO \"Program Verification Systems\"" << std::endl;
     std::cout << AboutPVSStudio << std::endl;
     
     SetCmdOptions(argc, argv);

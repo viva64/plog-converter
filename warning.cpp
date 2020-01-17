@@ -1,3 +1,6 @@
+// 2006-2008 (c) Viva64.com Team
+// 2008-2020 (c) OOO "Program Verification Systems"
+
 #include "warning.h"
 
 namespace PlogConverter
