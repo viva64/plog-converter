@@ -13,7 +13,15 @@ class MessageParser
 {
 public:
   MessageParser();
-  void Parse(const std::string& line, Warning& msg);
+  void Parse(
+    const std::string& line,
+    Warning& msg);
+  void Parse(
+    const std::string& file,
+    const std::string& line,
+    const std::string& level,
+    const std::string& text,
+    Warning& msg);
 
   static const std::string delimiter;
   static void StringFromMessage(const Warning &msg, std::string &res);

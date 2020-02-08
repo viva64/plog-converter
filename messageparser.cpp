@@ -31,6 +31,47 @@ void MessageParser::Parse(const std::string& line, Warning& msg)
   }
 }
 
+void MessageParser::Parse(
+  const std::string& file,
+  const std::string& line,
+  const std::string& level,
+  const std::string& text, Warning& msg)
+{
+  try
+  {
+    msg.trialMode = false;
+    msg.code = "External";
+    msg.message = text;
+    msg.falseAlarm = false;
+    msg.positions.clear();
+    msg.positions.emplace_back(file, ParseUint(line));
+    msg.cwe = 0;
+    msg.misra.clear();
+    
+    if (level == "error")
+    {
+      msg.level = 1;
+    }
+    else if (level == "warn" || level == "warning")
+    {
+      msg.level = 2;
+    }
+    else if (level == "note")
+    {
+      msg.level = 3;
+    }
+    else
+    {
+      msg.level = 0;
+    }
+  }
+  catch (std::exception&)
+  {
+    msg.Clear();
+    msg.message = text;
+  }
+}
+
 const std::string MessageParser::delimiter = "<#~>";
 
 bool MessageParser::ParseMessage(const std::string& line, Warning& msg)

@@ -44,6 +44,7 @@ public:
 private:
   void ParseRawLog(InputFile &file);
   void ParseJsonLog(InputFile &file);
+  void ParseCerrLog(InputFile& file);
   void OnWarning(Warning &warning);
 
   MessageParser m_messageParser;

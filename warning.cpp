@@ -45,6 +45,10 @@ AnalyzerType Warning::GetType() const
   {
     return AnalyzerType::General; // Java
   }
+  else if (IsExternalMessage())
+  {
+    return AnalyzerType::General; // External tools
+  }
 
   return AnalyzerType::Unknown;
 }
@@ -69,6 +73,11 @@ bool Warning::IsRenewMessage() const
   return code == "Renew";
 }
 
+bool Warning::IsExternalMessage() const
+{
+  return code == "External";
+}
+
 unsigned Warning::GetErrorCode() const
 {
   if (   code.empty()
@@ -86,6 +95,11 @@ std::string Warning::GetVivaUrl() const
   if (IsRenewMessage())
   {
     return "https://www.viva64.com/en/renewal/";
+  }
+
+  if (IsExternalMessage())
+  {
+    return "https://www.viva64.com/en/w/";
   }
 
   const auto errorCode = GetErrorCode();

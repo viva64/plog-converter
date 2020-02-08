@@ -124,6 +124,7 @@ struct Warning
 
   bool                              IsDocumentationLinkMessage() const;
   bool                              IsRenewMessage() const;
+  bool                              IsExternalMessage() const;
   bool                              HasProjects() const;
   bool                              HasCWE() const;
   bool                              HasMISRA() const;

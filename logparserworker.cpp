@@ -11,6 +11,7 @@
 #include <iterator>
 #include <string>
 #include <unordered_set>
+#include <regex>
 
 #include "application.h"
 #include "charmap.h"
@@ -73,6 +74,10 @@ void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
     {
       ParseJsonLog(inputFile);
     }
+    else if (EndsWith(inputFile.path, ".cerr"))
+    {
+      ParseCerrLog(inputFile);
+    }
     else
     {
       ParseRawLog(inputFile);
@@ -109,6 +114,30 @@ void LogParserWorker::ParseRawLog(InputFile &file)
     {
       m_messageParser.Parse(*it.first, m_warning);
       OnWarning(m_warning);
+    }
+  }
+}
+
+void LogParserWorker::ParseCerrLog(InputFile& file)
+{
+  std::smatch match;
+  std::regex re("(.+):([0-9]+):([0-9]+): *(note|warn|warning|error) *: *(.*) *");
+
+  while (std::getline(file.stream, m_line))
+  {
+    if (std::regex_search(m_line, match, re) && match.size() == 6)
+    {
+      auto it = m_hashTable.emplace(std::move(m_line));
+      if (it.second)
+      {
+        m_messageParser.Parse(
+          match.str(1),
+          match.str(2),
+          match.str(4),
+          match.str(5),
+          m_warning);
+        OnWarning(m_warning);
+      }
     }
   }
 }
