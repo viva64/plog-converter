@@ -11,6 +11,7 @@ if (NOT PVS_STUDIO_SHARED)
 endif ()
 
 add_library(plog STATIC
+    suppress_base.suppress
     application.cpp
     configparser.cpp
     iworker.cpp
@@ -49,10 +50,10 @@ target_include_directories(plog PUBLIC . ThirdParty "${CMAKE_CURRENT_BINARY_DIR}
 add_subdirectory(ThirdParty/compact_enc_det)
 target_link_libraries(plog ced)
 
-add_executable(plog-converter main.cpp)
+add_executable(plog-converter main.cpp suppress_base.suppress)
 target_link_libraries(plog-converter plog)
 
-add_executable(plog-converter-test test.cpp)
+add_executable(plog-converter-test test.cpp suppress_base.suppress)
 target_link_libraries(plog-converter-test plog)
 
 if (WIN32)
