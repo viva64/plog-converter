@@ -10,6 +10,7 @@
 #include "ioutput.h"
 #include "iworker.h"
 #include "messagefilter.h"
+#include "suppressfilter.h"
 #include "messageparser.h"
 #include "warning.h"
 

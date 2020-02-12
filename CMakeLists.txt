@@ -17,6 +17,7 @@ add_library(plog STATIC
     iworker.cpp
     logparserworker.cpp
     messagefilter.cpp
+    suppressfilter.cpp
     messageparser.cpp
     outputfactory.cpp
     warning.cpp
