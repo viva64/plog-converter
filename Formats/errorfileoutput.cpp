@@ -36,7 +36,13 @@ void ErrorFileOutput::Write(const Warning& msg)
     securityPrefix = '[' + securityPrefix + "] ";
   }
 
-  m_ostream << msg.GetFile() << ":" << msg.GetLine() << ":1: "
+  #if defined (_WIN32)
+    std::string_view column = ": ";
+  #else
+    std::string_view column = ":1: ";
+  #endif
+
+  m_ostream << msg.GetFile() << ":" << msg.GetLine() << column
             << msg.GetLevelString() << ": "
             << msg.code << " "
             << securityPrefix << msg.message << std::endl;
