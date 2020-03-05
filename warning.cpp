@@ -78,6 +78,11 @@ bool Warning::IsExternalMessage() const
   return code == "External";
 }
 
+bool Warning::IsUpdateMessage() const
+{
+  return code == "Update";
+}
+
 unsigned Warning::GetErrorCode() const
 {
   if (   code.empty()
@@ -100,6 +105,11 @@ std::string Warning::GetVivaUrl() const
   if (IsExternalMessage())
   {
     return "https://www.viva64.com/en/w/";
+  }
+
+  if (IsUpdateMessage())
+  {
+    return "https://www.viva64.com/en/pvs-studio-download/";
   }
 
   const auto errorCode = GetErrorCode();
