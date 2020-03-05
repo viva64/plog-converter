@@ -37,9 +37,9 @@ void ErrorFileOutput::Write(const Warning& msg)
   }
 
   #if defined (_WIN32)
-    std::string_view column = ": ";
+    const std::string column { ": " };
   #else
-    std::string_view column = ":1: ";
+    const std::string column { ":1: " };
   #endif
 
   m_ostream << msg.GetFile() << ":" << msg.GetLine() << column
