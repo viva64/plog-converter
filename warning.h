@@ -126,6 +126,7 @@ struct Warning
   bool                              IsRenewMessage() const;
   bool                              IsExternalMessage() const;
   bool                              IsUpdateMessage() const;
+  bool                              IsTrialMessage() const;
   bool                              HasProjects() const;
   bool                              HasCWE() const;
   bool                              HasMISRA() const;

@@ -83,6 +83,11 @@ bool Warning::IsUpdateMessage() const
   return code == "Update";
 }
 
+bool Warning::IsTrialMessage() const
+{
+  return code == "Trial";
+}
+
 unsigned Warning::GetErrorCode() const
 {
   if (   code.empty()
@@ -110,6 +115,11 @@ std::string Warning::GetVivaUrl() const
   if (IsUpdateMessage())
   {
     return "https://www.viva64.com/en/pvs-studio-download/";
+  }
+
+  if (IsTrialMessage())
+  {
+    return "https://www.viva64.com/en/pvs-studio-download/#trial_form";
   }
 
   const auto errorCode = GetErrorCode();
