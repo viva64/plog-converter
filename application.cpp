@@ -24,8 +24,10 @@ Analyzer ParseEnabledAnalyzer(const std::string &str)
     Split(str.substr(pos + 1), ",", std::back_inserter(res.levels), [](const std::string &s) { return std::stoi(s); });
   }
 
-  const std::string &name = str.substr(0, pos);
-  if (name == "GA")
+  auto name = std::string_view { str }.substr(0, pos);
+  if (name == "FAIL")
+    res.type = AnalyzerType::Fail;
+  else if (name == "GA")
     res.type = AnalyzerType::General;
   else if (name == "64")
     res.type = AnalyzerType::Viva64;
@@ -36,7 +38,7 @@ Analyzer ParseEnabledAnalyzer(const std::string &str)
   else if (name == "MISRA")
     res.type = AnalyzerType::Misra;
   else
-    throw ConfigException("Wrong analyzer name: " + name);
+    throw ConfigException("Wrong analyzer name: " + std::string { name });
 
   return res;
 }
