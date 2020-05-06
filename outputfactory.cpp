@@ -9,6 +9,7 @@
 #include "Formats/tasklistoutput.h"
 #include "Formats/htmloutput.h"
 #include "Formats/simplehtml.h"
+#include "Formats/teamcityoutput.h"
 
 namespace PlogConverter
 {
@@ -27,6 +28,7 @@ OutputFactory::OutputFactory()
       { "errorfile",     FactoryFunction<ErrorFileOutput>() },
       { "tasklist",      FactoryFunction<TaskListOutput>() },
       { "html",          FactoryFunction<SimpleHTMLOutput>() },
+      { "teamcity",      FactoryFunction<TeamCityOutput>() },
     }
 {
 }

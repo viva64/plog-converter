@@ -34,6 +34,8 @@ add_library(plog STATIC
     Formats/htmloutput.h
     Formats/xmloutput.cpp
     Formats/xmloutput.h
+    Formats/teamcityoutput.h
+    Formats/teamcityoutput.cpp
     Formats/csvoutput.cpp
     Formats/csvoutput.h
     Formats/errorfileoutput.cpp
