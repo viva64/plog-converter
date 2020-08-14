@@ -37,7 +37,9 @@ void XMLOutput::Write(const Warning& msg)
   auto extendedLines = msg.GetExtendedLines();
   if(extendedLines.size() > 1)
   {
-    m_ostream << "    <LineExtension>" << Join(extendedLines, [](auto v) { return std::to_string(v); }, ",") << "</LineExtension>" << std::endl;
+    m_ostream << "    <Positions>" << std::endl;
+    m_ostream << "      <Position lines=\"" << Join(extendedLines, [](auto v) { return std::to_string(v); }, ",") << "\">" << msg.GetFile() << "</Position>" << std::endl;
+    m_ostream << "    </Positions>" << std::endl;
   }
 
   if (msg.HasCWE())
