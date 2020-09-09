@@ -1,17 +1,100 @@
-//  2006-2008 (c) Viva64.com Team
+﻿//  2006-2008 (c) Viva64.com Team
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020 (c) PVS-Studio LLC
 
 #include "messageparser.h"
 #include "utils.h"
+#include "../ThirdParty/json.hpp"
 #include <string>
 #include <stdexcept>
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <array>
 
 namespace PlogConverter
 {
+
+class JsonParseException : public std::exception
+{
+};
+
+std::string getFromJson(const nlohmann::json& j, std::string_view key, bool requiered = false)
+{
+  if (!j.contains(key))
+  {
+    if (!requiered)
+      return std::string{};
+
+    throw JsonParseException{};
+  }
+
+  auto data = j.at(key.data());
+
+  if (data.is_string())
+  {
+    return j.at(key.data()).get<std::string>();
+  }
+  else if (data.is_number_unsigned())
+  {
+    return std::to_string(j.at(key.data()).get<unsigned>());
+  }
+  else
+  {
+    return j.at(key.data()).dump();
+  }
+};
+
+struct Position
+{
+  std::string file;
+  std::vector<size_t> lines;
+};
+
+void from_json(const nlohmann::json& j, Position& p)
+{
+  p.file = getFromJson(j, "file", true);
+  auto lines = nlohmann::json::parse(getFromJson(j, "lines", true));
+  p.lines = lines.get<std::vector<size_t>>();
+}
+
+void from_json(const nlohmann::json &j, MessageParser &mp)
+{
+  auto emplaceFromJson = [&j, &mp](std::string_view key, bool requiered = false)
+  {
+    mp.m_fields.emplace_back(getFromJson(j, key, requiered));
+  };
+
+  auto getPositions = [&j]()
+  {
+    auto positions = nlohmann::json::parse(getFromJson(j, "positions", true));
+
+    if (!positions.is_array())
+    {
+      throw JsonParseException{};
+    }
+
+    return positions.get<std::vector<Position>>();
+  };
+
+  auto position = getPositions().front();
+
+  mp.m_fields.reserve(14);
+  mp.m_fields.emplace_back("Viva64-EM");
+  mp.m_fields.emplace_back("full");
+  mp.m_fields.emplace_back(std::to_string(position.lines.front()));
+  mp.m_fields.emplace_back(position.file);
+  mp.m_fields.emplace_back("error"); // old format compatibility
+  emplaceFromJson("code", true);
+  emplaceFromJson("message", true);
+  emplaceFromJson("falseAlarm", true);
+  emplaceFromJson("level", true);
+  emplaceFromJson("prevLine");
+  emplaceFromJson("currLine");
+  emplaceFromJson("nextLine");
+  mp.m_fields.emplace_back(Join(position.lines, [](auto v) { return std::to_string(v); }, ","));
+  emplaceFromJson("alternativeNames");
+}
 
 MessageParser::MessageParser() = default;
 
@@ -78,7 +161,25 @@ const std::string MessageParser::delimiter = "<#~>";
 bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
 {
   m_fields.clear();
-  Split(line, delimiter, std::back_inserter(m_fields));
+
+  if (StartsWith(line, "{") && EndsWith(line, "}"))
+  {
+    try
+    {
+      auto j = nlohmann::json::parse(line);
+      auto mp = j.get<MessageParser>();
+      m_fields = std::move(mp.m_fields);
+    }
+    catch ([[maybe_unused]]const JsonParseException& e)
+    {
+      std::cerr << "Wrong JSON format" << std::endl;
+      return false;
+    }
+  }
+  else
+  {
+    Split(line, delimiter, std::back_inserter(m_fields));
+  }
 
   if ((m_fields.size() != 13 && m_fields.size() != 14) || m_fields[0] != "Viva64-EM")
   {
