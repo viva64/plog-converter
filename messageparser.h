@@ -11,7 +11,7 @@ namespace PlogConverter
 {
 
 class MessageParser;
-static void from_json(const nlohmann::json& j, MessageParser& mp);
+void from_json(const nlohmann::json& j, MessageParser& mp);
 
 class MessageParser
 {
@@ -36,7 +36,7 @@ protected:
 
 private:
   std::vector<std::string> m_fields;
-  friend static void from_json(const nlohmann::json& j, MessageParser& mp);
+  friend void from_json(const nlohmann::json& j, MessageParser& mp);
 };
 
 }
