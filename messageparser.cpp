@@ -43,7 +43,7 @@ std::string getFromJson(const nlohmann::json& j, std::string_view key, bool requ
   {
     return j.at(key.data()).dump();
   }
-};
+}
 
 struct Position
 {
