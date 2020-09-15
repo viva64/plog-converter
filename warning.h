@@ -135,6 +135,9 @@ struct Warning
   AnalyzerType                      GetType() const;
   unsigned                          GetErrorCode() const;
   unsigned                          GetLine() const;
+  unsigned                          GetEndLine() const;
+  unsigned                          GetStartColumn() const;
+  unsigned                          GetEndColumn() const;
   const std::string &               GetFile() const;
   const NavigationInfo &            GetNavigationInfo() const;
   std::string                       GetVivaUrl() const;

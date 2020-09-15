@@ -246,4 +246,19 @@ unsigned Warning::GetLine() const
   return positions.empty() ? 0 : positions.front().line;
 }
 
+unsigned Warning::GetEndLine() const
+{
+  return positions.empty() ? 0 : positions.front().endLine;
+}
+
+unsigned Warning::GetStartColumn() const
+{
+  return positions.empty() ? 0 : positions.front().column;
+}
+
+unsigned Warning::GetEndColumn() const
+{
+  return positions.empty() ? 0 : positions.front().endColumn;
+}
+
 }

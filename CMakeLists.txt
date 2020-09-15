@@ -45,6 +45,8 @@ add_library(plog STATIC
     Formats/tasklistoutput.h
     Formats/simplehtml.cpp
     Formats/simplehtml.h
+    Formats/sarifoutput.cpp
+    Formats/sarifoutput.h
 
     ThirdParty/args.hxx
 )
