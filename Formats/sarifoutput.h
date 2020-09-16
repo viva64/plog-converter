@@ -5,6 +5,7 @@
 #ifndef SARIFOUTPUT_H
 #define SARIFOUTPUT_H
 #include "ioutput.h"
+#include <list>
 
 namespace PlogConverter
 {
