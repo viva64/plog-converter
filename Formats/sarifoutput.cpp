@@ -80,7 +80,7 @@ void SarifOutput::Finish()
       << "            {" << std::endl
       << "              \"physicalLocation\": {" << std::endl
       << "                \"artifactLocation\": {" << std::endl
-      << "                  \"uri\": \"" << warning->GetFile() << "\"" << std::endl
+      << "                  \"uri\": \"" << NormalizeFileName(warning->GetFile()) << "\"" << std::endl
       << "                }," << std::endl
       << "                \"region\": {" << std::endl
       << "                  \"startLine\": " << warning->GetLine() << "," << std::endl
@@ -111,6 +111,17 @@ std::string SarifOutput::EscapeJson(std::string& src)
   ReplaceAll(str, "\t", "\\t");
   ReplaceAll(str, "\\", "\\\\");
   ReplaceAll(str, "\"", "\\\"");
+  return str;
+}
+
+std::string SarifOutput::NormalizeFileName(const std::string& file)
+{
+  std::string str = file;
+  ReplaceAll(str, "\\", "/");
+  if (!str.empty() && str[0] == '/')
+  {
+    str = str.substr(1);
+  }
   return str;
 }
 

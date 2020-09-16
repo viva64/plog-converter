@@ -20,6 +20,7 @@ public:
   ~SarifOutput() override = default;
 private:
   static std::string EscapeJson(std::string&);
+  static std::string NormalizeFileName(const std::string& file);
 };
 
 }
