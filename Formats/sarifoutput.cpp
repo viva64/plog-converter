@@ -32,7 +32,6 @@ void SarifOutput::Finish()
     << "          \"rules\": [" << std::endl;
 
   std::set<std::string> rules;
-
   for (auto warning = m_warnings.begin(); warning != m_warnings.end(); warning++)
   {
     if (!rules.insert(warning->code).second)
@@ -44,19 +43,11 @@ void SarifOutput::Finish()
       << "            " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
       << "              \"id\": \"" << warning->code << "\"," << std::endl
       << "              \"name\": \"Rule " << warning->code << "\"," << std::endl
-      << "              \"help\": {" << std::endl
-      << "                \"text\": \"" << warning->GetVivaUrl() << "\"" << std::endl
-      << "              }" << std::endl;
+      << "              \"help\": { \"text\": \"" << warning->GetVivaUrl() << "\" }" << std::endl;
 
     if (warning->HasCWE())
     {
-      m_ostream
-        << "              , \"properties\": {" << std::endl
-        << "                \"tags\": [" << std::endl
-        << "                  \"security\"," << std::endl
-        << "                  \"external/cwe/cwe-" << warning->cwe << "\"" << std::endl
-        << "                 ]" << std::endl
-        << "               }" << std::endl;
+      m_ostream << "              ,\"properties\": { \"tags\": [ \"security\", \"external/cwe/cwe-" << warning->cwe << "\" ] }" << std::endl;
     }
     m_ostream << "            }" << std::endl;
   }
@@ -72,26 +63,26 @@ void SarifOutput::Finish()
     m_ostream
       << "        " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
       << "          \"ruleId\": \"" << warning->code << "\"," << std::endl
-      << "          \"message\": {" << std::endl
-      << "            \"text\": \"" << EscapeJson(warning->message) << "\"" << std::endl
-      << "          }," << std::endl
+      << "          \"message\": { \"text\": \"" << EscapeJson(warning->message) << "\" }," << std::endl
       << "          \"level\": \"" << warning->GetLevelString() << "\"," << std::endl
-      << "          \"locations\": [" << std::endl
-      << "            {" << std::endl
-      << "              \"physicalLocation\": {" << std::endl
-      << "                \"artifactLocation\": {" << std::endl
-      << "                  \"uri\": \"" << NormalizeFileName(warning->GetFile()) << "\"" << std::endl
-      << "                }," << std::endl
-      << "                \"region\": {" << std::endl
-      << "                  \"startLine\": " << warning->GetLine() << "," << std::endl
-      << "                  \"endLine\": " << warning->GetEndLine() << "," << std::endl
-      << "                  \"startColumn\": " << warning->GetStartColumn() << "," << std::endl
-      << "                  \"endColumn\": " << warning->GetEndColumn() << std::endl
-      << "                }" << std::endl
-      << "              }" << std::endl
-      << "            }" << std::endl
-      << "          ]" << std::endl
-      << "        }" << std::endl;
+      << "          \"locations\": [" << std::endl;
+    
+    PrintLocation(NormalizeFileName(warning->GetFile()), warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false);
+
+      m_ostream << "          ]" << std::endl;
+
+    if (warning->positions.size() > 1)
+    {
+      m_ostream << "          ,\"relatedLocations\": [" << std::endl;
+
+      for (int i = 1; i < warning->positions.size(); i++)
+      {
+        WarningPosition& position = warning->positions[i];
+        PrintLocation(NormalizeFileName(position.file), position.line, position.endLine, position.column, position.endColumn, i != 1);
+      }
+      m_ostream << "          ]" << std::endl;
+    }
+    m_ostream << "        }" << std::endl;
   }
 
   m_ostream
@@ -99,6 +90,17 @@ void SarifOutput::Finish()
     << "    }" << std::endl
     << "  ]" << std::endl
     << "}" << std::endl;
+}
+
+void SarifOutput::PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma)
+{
+  m_ostream
+    << "            " << (comma ? ",{" : "{") << std::endl
+    << "              \"physicalLocation\": {" << std::endl
+    << "                \"artifactLocation\": {" << " \"uri\": \"" << file << "\"" << "}," << std::endl
+    << "                \"region\": { \"startLine\": " << startLine << ", \"endLine\": " << endLine << ", \"startColumn\": " << startColumn << ", \"endColumn\": " << endColumn << " }" << std::endl
+    << "              }" << std::endl
+    << "            }" << std::endl;
 }
 
 std::string SarifOutput::EscapeJson(std::string& src)
