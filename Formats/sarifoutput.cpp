@@ -76,7 +76,7 @@ void SarifOutput::Finish()
     {
       m_ostream << "          ,\"relatedLocations\": [" << std::endl;
 
-      for (int i = 1; i < warning->positions.size(); i++)
+      for (size_t i = 1; i < warning->positions.size(); i++)
       {
         WarningPosition& position = warning->positions[i];
         std::string positionFile = NormalizeFileName(position.file);
