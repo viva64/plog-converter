@@ -67,7 +67,8 @@ void SarifOutput::Finish()
       << "          \"level\": \"" << warning->GetLevelString() << "\"," << std::endl
       << "          \"locations\": [" << std::endl;
     
-    PrintLocation(NormalizeFileName(warning->GetFile()), warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false);
+    std::string fileName = NormalizeFileName(warning->GetFile());
+    PrintLocation(fileName, warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false);
 
       m_ostream << "          ]" << std::endl;
 
@@ -78,7 +79,8 @@ void SarifOutput::Finish()
       for (int i = 1; i < warning->positions.size(); i++)
       {
         WarningPosition& position = warning->positions[i];
-        PrintLocation(NormalizeFileName(position.file), position.line, position.endLine, position.column, position.endColumn, i != 1);
+        std::string positionFile = NormalizeFileName(position.file);
+        PrintLocation(positionFile, position.line, position.endLine, position.column, position.endColumn, i != 1);
       }
       m_ostream << "          ]" << std::endl;
     }
