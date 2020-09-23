@@ -32,7 +32,7 @@ void SarifOutput::Finish()
     << "          \"rules\": [" << std::endl;
 
   std::set<std::string> rules;
-  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); warning++)
+  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); ++warning)
   {
     if (!rules.insert(warning->code).second)
     {
@@ -58,7 +58,7 @@ void SarifOutput::Finish()
     << "      }," << std::endl
     << "      \"results\": [" << std::endl;
 
-  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); warning++)
+  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); ++warning)
   {
     m_ostream
       << "        " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
