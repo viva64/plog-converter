@@ -102,7 +102,7 @@ add_resources(
     RESOURCES
     SortJs              "Resources/sort.js"
     StyleCss            "Resources/style.css"
-    JQueryJs            "Resources/jquery-3.2.1.min.js"
+    JQueryJs            "Resources/jquery-3.5.1.min.js"
     HighlightCodeCss    "Resources/highlight.css"
     HighlightPackJs     "Resources/highlight.pack.js"
     HighlightLineJs     "Resources/highlightjs-line-numbers.js"

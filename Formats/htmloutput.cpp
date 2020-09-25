@@ -124,7 +124,7 @@ static char SourceHead1[] = R"(
 
 static char SourceHead2[] = R"(
   <link rel="stylesheet" href="../style.css"/>
-  <script src="../jquery-3.2.1.min.js"></script>
+  <script src="../jquery-3.5.1.min.js"></script>
 </head>
 <body>
 )";
@@ -513,7 +513,7 @@ void HTMLOutput::Finish()
   PrintHtmlEnd();
   PrintFileExtra("/script.js", PlogConverter::Resources::SortJs());
   PrintFileExtra("/style.css", PlogConverter::Resources::StyleCss());
-  PrintFileExtra("/jquery-3.2.1.min.js", PlogConverter::Resources::JQueryJs());
+  PrintFileExtra("/jquery-3.5.1.min.js", PlogConverter::Resources::JQueryJs());
 
   PrintFileExtra("/sources/highlight.css", PlogConverter::Resources::HighlightCodeCss());
   PrintFileExtra("/sources/highlight.pack.js", PlogConverter::Resources::HighlightPackJs());
