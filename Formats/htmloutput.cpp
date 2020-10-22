@@ -44,8 +44,7 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
     throw std::runtime_error("Output directory already exists: " + m_directory);
   }
 
-  std::vector<std::string> subdirs = { m_directory, m_directory + "/images", m_directory + "/sources" };
-  for (const auto &s : subdirs)
+  for (const auto &s : { m_directory, m_directory + "/images", m_directory + "/sources" })
   {
     if (!MakeDirectory(s))
     {
