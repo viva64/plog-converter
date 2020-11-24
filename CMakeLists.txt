@@ -75,6 +75,10 @@ if (MSVC)
         endforeach ()
     endif ()
 
+    target_compile_options(plog PUBLIC /EHa)
+
+    target_compile_definitions(plog-converter-test PUBLIC -D_SILENCE_CXX17_UNCAUGHT_EXCEPTION_DEPRECATION_WARNING)
+
     target_compile_definitions(plog PUBLIC -D_CRT_SECURE_NO_WARNINGS
                                            -D_HAS_ITERATOR_DEBUGGING=0
                                            -D_SECURE_SCL=0)

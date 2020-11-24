@@ -34,6 +34,8 @@ if (MSVC)
         endforeach ()
     endif ()
 
+    target_compile_options(ced PUBLIC /EHa)
+
     target_compile_definitions(ced PUBLIC -D_CRT_SECURE_NO_WARNINGS
                                            -D_HAS_ITERATOR_DEBUGGING=0
                                            -D_SECURE_SCL=0)
