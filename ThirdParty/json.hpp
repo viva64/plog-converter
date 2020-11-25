@@ -15470,8 +15470,7 @@ enum class error_handler_t
 {
     strict,  ///< throw a type_error exception in case of invalid UTF-8
     replace, ///< replace invalid UTF-8 sequences with U+FFFD
-    ignore,  ///< ignore invalid UTF-8 sequences
-    pass     ///< pass bytes as is
+    ignore   ///< ignore invalid UTF-8 sequences
 };
 
 template<typename BasicJsonType>
@@ -15931,13 +15930,6 @@ class serializer
 
                 case UTF8_REJECT:  // decode found invalid UTF-8 byte
                 {
-                    if (error_handler == error_handler_t::pass)
-                    {
-                        undumped_chars = 0;
-                        string_buffer[bytes++] = s[i];
-                        state = UTF8_ACCEPT;
-                        break;
-                    }
                     switch (error_handler)
                     {
                         case error_handler_t::strict:
@@ -16034,12 +16026,6 @@ class serializer
             // we finish reading, but do not accept: string was incomplete
             switch (error_handler)
             {
-                case error_handler_t::pass:
-                {
-                    o->write_characters(string_buffer.data(), bytes_after_last_accept);
-                    break;
-                }
-                
                 case error_handler_t::strict:
                 {
                     std::string sn(3, '\0');
