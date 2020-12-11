@@ -86,6 +86,13 @@ struct WarningPosition
 
 struct Warning
 {
+  enum class MessageFormat
+  {
+    Unknown,
+    OldStyle,
+    RawJson
+  };
+
   constexpr static const char*      CWEPrefix = "CWE-";
   
   constexpr static const char*      MISRACorePrefix = "MISRA: ";
@@ -104,6 +111,7 @@ struct Warning
   bool                              favorite = false;
   bool                              falseAlarm = false;
   bool                              trialMode = false;
+  MessageFormat                     format = MessageFormat::OldStyle;
 
   template <typename T>
   void Serialize(T& stream)

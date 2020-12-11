@@ -160,6 +160,8 @@ const std::string MessageParser::delimiter = "<#~>";
 
 bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
 {
+  msg.format = Warning::MessageFormat::Unknown;
+
   m_fields.clear();
 
   if (StartsWith(line, "{") && EndsWith(line, "}"))
@@ -169,8 +171,9 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
       auto j = nlohmann::json::parse(line);
       auto mp = j.get<MessageParser>();
       m_fields = std::move(mp.m_fields);
+      msg.format = Warning::MessageFormat::RawJson;
     }
-    catch ([[maybe_unused]]const JsonParseException& e)
+    catch (const JsonParseException &)
     {
       std::cerr << "Wrong JSON format" << std::endl;
       return false;
@@ -179,6 +182,7 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
   else
   {
     Split(line, delimiter, std::back_inserter(m_fields));
+    msg.format = Warning::MessageFormat::OldStyle;
   }
 
   if ((m_fields.size() != 13 && m_fields.size() != 14) || m_fields[0] != "Viva64-EM")
@@ -248,61 +252,117 @@ std::string MessageParser::ParseSecurityId(const std::vector<std::string> &alter
 
 void MessageParser::StringFromMessage(const Warning &msg, std::string &res)
 {
-  auto join = [&res](const auto &v, const std::string &delimiter, auto fn)
-  {
-    if (!v.empty())
-    {
-      for (auto &&u : v)
-      {
-        res += fn(u);
-        res += delimiter;
-      }
-
-      res.resize(res.length() - delimiter.size());
-    }
-  };
-
   res.clear();
-  res += "Viva64-EM";
-  res += delimiter;
-  res += msg.trialMode ? "trial" : "full";
-  res += delimiter;
-  res += std::to_string(msg.GetLine());
-  res += delimiter;
-  res += msg.GetFile();
-  res += delimiter;
-  res += "error";
-  res += delimiter;
-  res += msg.code;
-  res += delimiter;
-  res += msg.message;
-  res += delimiter;
-  res += msg.falseAlarm ? "true" : "false";
-  res += delimiter;
-  res += std::to_string(msg.level);
-  res += delimiter;
-  res += msg.GetNavigationInfo().previousLineString;
-  res += delimiter;
-  res += msg.GetNavigationInfo().currentLineString;
-  res += delimiter;
-  res += msg.GetNavigationInfo().nextLineString;
-  res += delimiter;
-  join(msg.GetExtendedLines(), ",", [](auto &s) { return std::to_string(s); });
-  res += delimiter;
-  
-  if(msg.HasCWE())
+
+  std::string alternativeNames;
+  if (msg.HasCWE())
   {
-    res += msg.GetCWEString();
+    alternativeNames += msg.GetCWEString();
   }
 
   if (msg.HasMISRA())
   {
-    if (msg.HasCWE())
+    if (!alternativeNames.empty())
     {
-      res += ',';
+      alternativeNames += ',';
     }
 
-    res += msg.GetMISRAString();
+    alternativeNames += msg.GetMISRAString();
+  }
+
+  switch (msg.format)
+  {
+  case Warning::MessageFormat::OldStyle:
+  {
+    auto join = [&res](const auto &v, const std::string &delimiter, auto fn)
+    {
+      if (!v.empty())
+      {
+        for (auto &&u : v)
+        {
+          res += fn(u);
+          res += delimiter;
+        }
+
+        res.resize(res.length() - delimiter.size());
+      }
+    };
+
+    res += "Viva64-EM";
+    res += delimiter;
+    res += msg.trialMode ? "trial" : "full";
+    res += delimiter;
+    res += std::to_string(msg.GetLine());
+    res += delimiter;
+    res += msg.GetFile();
+    res += delimiter;
+    res += "error";
+    res += delimiter;
+    res += msg.code;
+    res += delimiter;
+    res += msg.message;
+    res += delimiter;
+    res += msg.falseAlarm ? "true" : "false";
+    res += delimiter;
+    res += std::to_string(msg.level);
+    res += delimiter;
+    res += msg.GetNavigationInfo().previousLineString;
+    res += delimiter;
+    res += msg.GetNavigationInfo().currentLineString;
+    res += delimiter;
+    res += msg.GetNavigationInfo().nextLineString;
+    res += delimiter;
+    join(msg.GetExtendedLines(), ",", [](auto &s) { return std::to_string(s); });
+    res += delimiter;
+    res += alternativeNames;
+    break;
+  }
+
+  case Warning::MessageFormat::RawJson:
+  {
+    auto lines = msg.GetExtendedLines();
+    if (lines.empty())
+    {
+      lines.push_back(msg.GetLine());
+    }
+
+    auto j = nlohmann::json {
+      { "falseAlarm", msg.falseAlarm },
+      { "level"     , msg.level },
+      { "code"      , msg.code },
+      { "message"   , msg.message },
+      {
+        "positions" , std::vector<nlohmann::json> {
+                      {
+                        { "file",  msg.GetFile() },
+                        { "lines", lines }
+                      } }
+      }
+    };
+
+    constexpr auto putOptionalStringView = [](nlohmann::json &j, std::string_view fieldName, std::string value)
+    {
+      if (!value.empty())
+      {
+        j.emplace(fieldName, std::move(value));
+      }
+    };
+
+    putOptionalStringView(j, "alternativeNames", alternativeNames);
+
+    putOptionalStringView(j, "prevLine", msg.GetNavigationInfo().previousLineString);
+    putOptionalStringView(j, "currLine", msg.GetNavigationInfo().currentLineString);
+    putOptionalStringView(j, "nextLine", msg.GetNavigationInfo().nextLineString);
+
+    res = j.dump(-1, '\0', false);
+    break;
+  }
+
+  default:
+  {
+    std::cerr << "Wrong warning format" << std::endl;
+    break;
+  }
   }
 }
 
