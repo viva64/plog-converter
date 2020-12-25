@@ -29,6 +29,7 @@ void SarifOutput::Finish()
     << "        \"driver\": {" << std::endl
     << "          \"name\": \"PVS-Studio\"," << std::endl
     << "          \"semanticVersion\": \""<< IDS_APP_VERSION << "\"," << std::endl
+    << "          \"informationUri\": \"https://viva64.com\"," << std::endl
     << "          \"rules\": [" << std::endl;
 
   std::set<std::string> rules;
@@ -42,8 +43,9 @@ void SarifOutput::Finish()
     m_ostream
       << "            " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
       << "              \"id\": \"" << warning->code << "\"," << std::endl
-      << "              \"name\": \"Rule " << warning->code << "\"," << std::endl
-      << "              \"help\": { \"text\": \"" << warning->GetVivaUrl() << "\" }" << std::endl;
+      << "              \"name\": \"Rule" << warning->code << "\"," << std::endl
+      << "              \"help\": { \"text\": \"" << warning->GetVivaUrl() << "\" }," << std::endl
+      << "              \"helpUri\": \"" << warning->GetVivaUrl() << "\"" << std::endl;
 
     if (warning->HasCWE())
     {
@@ -68,7 +70,7 @@ void SarifOutput::Finish()
       << "          \"locations\": [" << std::endl;
     
     std::string fileName = NormalizeFileName(warning->GetFile());
-    PrintLocation(fileName, warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false);
+    PrintLocation(fileName, warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false, false, warning->message);
 
       m_ostream << "          ]" << std::endl;
 
@@ -80,7 +82,7 @@ void SarifOutput::Finish()
       {
         WarningPosition& position = warning->positions[i];
         std::string positionFile = NormalizeFileName(position.file);
-        PrintLocation(positionFile, position.line, position.endLine, position.column, position.endColumn, i != 1);
+        PrintLocation(positionFile, position.line, position.endLine, position.column, position.endColumn, i != 1, true, warning->message);
       }
       m_ostream << "          ]" << std::endl;
     }
@@ -94,10 +96,18 @@ void SarifOutput::Finish()
     << "}" << std::endl;
 }
 
-void SarifOutput::PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma)
+void SarifOutput::PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma, bool withMessage, std::string& message)
 {
   m_ostream
-    << "            " << (comma ? ",{" : "{") << std::endl
+    << "            " << (comma ? ",{" : "{") << std::endl;
+  if (withMessage) {
+    m_ostream
+      << "              \"message\": {" << std::endl
+      << "                \"text\": \"" << message << "\"" << std::endl
+      << "              }," << std::endl;
+  }
+
+  m_ostream
     << "              \"physicalLocation\": {" << std::endl
     << "                \"artifactLocation\": {" << " \"uri\": \"" << file << "\"" << "}," << std::endl
     << "                \"region\": { \"startLine\": " << startLine << ", \"endLine\": " << endLine << ", \"startColumn\": " << startColumn << ", \"endColumn\": " << endColumn << " }" << std::endl

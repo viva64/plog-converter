@@ -22,7 +22,7 @@ public:
 private:
   static std::string EscapeJson(std::string&);
   static std::string NormalizeFileName(const std::string& file);
-  void PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma);
+  void PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma, bool withMessage, std::string& message);
 };
 
 }
