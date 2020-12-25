@@ -40,7 +40,7 @@ if (MSVC)
                                            -D_HAS_ITERATOR_DEBUGGING=0
                                            -D_SECURE_SCL=0)
 else ()
-    target_compile_options(ced PRIVATE -Wno-narrowing -Wno-overflow)
+    target_compile_options(ced PUBLIC -Wno-narrowing -Wno-overflow -g3)
 
     if (NOT PVS_STUDIO_SHARED AND NOT APPLE)
         target_link_libraries(ced -static)
