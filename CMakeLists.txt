@@ -95,7 +95,7 @@ if (APPLE)
     add_custom_command(TARGET plog-converter POST_BUILD
                        COMMAND rm -rf $<TARGET_FILE_NAME:plog-converter>*.dSYM*
                        COMMAND dsymutil -o $<TARGET_FILE_NAME:plog-converter>.dSYM $<TARGET_FILE:plog-converter>
-                       COMMAND GZIP=-9 tar cvzf $<TARGET_FILE:plog-converter>.dSYM.tar.gz $<TARGET_FILE_NAME:plog-converter>.dSYM
+                       COMMAND GZIP=-9 tar cvzf $<TARGET_FILE:plog-converter>.dSYM.tgz $<TARGET_FILE_NAME:plog-converter>.dSYM
                        COMMAND strip $<TARGET_FILE:plog-converter>)
 
     target_link_options(plog-converter PRIVATE
