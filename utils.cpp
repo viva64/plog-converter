@@ -28,7 +28,7 @@ std::string Trim(const std::string& src)
   std::string::size_type begin = src.find_first_not_of(spaceChars);
   if(begin == std::string::npos)
     begin = 0;
-  std::string::size_type end = src.find_last_not_of(spaceChars);
+  std::string::size_type end = src.find_last_not_of(spaceChars + '\r');
   if(end != std::string::npos)
     end -= (begin - 1);
   else

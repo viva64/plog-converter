@@ -18,7 +18,7 @@ SimpleHTMLOutput::SimpleHTMLOutput(const ProgramOptions &opt) : IOutput(opt, "ht
 SimpleHTMLOutput::~SimpleHTMLOutput() = default;
 
 const int SimpleHTMLOutput::DefaultCweColumnWidth = 6;  //%
-const int SimpleHTMLOutput::DefaultMISRAColumnWidth = 9;  //%
+const int SimpleHTMLOutput::DefaultSASTColumnWidth = 9;  //%
 const int SimpleHTMLOutput::DefaultMessageColumnWidth = 65; //%
 
 static char HtmlHead[] = R"(
@@ -72,14 +72,17 @@ int SimpleHTMLOutput::GetMessageColumnWidth() const
 {
   int width = DefaultMessageColumnWidth;
 
-  for (const auto& security : m_errorCodeMappings)
-  {
-    if (security == SecurityCodeMapping::CWE)
-      width -= GetCweColumnWidth();
+  bool showSAST = false;
+  bool showCWE = false;
 
-    if (security == SecurityCodeMapping::MISRA)
-      width -= GetMISRAColumnWidth();
-  }
+  DetectShowTags(&showCWE, &showSAST);
+
+  if (showCWE)
+    width -= GetCweColumnWidth();
+
+  if (showSAST)
+    width -= GetSASTColumnWidth();
+
 
   return width;
 }
@@ -89,9 +92,9 @@ int SimpleHTMLOutput::GetCweColumnWidth() const
   return DefaultCweColumnWidth;
 }
 
-int SimpleHTMLOutput::GetMISRAColumnWidth() const
+int SimpleHTMLOutput::GetSASTColumnWidth() const
 {
-  return DefaultMISRAColumnWidth;
+  return DefaultSASTColumnWidth;
 }
 
 void SimpleHTMLOutput::PrintTableCaption()
@@ -111,13 +114,18 @@ void SimpleHTMLOutput::PrintTableCaption()
   m_ostream << R"(      <th style="width: 30%;">Location</th>)" << endl;
   m_ostream << R"(      <th style="width: 5%;">Code</th>)" << endl;
 
-  for (const auto& security : m_errorCodeMappings)
+  bool showCwe = false;
+  bool showSast = false;
+
+  DetectShowTags(&showCwe, &showSast);
+
+  if (showCwe) 
   {
-    if (security == SecurityCodeMapping::CWE)
-      m_ostream << R"(      <th style="width: )" << GetCweColumnWidth() << R"(%;">CWE</th>)" << endl;
-    
-    if (security == SecurityCodeMapping::MISRA)
-      m_ostream << R"(      <th style="width: )" << GetMISRAColumnWidth() << R"(%;">MISRA</th>)" << endl;
+    m_ostream << R"(      <th style="width: )" << GetCweColumnWidth() << R"(%;">CWE</th>)" << endl;
+  }
+  if (showSast) 
+  {
+    m_ostream << R"(      <th style="width: )" << GetSASTColumnWidth() << R"(%;">SAST</th>)" << endl;
   }
 
   m_ostream << R"(      <th style="width: 65%;">Message</th>)" << endl;
@@ -161,25 +169,27 @@ void SimpleHTMLOutput::PrintMessages(const std::vector<Warning> &messages, const
               << R"(</a></td>)"
               << endl;
 
-    for (const auto& security : m_errorCodeMappings)
-    {
-      if (security == SecurityCodeMapping::CWE)
-      {
-        if (err.HasCWE())
-          m_ostream << R"(      <td style='width: )" << GetCweColumnWidth() << R"(%;'><a target="_blank" href=')"
-                    << err.GetCWEUrl() << R"('>)" << err.GetCWEString() << R"(</a></td>)" << endl;
-        else
-          m_ostream << R"(      <th style="width: )" << GetCweColumnWidth() << R"(%;"></th>)" << endl;
-      }
+    bool showCwe = false;
+    bool showSast = false;
 
-      if (security == SecurityCodeMapping::MISRA)
-      {
-        if (err.HasMISRA())
-          m_ostream << R"(      <td style='width: )" << GetMISRAColumnWidth() << R"(%;'><a target="_blank" href=')"
-                    << err.GetVivaUrl() << R"('>)" << err.GetMISRAStringWithLanguagePrefix() << R"(</a></td>)" << endl;
-        else
-          m_ostream << R"(      <th style="width: )" << GetMISRAColumnWidth() << R"(%;"></th>)" << endl;
-      }
+    DetectShowTags(&showCwe, &showSast);
+
+    if (showCwe)
+    {
+      if (err.HasCWE())
+        m_ostream << R"(      <td style='width: )" << GetCweColumnWidth() << R"(%;'><a target="_blank" href=')"
+        << err.GetCWEUrl() << R"('>)" << err.GetCWEString() << R"(</a></td>)" << endl;
+      else
+        m_ostream << R"(      <th style="width: )" << GetCweColumnWidth() << R"(%;"></th>)" << endl;
+    }
+
+    if (showSast)
+    {
+      if (err.HasSAST())
+        m_ostream << R"(      <td style='width: )" << GetSASTColumnWidth() << R"(%;'>)"
+         << err.sastId << R"(</td>)" << endl;
+      else
+        m_ostream << R"(      <th style="width: )" << GetSASTColumnWidth() << R"(%;"></th>)" << endl;
     }
 
     m_ostream << R"(      <td style='width: )" << GetMessageColumnWidth() << R"(%;'>)" << EscapeHtml(err.message) << R"(</td>)" << endl;
@@ -196,6 +206,8 @@ void SimpleHTMLOutput::PrintTableBody()
   PrintMessages(m_64, "64-bit errors (64)");
   PrintMessages(m_cs, "Customers Specific (CS)");
   PrintMessages(m_misra, "MISRA");
+  PrintMessages(m_autosar, "AUTOSAR");
+  PrintMessages(m_owasp, "OWASP");
 }
 
 void SimpleHTMLOutput::Start()
@@ -221,13 +233,17 @@ void SimpleHTMLOutput::Write(const Warning& msg)
     m_cs.push_back(msg);
   else if (analyzerType == AnalyzerType::Misra)
     m_misra.push_back(msg);
+  else if (analyzerType == AnalyzerType::Autosar)
+    m_autosar.push_back(msg);
+  else if (analyzerType == AnalyzerType::Owasp)
+    m_owasp.push_back(msg);
   else
     m_info.push_back(msg);
 }
 
 void SimpleHTMLOutput::Finish()
 {
-  if (m_ga.empty() && m_op.empty() && m_64.empty() && m_cs.empty() && m_misra.empty() && m_info.empty())
+  if (m_ga.empty() && m_op.empty() && m_64.empty() && m_cs.empty() && m_misra.empty() && m_info.empty() && m_owasp.empty() && m_autosar.empty())
   {
     m_ostream << "No messages generated" << std::endl;
   }

@@ -20,7 +20,7 @@ public:
   void Finish() override;
 
   static const int DefaultCweColumnWidth;
-  static const int DefaultMISRAColumnWidth;
+  static const int DefaultSASTColumnWidth;
   static const int DefaultMessageColumnWidth;
 
 private:
@@ -30,10 +30,12 @@ private:
   std::vector<Warning> m_cs;
   std::vector<Warning> m_misra;
   std::vector<Warning> m_info;
+  std::vector<Warning> m_autosar;
+  std::vector<Warning> m_owasp;
 
   int GetMessageColumnWidth() const;
   int GetCweColumnWidth() const;
-  int GetMISRAColumnWidth() const;
+  int GetSASTColumnWidth() const;
 
   void PrintHtmlStart();
   void PrintHtmlEnd();

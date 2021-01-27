@@ -23,6 +23,8 @@ private:
   size_t m_64 = 0;
   size_t m_cs = 0;
   size_t m_misra = 0;
+  size_t m_autosar = 0;
+  size_t m_owasp = 0;
   size_t m_fails = 0;
 
   std::map<AnalyzerType, std::string> m_desc;
@@ -35,9 +37,9 @@ private:
   std::size_t m_currentId = 0;
 
   bool m_hasAnyCWE = false;
-  bool m_hasAnyMISRA = false;
+  bool m_showSASTColumn = false;
   bool m_hasAnyProjects = false;
-  void CheckProjectsAndCWEAndMISRA();
+  void CheckProjectsAndCWEAndSAST();
 
   void PrintFileExtra(const std::string &fileName, const std::string &data, std::ios_base::openmode mode = std::ios_base::out);
   void PrintFileSources();

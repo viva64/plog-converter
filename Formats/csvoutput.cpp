@@ -27,14 +27,16 @@ void CSVOutput::Start()
             << "ErrorType" << ','
             << "ErrorCode" << ',';
 
-  for (const auto& security : m_errorCodeMappings)
-  {
-    if (security == SecurityCodeMapping::CWE)
-      m_ostream << "CWE" << ',';
-    
-    if (security == SecurityCodeMapping::MISRA)
-      m_ostream << "MISRA" << ',';
-  }
+  bool showCwe = false;
+  bool showSast = false;
+
+  DetectShowTags(&showCwe, &showSast);
+
+  if (showCwe)
+    m_ostream << "CWE" << ',';
+
+  if (showSast)
+    m_ostream << "SAST" << ',';
 
   m_ostream << "Message" << ','
             << "FileLink" << ','
@@ -48,23 +50,25 @@ void CSVOutput::Write(const Warning& msg)
             << msg.GetLevelString() << ","
             << "\"=HYPERLINK(\"\"" << msg.GetVivaUrl() << "\"\", \"\"" << msg.code << "\"\")\"" << ',';
 
-  for (const auto& security : m_errorCodeMappings)
+  bool showSAST = false;
+  bool showCWE = false;
+
+  DetectShowTags(&showCWE, &showSAST);
+
+  if (showCWE)
   {
-    if (security == SecurityCodeMapping::CWE)
-    {
-      if (msg.HasCWE())
-        m_ostream << "\"=HYPERLINK(\"\"" << msg.GetCWEUrl() << "\"\", \"\"" << msg.GetCWEString() << "\"\")\"" << ',';
-      else
-        m_ostream << " ,";
-    }
-    
-    if (security == SecurityCodeMapping::MISRA)
-    {
-      if (msg.HasMISRA())
-        m_ostream << "\"=HYPERLINK(\"\"" << msg.GetVivaUrl() << "\"\", \"\"" << msg.GetMISRAStringWithLanguagePrefix() << "\"\")\"" << ',';
-      else
-        m_ostream << " ,";
-    }
+    if (msg.HasCWE())
+      m_ostream << "\"=HYPERLINK(\"\"" << msg.GetCWEUrl() << "\"\", \"\"" << msg.GetCWEString() << "\"\")\"" << ',';
+    else
+      m_ostream << " ,";
+  }
+
+  if (showSAST)
+  {
+    if (msg.HasSAST())
+      m_ostream << '"' << msg.sastId << '"' << ',';
+    else
+      m_ostream << " ,";
   }
 
   m_ostream << '"' << Escape(msg.message) << '"' << ','

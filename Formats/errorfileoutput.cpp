@@ -18,18 +18,20 @@ void ErrorFileOutput::Write(const Warning& msg)
 {
   std::string securityPrefix;
 
-  for (const auto& security : m_errorCodeMappings)
+  bool showSAST = false;
+  bool showCWE = false;
+
+  DetectShowTags(&showCWE, &showSAST);
+
+  if (showCWE && msg.HasCWE())
+    securityPrefix += msg.GetCWEString();
+
+  if (showSAST && msg.HasSAST())
   {
-    if (security == SecurityCodeMapping::CWE && msg.HasCWE())
-        securityPrefix += msg.GetCWEString();
+    if (!securityPrefix.empty())
+      securityPrefix += ", ";
 
-    if (security == SecurityCodeMapping::MISRA && msg.HasMISRA())
-    {
-      if (!securityPrefix.empty())
-        securityPrefix += ", ";
-
-      securityPrefix += msg.GetMISRAStringWithLanguagePrefix();
-    }
+    securityPrefix += msg.sastId;
   }
 
   if (!securityPrefix.empty())

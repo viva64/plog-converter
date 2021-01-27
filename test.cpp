@@ -59,8 +59,8 @@ TEST_CASE("plog-converter -a")
   ParseEnabledAnalyzers("ALL", analyzers);
   REQUIRE(analyzers.empty());
 
-  ParseEnabledAnalyzers("GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2", analyzers);
-  REQUIRE(analyzers.size() == 5);
+  ParseEnabledAnalyzers("GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2;AUTOSAR:1,2;OWASP:1,2", analyzers);
+  REQUIRE(analyzers.size() == 7);
   REQUIRE(analyzers[0].type == AnalyzerType::General);
   REQUIRE(analyzers[0].levels == (std::vector<int>{1, 2}));
   REQUIRE(analyzers[1].type == AnalyzerType::Viva64);
@@ -71,4 +71,8 @@ TEST_CASE("plog-converter -a")
   REQUIRE(analyzers[3].levels == (std::vector<int>{1}));
   REQUIRE(analyzers[4].type == AnalyzerType::Misra);
   REQUIRE(analyzers[4].levels == (std::vector<int>{1, 2}));
+  REQUIRE(analyzers[5].type == AnalyzerType::Autosar);
+  REQUIRE(analyzers[5].levels == (std::vector<int>{1, 2}));
+  REQUIRE(analyzers[6].type == AnalyzerType::Owasp);
+  REQUIRE(analyzers[6].levels == (std::vector<int>{1, 2}));
 }

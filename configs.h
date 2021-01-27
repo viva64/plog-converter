@@ -16,7 +16,9 @@ namespace PlogConverter
 enum class SecurityCodeMapping
 {
   CWE,
-  MISRA
+  MISRA,
+  OWASP,
+  AUTOSAR
 };
 
 struct Analyzer;

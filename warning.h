@@ -24,7 +24,9 @@ enum class AnalyzerType
   Optimization     = 3,
   CustomerSpecific = 4,
   Misra            = 5,
-  Unknown          = 6
+  Owasp            = 6,
+  Autosar          = 7,
+  Unknown          = 8
 };
 
 struct Analyzer
@@ -106,7 +108,7 @@ struct Warning
   std::vector<std::string>          stacktrace;
   std::vector<std::string>          projects;
   unsigned                          cwe = 0;
-  std::string                       misra;
+  std::string                       sastId;
   unsigned                          level = 0;
   bool                              favorite = false;
   bool                              falseAlarm = false;
@@ -122,7 +124,8 @@ struct Warning
           .Optional("positions", positions)
           .Optional("projects", projects)
           .Optional("cwe", cwe)
-          .Optional("misra", misra)
+          .Optional("sastId", sastId)
+          .Optional("misra", sastId)
           .Optional("level", level)
           .Optional("favorite", favorite)
           .Optional("falseAlarm", falseAlarm)
@@ -138,7 +141,7 @@ struct Warning
   bool                              IsTrialMessage() const;
   bool                              HasProjects() const;
   bool                              HasCWE() const;
-  bool                              HasMISRA() const;
+  bool                              HasSAST() const;
 
   AnalyzerType                      GetType() const;
   unsigned                          GetErrorCode() const;

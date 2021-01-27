@@ -38,6 +38,10 @@ Analyzer ParseEnabledAnalyzer(const std::string &str)
     res.type = AnalyzerType::CustomerSpecific;
   else if (name == "MISRA")
     res.type = AnalyzerType::Misra;
+  else if (name == "AUTOSAR")
+    res.type = AnalyzerType::Autosar;
+  else if (name == "OWASP")
+    res.type = AnalyzerType::Owasp;
   else
     throw ConfigException("Wrong analyzer name: " + std::string { name });
 
@@ -94,11 +98,25 @@ int Application::Exec(int argc, const char** argv)
       throw std::logic_error("No workers set, nothing to do");
     }
 
-    if (std::find(m_options.codeMappings.cbegin(), m_options.codeMappings.cend(), SecurityCodeMapping::MISRA) != m_options.codeMappings.cend() &&
-        !m_options.enabledAnalyzers.empty() &&
-        std::find_if(m_options.enabledAnalyzers.cbegin(), m_options.enabledAnalyzers.cend(), [](const Analyzer& item) { return item.type == AnalyzerType::Misra; }) == m_options.enabledAnalyzers.cend())
+    if (!m_options.enabledAnalyzers.empty())
     {
-      std::cout << "MISRA mapping is specified, but MISRA rules group is not enabled. Check the '-" << CmdAnalyzerFlagName_Short <<"' flag." << std::endl;
+      if (std::find(m_options.codeMappings.cbegin(), m_options.codeMappings.cend(), SecurityCodeMapping::MISRA) != m_options.codeMappings.cend() &&
+        std::find_if(m_options.enabledAnalyzers.cbegin(), m_options.enabledAnalyzers.cend(), [](const Analyzer& item) { return item.type == AnalyzerType::Misra; }) == m_options.enabledAnalyzers.cend())
+      {
+        std::cout << "MISRA mapping is specified, but MISRA rules group is not enabled. Check the '-" << CmdAnalyzerFlagName_Short << "' flag." << std::endl;
+      }
+
+      if (std::find(m_options.codeMappings.cbegin(), m_options.codeMappings.cend(), SecurityCodeMapping::AUTOSAR) != m_options.codeMappings.cend() &&
+        std::find_if(m_options.enabledAnalyzers.cbegin(), m_options.enabledAnalyzers.cend(), [](const Analyzer& item) { return item.type == AnalyzerType::Autosar; }) == m_options.enabledAnalyzers.cend())
+      {
+        std::cout << "AUTOSAR mapping is specified, but AUTOSAR rules group is not enabled. Check the '-" << CmdAnalyzerFlagName_Short << "' flag." << std::endl;
+      }
+
+      if (std::find(m_options.codeMappings.cbegin(), m_options.codeMappings.cend(), SecurityCodeMapping::OWASP) != m_options.codeMappings.cend() &&
+        std::find_if(m_options.enabledAnalyzers.cbegin(), m_options.enabledAnalyzers.cend(), [](const Analyzer& item) { return item.type == AnalyzerType::Owasp; }) == m_options.enabledAnalyzers.cend())
+      {
+        std::cout << "OWASP mapping is specified, but OWASP rules group is not enabled. Check the '-" << CmdAnalyzerFlagName_Short << "' flag." << std::endl;
+      }
     }
 
     for (int i = 0; i < argc; ++i)
@@ -202,7 +220,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
                                   { 's', "settings" }, Options::Single);
   ValueFlag<std::string> name(parser, "FILENAME", "Template name for resulting output files.", { 'n', "name" }, Options::Single);
   MapFlagList<std::string, SecurityCodeMapping> mappingTypes(parser, "NAME", "Enable mapping of PVS-Studio error codes to other rule sets.",
-                                                             { 'm',"errorCodeMapping" }, { { "cwe", SecurityCodeMapping::CWE }, { "misra", SecurityCodeMapping::MISRA } });
+                                                             { 'm',"errorCodeMapping" }, { { "cwe", SecurityCodeMapping::CWE }, { "misra", SecurityCodeMapping::MISRA }, { "autosar", SecurityCodeMapping::AUTOSAR }, { "owasp", SecurityCodeMapping::OWASP } });
   ValueFlag<std::string> projectName(parser, "PROJNAME", "Name of the project for fullhtml render type.", { 'p', "projectName" }, "", Options::Single);
   ValueFlag<std::string> projectVersion(parser, "PROJVERSION", "Version of the project for fullhtml render type.", { 'v', "projectVersion" }, "", Options::Single);
   Flag useCerr(parser, "CERR", "Use stderr instead of stdout.", { 'e', "cerr" }, Options::Single);

@@ -61,4 +61,22 @@ IOutput::IOutput(const std::string &path) : m_ostream(m_ofstream)
   }
 }
 
+void IOutput::DetectShowTags(bool* showCWE, bool* showSAST) const
+{
+  *showSAST = false;
+  *showCWE = false;
+
+  for (const auto& security : m_errorCodeMappings)
+  {
+    if (security == SecurityCodeMapping::MISRA || security == SecurityCodeMapping::AUTOSAR || security == SecurityCodeMapping::OWASP)
+    {
+      *showSAST = true;
+    }
+    if (security == SecurityCodeMapping::CWE)
+    {
+      *showCWE = true;
+    }
+  }
+}
+
 }

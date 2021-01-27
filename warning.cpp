@@ -38,9 +38,25 @@ AnalyzerType Warning::GetType() const
   {
     return AnalyzerType::Misra;
   }
-  else if (errorCode >= 3000 && errorCode <= 3999)
+  else if (errorCode >= 3000 && errorCode <= 3499)
   {
     return AnalyzerType::General; // C#
+  }
+  else if (errorCode >= 3500 && errorCode <= 3999)
+  {
+    return AnalyzerType::Autosar;
+  }
+  else if (errorCode >= 5000 && errorCode <= 5299)
+  {
+    return AnalyzerType::Owasp;
+  }
+  else if (errorCode >= 5300 && errorCode <= 5599)
+  {
+    return AnalyzerType::Owasp; // Java
+  }
+  else if (errorCode >= 5600 && errorCode <= 5999)
+  {
+    return AnalyzerType::Owasp; // C#
   }
   else if (errorCode >= 6000 && errorCode <= 6999)
   {
@@ -149,15 +165,15 @@ std::string Warning::GetCWEString() const
 
 std::string Warning::GetMISRAString() const
 {
-  return std::string(Warning::MISRACorePrefix) + misra;
+  return std::string(Warning::MISRACorePrefix) + sastId;
 }
 
 std::string Warning::GetMISRAStringWithLanguagePrefix() const
 {
-  if (misra.find('-') != std::string::npos)
-    return MISRAPrefixCPlusPlus + misra;
-  else if (misra.find('.') != std::string::npos)
-    return MISRAPrefixC + misra;
+  if (sastId.find('-') != std::string::npos)
+    return MISRAPrefixCPlusPlus + sastId;
+  else if (sastId.find('.') != std::string::npos)
+    return MISRAPrefixC + sastId;
   else
     return "";
 }
@@ -167,9 +183,9 @@ bool Warning::HasCWE() const
   return cwe != 0;
 }
 
-bool Warning::HasMISRA() const
+bool Warning::HasSAST() const
 {
-  return !misra.empty();
+  return !sastId.empty();
 }
 
 bool Warning::HasProjects() const

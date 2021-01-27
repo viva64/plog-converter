@@ -93,7 +93,8 @@ void from_json(const nlohmann::json &j, MessageParser &mp)
   emplaceFromJson("currLine");
   emplaceFromJson("nextLine");
   mp.m_fields.emplace_back(Join(position.lines, [](auto v) { return std::to_string(v); }, ","));
-  emplaceFromJson("alternativeNames");
+  emplaceFromJson("sastId");
+  emplaceFromJson("cwe");
 }
 
 MessageParser::MessageParser() = default;
@@ -130,7 +131,7 @@ void MessageParser::Parse(
     msg.positions.clear();
     msg.positions.emplace_back(file, ParseUint(line));
     msg.cwe = 0;
-    msg.misra.clear();
+    msg.sastId.clear();
     
     if (level == "error")
     {
@@ -158,12 +159,12 @@ void MessageParser::Parse(
 
 const std::string MessageParser::delimiter = "<#~>";
 
-bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
+bool MessageParser::ParseMessage(const std::string& srcLine, Warning& msg)
 {
   msg.format = Warning::MessageFormat::Unknown;
 
   m_fields.clear();
-
+  std::string line = Trim(srcLine);
   if (StartsWith(line, "{") && EndsWith(line, "}"))
   {
     try
@@ -185,7 +186,7 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
     msg.format = Warning::MessageFormat::OldStyle;
   }
 
-  if ((m_fields.size() != 13 && m_fields.size() != 14) || m_fields[0] != "Viva64-EM")
+  if ((m_fields.size() != 13 && m_fields.size() != 15) || m_fields[0] != "Viva64-EM")
   {
     return false;
   }
@@ -217,26 +218,8 @@ bool MessageParser::ParseMessage(const std::string& line, Warning& msg)
     }
   }
 
-  if (m_fields.size() > 13)
-  {
-    std::vector<std::string> alternativeNames;
-    Split(m_fields[13], ",", std::back_inserter(alternativeNames));
-    
-    //cwe
-    auto parseId = ParseSecurityId(alternativeNames, Warning::CWEPrefix);
-    if (!parseId.empty())
-      msg.cwe = static_cast<unsigned>(std::stoi(parseId));
-    else
-      msg.cwe = 0;
-    
-    //misra
-    msg.misra = ParseSecurityId(alternativeNames, Warning::MISRACorePrefix);
-  }
-  else
-  {
-    msg.cwe = 0;
-    msg.misra.clear();
-  }
+  msg.sastId = m_fields.size() > 13 ? m_fields[13] : std::string();
+  msg.cwe = m_fields.size() > 14 && !m_fields[14].empty() ? static_cast<unsigned>(std::stoi(m_fields[14])) : 0;
 
   return true;
 }
@@ -260,7 +243,7 @@ void MessageParser::StringFromMessage(const Warning &msg, std::string &res)
     alternativeNames += msg.GetCWEString();
   }
 
-  if (msg.HasMISRA())
+  if (msg.HasSAST())
   {
     if (!alternativeNames.empty())
     {

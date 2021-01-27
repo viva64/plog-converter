@@ -64,6 +64,8 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
   m_desc.emplace(AnalyzerType::Viva64, "64-bit errors");
   m_desc.emplace(AnalyzerType::CustomerSpecific, "Customers Specific");
   m_desc.emplace(AnalyzerType::Misra, "MISRA");
+  m_desc.emplace(AnalyzerType::Autosar, "AUTOSAR");
+  m_desc.emplace(AnalyzerType::Owasp, "OWASP");
 }
 
 HTMLOutput::~HTMLOutput() = default;
@@ -78,7 +80,7 @@ static char HtmlHead[] = R"(
    TABLE {
     width: 100%;
    }
-   #col_group, #col_level, #col_code, #col_cwe, #col_misra {
+   #col_group, #col_level, #col_code, #col_cwe, #col_sast {
     text-align: center;
     white-space: nowrap;
     width: 0;
@@ -205,7 +207,7 @@ static std::string CurrentDateTime()
   return oss.str();
 }
 
-void HTMLOutput::CheckProjectsAndCWEAndMISRA()
+void HTMLOutput::CheckProjectsAndCWEAndSAST()
 {
   for (auto const &err : m_messages)
   {
@@ -214,9 +216,9 @@ void HTMLOutput::CheckProjectsAndCWEAndMISRA()
       m_hasAnyCWE = true;
     }
 
-    if (err.HasMISRA())
+    if (err.HasSAST())
     {
-      m_hasAnyMISRA = true;
+      m_showSASTColumn = true;
     }
 
     if (err.HasProjects())
@@ -224,7 +226,7 @@ void HTMLOutput::CheckProjectsAndCWEAndMISRA()
       m_hasAnyProjects = true;
     }
 
-    if (m_hasAnyCWE && m_hasAnyMISRA && m_hasAnyProjects)
+    if (m_hasAnyCWE && m_showSASTColumn && m_hasAnyProjects)
       break;
   }
 }
@@ -279,6 +281,8 @@ void HTMLOutput::PrintTableInfo()
   if (m_64 > 0) print_tr_th("Total Warnings (64):", std::to_string(m_64));
   if (m_cs > 0) print_tr_th("Total Warnings (CS):", std::to_string(m_cs));
   if (m_misra > 0) print_tr_th("Total Warnings (MISRA):", std::to_string(m_misra));
+  if (m_autosar > 0) print_tr_th("Total Warnings (AUTOSAR):", std::to_string(m_autosar));
+  if (m_owasp > 0) print_tr_th("Total Warnings (OWASP):", std::to_string(m_owasp));
   if (m_fails > 0) print_tr_th("Fails/Info:", std::to_string(m_fails));
   m_ofstream << R"(  </table>)" << std::endl;
 }
@@ -294,13 +298,23 @@ void HTMLOutput::PrintTableCaption()
   m_ofstream << R"(      <th class="lsort">Level</th>)" << std::endl;
   m_ofstream << R"(      <th class="vsort">Code</th>)" << std::endl;
 
+  bool showSAST = false;
+
   for (const auto& security : m_errorCodeMappings)
   {
     if (security == SecurityCodeMapping::CWE && m_hasAnyCWE)
       m_ofstream << R"(      <th class="csort">CWE</th>)" << std::endl;
 
-    if (security == SecurityCodeMapping::MISRA && m_hasAnyMISRA)
-      m_ofstream << R"(      <th class="rsort">MISRA</th>)" << std::endl;
+    bool hasMisra =   security == SecurityCodeMapping::MISRA;
+    bool hasOwasp =   security == SecurityCodeMapping::OWASP;
+    bool hasAutosar = security == SecurityCodeMapping::AUTOSAR;
+    if (m_showSASTColumn && (hasMisra || hasOwasp || hasAutosar)) {
+      showSAST = true;
+    }
+      
+  }
+  if (showSAST) {
+    m_ofstream << R"(      <th class="rsort">SAST</th>)" << std::endl;
   }
 
   m_ofstream << R"(      <th>Message</th>)" << std::endl;
@@ -351,25 +365,25 @@ void HTMLOutput::PrintTableBody()
     m_ofstream << R"(      <td id="col_level" style="color:)" << ColorLevel(err.level) << R"("><b>)" << TextLevel(err.level) << R"(</b></td>)" << std::endl;
     m_ofstream << R"(      <td id="col_code"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)" << err.code << R"(</td>)" << std::endl;
 
-    for (const auto& security : m_errorCodeMappings)
-    {
-      if (security == SecurityCodeMapping::CWE && m_hasAnyCWE)
-      {
-        if (err.HasCWE())
-          m_ofstream << R"(      <td id="col_cwe"><a target="_blank" href=")" << err.GetCWEUrl() << R"(">)"
-                     << err.GetCWEString() << R"(</td>)" << std::endl;
-        else
-          m_ofstream << R"(      <td id="col_cwe"></td>)" << std::endl;
-      }
+    bool showSAST = false;
+    bool showCWE = false;
 
-      if (security == SecurityCodeMapping::MISRA && m_hasAnyMISRA)
-      {
-        if (err.HasMISRA())
-          m_ofstream << R"(      <td id="col_misra"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)"
-                     << err.GetMISRAStringWithLanguagePrefix() << R"(</td>)" << std::endl;
-        else
-          m_ofstream << R"(      <td id="col_misra"></td>)" << std::endl;
-      }
+    DetectShowTags(&showCWE, &showSAST);
+
+    if (showCWE && m_hasAnyCWE)
+    {
+      if (err.HasCWE())
+        m_ofstream << R"(      <td id="col_cwe"><a target="_blank" href=")" << err.GetCWEUrl() << R"(">)" << err.GetCWEString() << R"(</td>)" << std::endl;
+      else
+        m_ofstream << R"(      <td id="col_cwe"></td>)" << std::endl;
+    }
+
+    if (showSAST && m_showSASTColumn)
+    {
+      if (err.HasSAST())
+        m_ofstream << R"(      <td id="col_sast">)" << err.sastId << R"(</td>)" << std::endl;
+      else
+        m_ofstream << R"(      <td id="col_sast"></td>)" << std::endl;
     }
 
     m_ofstream << R"(      <td id="col_message">)" << EscapeHtml(err.message) << R"(</td>)" << std::endl;
@@ -495,6 +509,10 @@ void HTMLOutput::Write(const Warning &msg)
     ++m_cs;
   else if (analyzerType == AnalyzerType::Misra)
     ++m_misra;
+  else if (analyzerType == AnalyzerType::Autosar)
+    ++m_autosar;
+  else if (analyzerType == AnalyzerType::Owasp)
+    ++m_owasp;
   else
     ++m_fails;
 
@@ -503,7 +521,7 @@ void HTMLOutput::Write(const Warning &msg)
 
 void HTMLOutput::Finish()
 {
-  CheckProjectsAndCWEAndMISRA();
+  CheckProjectsAndCWEAndSAST();
 
   PrintHtmlStart();
   PrintTableInfo();
