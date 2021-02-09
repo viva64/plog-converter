@@ -87,7 +87,7 @@ int Application::Exec(int argc, const char** argv)
 #else
     std::cout << AppName_Default << std::endl;
 #endif
-    std::cout << "Copyright (c) 2020-2021 PVS-Studio LLC" << std::endl;
+    std::cout << "Copyright (c) 2021 PVS-Studio LLC" << std::endl;
     std::cout << AboutPVSStudio << std::endl;
     
     SetCmdOptions(argc, argv);
