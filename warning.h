@@ -69,8 +69,8 @@ struct NavigationInfo
 
   std::string RemoveNonAscii(std::string value)
   {
-    // —ÚÓÍ‡ ËÁ ËÒıÓ‰ÌËÍ‡ ÏÓÊÂÚ ÔËÈÚË ÌÂ ‚ utf-8 ÍÓ‰ËÓ‚ÍÂ (nlohmann ÌÂ ‰‡ÂÚ Ò‰ÂÎ‡Ú¸ ÌÂÒÚ‡Ì‰‡ÚÌ˚È json)
-    // ¬˚ÂÁ‡ÂÏ ÌÂ ASCII ÒËÏ‚ÓÎ˚
+    // –°—Ç—Ä–æ–∫–∞ –∏–∑ –∏—Å—Ö–æ–¥–Ω–∏–∫–∞ –º–æ–∂–µ—Ç –ø—Ä–∏–π—Ç–∏ –Ω–µ –≤ utf-8 –∫–æ–¥–∏—Ä–æ–≤–∫–µ (nlohmann –Ω–µ –¥–∞–µ—Ç —Å–¥–µ–ª–∞—Ç—å –Ω–µ—Å—Ç–∞–Ω–¥–∞—Ä—Ç–Ω—ã–π json)
+    // –í—ã—Ä–µ–∑–∞–µ–º –Ω–µ ASCII —Å–∏–º–≤–æ–ª—ã
     value.erase(std::remove_if(std::begin(value), std::end(value),
                                [](unsigned char symb) { return symb >= 0x80; }),
                 std::end(value));
@@ -180,9 +180,19 @@ struct Warning
     , level { level }
     , format { format }
   {
-    const auto size = snprintf(nullptr, 0, "V%03u", code);
-    this->code.resize(size + 1);
-    snprintf(this->code.data(), this->code.size(), "V%03u", code);
+    // todo: (c++ 20) –ü–µ—Ä–µ–ø–∏—Å–∞—Ç—å —Å –ø–æ–º–æ—â—å—é fmt
+    if (code < 10)
+    {
+      this->code = "V00" + std::to_string(code);
+    }
+    else if (code < 100)
+    {
+      this->code = "V0" + std::to_string(code);
+    }
+    else
+    {
+      this->code = "V" + std::to_string(code);
+    }
 
     positions.emplace_back(std::move(file), line);
   }

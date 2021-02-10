@@ -375,8 +375,8 @@ std::string Warning::GetJsonOutput() &&
 
 struct SourceFilePosition
 {
-  std::string file;  // Полный путь к файлу
-  std::vector<size_t> lines; // Набор номеров строк
+  std::string file;  // РџРѕР»РЅС‹Р№ РїСѓС‚СЊ Рє С„Р°Р№Р»Сѓ
+  std::vector<size_t> lines; // РќР°Р±РѕСЂ РЅРѕРјРµСЂРѕРІ СЃС‚СЂРѕРє
 
   SourceFilePosition()  noexcept {}
 
@@ -405,13 +405,13 @@ static void from_json(const nlohmann::json &j, SourceFilePosition &p)
 
 nlohmann::json Warning::ConvertToJson(Warning w)
 {
-  // Поля, которые могут отсутствовать
+  // РџРѕР»СЏ, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ РѕС‚СЃСѓС‚СЃС‚РІРѕРІР°С‚СЊ
   constexpr auto writeOption = [](nlohmann::json &j, auto &&fieldName, auto &&value)
   {
     if (!std::empty(value))
     {
-      // Строка из исходника может прийти не в utf-8 кодировке (nlohmann не дает сделать нестандартный json)
-      // Вырезаем не ASCII символы
+      // РЎС‚СЂРѕРєР° РёР· РёСЃС…РѕРґРЅРёРєР° РјРѕР¶РµС‚ РїСЂРёР№С‚Рё РЅРµ РІ utf-8 РєРѕРґРёСЂРѕРІРєРµ (nlohmann РЅРµ РґР°РµС‚ СЃРґРµР»Р°С‚СЊ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ json)
+      // Р’С‹СЂРµР·Р°РµРј РЅРµ ASCII СЃРёРјРІРѕР»С‹
       value.erase(std::remove_if(std::begin(value), std::end(value),
                                  [](unsigned char symb) { return symb >= 0x80; }),
                   std::end(value));
