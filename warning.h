@@ -48,6 +48,36 @@ struct NavigationInfo
   unsigned            nextLine = 0;
   unsigned            columns = 0;
 
+  NavigationInfo() = default;
+
+  NavigationInfo(std::string previousLineString,
+                 std::string currentLineString,
+                 std::string nextLineString,
+                 unsigned    previousLine = 0,
+                 unsigned    currentLine = 0,
+                 unsigned    nextLine = 0,
+                 unsigned    columns = 0) noexcept
+    : previousLineString { RemoveNonAscii(std::move(previousLineString)) }
+    , currentLineString  { RemoveNonAscii(std::move(currentLineString)) }
+    , nextLineString     { RemoveNonAscii(std::move(nextLineString)) }
+    , previousLine { previousLine }
+    , currentLine  { currentLine }
+    , nextLine     { nextLine }
+    , columns      { columns }
+  {
+  }
+
+  std::string RemoveNonAscii(std::string value)
+  {
+    // Строка из исходника может прийти не в utf-8 кодировке (nlohmann не дает сделать нестандартный json)
+    // Вырезаем не ASCII символы
+    value.erase(std::remove_if(std::begin(value), std::end(value),
+                               [](unsigned char symb) { return symb >= 0x80; }),
+                std::end(value));
+
+    return value;
+  };
+
   template <typename T>
   void Serialize(T& stream)
   {
@@ -69,26 +99,39 @@ struct WarningPosition
 
   WarningPosition() = default;
 
-  WarningPosition(std::string file_, int line_)
-    : file(std::move(file_)), line(line_), endLine(line_)
+  WarningPosition(std::string file_, unsigned line_)
+    : file    { std::move(file_) }
+    , line    { line_ }
+    , endLine { line_ }
+  {}
+
+  WarningPosition(std::string file_, size_t line_)
+    : file    { std::move(file_) }
+    , line    { static_cast<unsigned>(line_) }
+    , endLine { static_cast<unsigned>(line_) }
   {}
 
   template <typename T>
   void Serialize(T& stream)
   {
-    stream.Optional("file", file)
-          .Optional("line", line)
+    stream.Required("file", file)
+          .Required("line", line)
           .Optional("column", column)
           .Optional("endColumn", endColumn, std::numeric_limits<int>::max())
-          .Optional("navigation", navigation);
-
-    stream.Optional("endLine", endLine, line);
+          .Optional("navigation", navigation)
+          .Optional("endLine", endLine, line);
   }
+};
+
+class ParseException : public std::runtime_error
+{
+public:
+  using runtime_error::runtime_error;
 };
 
 struct Warning
 {
-  enum class MessageFormat
+  enum class Format
   {
     Unknown,
     OldStyle,
@@ -96,39 +139,87 @@ struct Warning
   };
 
   constexpr static const char*      CWEPrefix = "CWE-";
-  
-  constexpr static const char*      MISRACorePrefix = "MISRA: ";
-  constexpr static const char*      MISRAPrefixC = "MISRA C ";
-  constexpr static const char*      MISRAPrefixCPlusPlus = "MISRA C++ ";
-  
+
   std::string                       code;
   std::string                       message;
+  std::string                       sastId;
   std::vector<WarningPosition>      positions;
-  std::vector<unsigned>             additionalLines;
   std::vector<std::string>          stacktrace;
   std::vector<std::string>          projects;
   unsigned                          cwe = 0;
-  std::string                       sastId;
   unsigned                          level = 0;
   bool                              favorite = false;
   bool                              falseAlarm = false;
   bool                              trialMode = false;
-  MessageFormat                     format = MessageFormat::OldStyle;
+
+  Format                            format = Format::OldStyle;
+
+  Warning() = default;
+
+  Warning(std::string code,
+          std::string message,
+          std::string file,
+          Format format,
+          size_t line = 1,
+          unsigned level = 0)
+    : code { std::move(code) }
+    , message { std::move(message) }
+    , level { level }
+    , format { format }
+  {
+    positions.emplace_back(std::move(file), line);
+  }
+
+  Warning(unsigned code,
+          const std::string &message,
+          const std::string &file,
+          Format format,
+          size_t line = 1,
+          unsigned level = 0)
+    : message { std::move(message) }
+    , level { level }
+    , format { format }
+  {
+    const auto size = snprintf(nullptr, 0, "V%03u", code);
+    this->code.resize(size + 1);
+    snprintf(this->code.data(), this->code.size(), "V%03u", code);
+
+    positions.emplace_back(std::move(file), line);
+  }
+
+  Warning(std::string code,
+          std::string message,
+          std::vector<WarningPosition> positions,
+          Format format,
+          unsigned cwe,
+          std::string sast,
+          unsigned level,
+          bool falseAlarm
+  )
+    : code { std::move(code) }
+    , message { std::move(message) }
+    , sastId { std::move(sast) }
+    , positions { std::move(positions) }
+    , cwe { cwe }
+    , level { level }
+    , falseAlarm { falseAlarm }
+    , format { format }
+  {
+  }
 
   template <typename T>
   void Serialize(T& stream)
   {
     stream.Required("code", code)
           .Required("message", message)
-          .Optional("stacktrace", stacktrace)
-          .Optional("positions", positions)
-          .Optional("projects", projects)
-          .Optional("cwe", cwe)
+          .Required("level", level)
+          .Required("positions", positions)
+          .Optional("cwe", cwe, 0)
           .Optional("sastId", sastId)
-          .Optional("misra", sastId)
-          .Optional("level", level)
           .Optional("favorite", favorite)
           .Optional("falseAlarm", falseAlarm)
+          .Optional("stacktrace", stacktrace)
+          .Optional("projects", projects)
           .Optional("trialMode", trialMode);
   }
 
@@ -154,15 +245,29 @@ struct Warning
   std::string                       GetVivaUrl() const;
   std::string                       GetCWEUrl() const;
   std::string                       GetCWEString() const;
-  std::string                       GetMISRAString() const;
-  std::string                       GetMISRAStringWithLanguagePrefix() const;
+  std::string                       GetSASTString() const;
   std::vector<unsigned>             GetExtendedLines() const;
 
   std::string                       GetLevelString() const;
   std::string                       GetLevelString(const std::string &l01, const std::string &l2, const std::string &l3) const;
   std::string                       GetLevelString(const std::string &l0, const std::string &l1, const std::string &l2, const std::string &l3) const;
 
+  static Warning Parse(std::string str);
+
+  std::string                       GetOldstyleOutput() const &;
+  std::string                       GetOldstyleOutput() &&;
+
+  std::string                       GetFormattedOutput() const &;
+  std::string                       GetFormattedOutput() &&;
+
+  std::string                       GetJsonOutput() const &;
+  std::string                       GetJsonOutput() &&;
+
+
   void                              Clear();
+
+private:
+  static nlohmann::json ConvertToJson(Warning w);
 };
 
 }
