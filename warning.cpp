@@ -317,12 +317,13 @@ std::string Warning::GetOldstyleOutput() const &
   std::string result;
   result.reserve(minMessageSize);
 
-  const auto &navigation = positions.front().navigation;
+  const auto &mainPosition = positions.front();
+  const auto &navigation = mainPosition.navigation;
 
   result += "Viva64-EM<#~>full<#~>";
-  result += std::to_string(positions.front().line);
+  result += std::to_string(mainPosition.line);
   result += "<#~>";
-  result += positions.front().file;
+  result += mainPosition.file;
   result += "<#~>error<#~>";
   result += code;
   result += "<#~>";
@@ -367,7 +368,7 @@ std::string Warning::GetJsonOutput() const &
   return j.dump(-1, '\0', false, nlohmann::json::error_handler_t::ignore);
 }
 
-std::string Warning::GetJsonOutput() &&
+std::string Warning::GetJsonOutput() && //-V659
 {
   auto j = ConvertToJson(std::move(*this));
   return j.dump(-1, '\0', false, nlohmann::json::error_handler_t::ignore);
@@ -479,7 +480,7 @@ nlohmann::json Warning::ConvertToJson(Warning w)
   return j;
 }
 
-Warning Warning::Parse(std::string srcLine)
+Warning Warning::Parse(const std::string& srcLine)
 {
   Warning warning;
 

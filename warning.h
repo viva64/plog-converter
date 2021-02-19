@@ -156,7 +156,7 @@ struct Warning
 
   Warning() = default;
 
-  Warning(std::string code,
+  Warning(std::string code, //-V688
           std::string message,
           std::string file,
           Format format,
@@ -170,7 +170,7 @@ struct Warning
     positions.emplace_back(std::move(file), line);
   }
 
-  Warning(unsigned code,
+  Warning(unsigned code, //-V688
           const std::string &message,
           const std::string &file,
           Format format,
@@ -262,7 +262,7 @@ struct Warning
   std::string                       GetLevelString(const std::string &l01, const std::string &l2, const std::string &l3) const;
   std::string                       GetLevelString(const std::string &l0, const std::string &l1, const std::string &l2, const std::string &l3) const;
 
-  static Warning Parse(std::string str);
+  static Warning Parse(const std::string& str);
 
   std::string                       GetOldstyleOutput() const &;
   std::string                       GetOldstyleOutput() &&;
