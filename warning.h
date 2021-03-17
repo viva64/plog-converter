@@ -69,8 +69,6 @@ struct NavigationInfo
 
   std::string RemoveNonAscii(std::string value)
   {
-    // Строка из исходника может прийти не в utf-8 кодировке (nlohmann не дает сделать нестандартный json)
-    // Вырезаем не ASCII символы
     value.erase(std::remove_if(std::begin(value), std::end(value),
                                [](unsigned char symb) { return symb >= 0x80; }),
                 std::end(value));
@@ -180,7 +178,7 @@ struct Warning
     , level { level }
     , format { format }
   {
-    // todo: (c++ 20) Переписать с помощью fmt
+    // todo: (c++ 20) use fmt
     if (code < 10)
     {
       this->code = "V00" + std::to_string(code);

@@ -376,8 +376,8 @@ std::string Warning::GetJsonOutput() && //-V659
 
 struct SourceFilePosition
 {
-  std::string file;  // Полный путь к файлу
-  std::vector<size_t> lines; // Набор номеров строк
+  std::string file;
+  std::vector<size_t> lines; // line numbers
 
   SourceFilePosition()  noexcept {}
 
@@ -406,13 +406,10 @@ static void from_json(const nlohmann::json &j, SourceFilePosition &p)
 
 nlohmann::json Warning::ConvertToJson(Warning w)
 {
-  // Поля, которые могут отсутствовать
   constexpr auto writeOption = [](nlohmann::json &j, auto &&fieldName, auto &&value)
   {
     if (!std::empty(value))
     {
-      // Строка из исходника может прийти не в utf-8 кодировке (nlohmann не дает сделать нестандартный json)
-      // Вырезаем не ASCII символы
       value.erase(std::remove_if(std::begin(value), std::end(value),
                                  [](unsigned char symb) { return symb >= 0x80; }),
                   std::end(value));
