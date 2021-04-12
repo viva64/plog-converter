@@ -379,7 +379,7 @@ struct SourceFilePosition
   std::string file;
   std::vector<size_t> lines; // line numbers
 
-  SourceFilePosition()  noexcept {}
+  SourceFilePosition() = default;
 
   SourceFilePosition(std::string file, std::vector<size_t> lines) noexcept
     : file { std::move(file) }
