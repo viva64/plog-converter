@@ -130,5 +130,5 @@ add_resources(
     LogoPng             "Resources/logo.png"
 )
 
-enable_testing()
-add_test(NAME plog-converter COMMAND plog-converter-test)
+include(ThirdParty/Catch.cmake)
+catch_discover_tests(plog-converter-test)
