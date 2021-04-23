@@ -5,7 +5,7 @@
 #include "application.h"
 #include "logparserworker.h"
 #include "messageparser.h"
-#include "../ThirdParty/backward.hpp"
+#include "ThirdParty/backward.hpp"
 
 int main(int argc, const char** argv)
 {

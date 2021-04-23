@@ -4,7 +4,7 @@
 
 #include "messageparser.h"
 #include "utils.h"
-#include "../ThirdParty/json.hpp"
+#include "ThirdParty/json.hpp"
 #include <string>
 #include <stdexcept>
 #include <algorithm>
