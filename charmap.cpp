@@ -86,3 +86,11 @@ void CharMap::EncodeForPlatform(std::string &str)
 #endif
 }
 
+void CharMap::DecodeForPlatform(std::string& str)
+{
+#ifndef _WIN32
+  Decode(str);
+#else
+  (void)str;
+#endif
+}

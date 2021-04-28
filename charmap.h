@@ -14,6 +14,7 @@ namespace CharMap
   void Encode(std::string &str);
   void Decode(std::string &str);
   void EncodeForPlatform(std::string &str);
+  void DecodeForPlatform(std::string& str);
   bool IsStartEncodedMarker(const std::string &str);
 }
 
