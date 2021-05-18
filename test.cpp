@@ -37,16 +37,16 @@ TEST_CASE("Warning::GetVivaUrl")
   Warning msg;
 
   msg.code = "V001";
-  REQUIRE(msg.GetVivaUrl() == "https://www.viva64.com/en/w/v001/");
+  REQUIRE(msg.GetVivaUrl() == "https://pvs-studio.com/en/docs/warnings/v001/");
 
   msg.code = "V101";
-  REQUIRE(msg.GetVivaUrl() == "https://www.viva64.com/en/w/v101/");
+  REQUIRE(msg.GetVivaUrl() == "https://pvs-studio.com/en/docs/warnings/v101/");
 
   msg.code = "V1001";
-  REQUIRE(msg.GetVivaUrl() == "https://www.viva64.com/en/w/v1001/");
+  REQUIRE(msg.GetVivaUrl() == "https://pvs-studio.com/en/docs/warnings/v1001/");
 
   msg.code = "Renew";
-  REQUIRE(msg.GetVivaUrl() == "https://www.viva64.com/en/renewal/");
+  REQUIRE(msg.GetVivaUrl() == "https://pvs-studio.com/en/renewal/");
 }
 
 TEST_CASE("plog-converter -a")

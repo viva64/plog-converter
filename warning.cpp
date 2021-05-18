@@ -76,8 +76,8 @@ Warning Warning::GetDocumentationLinkMessage()
   Warning docsMessage;
   docsMessage.code = "Help:";
   docsMessage.level = 1;
-  docsMessage.positions = { {"www.viva64.com/en/w", 1u } };
-  docsMessage.message = "The documentation for all analyzer warnings is available here: https://www.viva64.com/en/w/.";
+  docsMessage.positions = { {"https://pvs-studio.com/en/docs/warnings/", 1u } };
+  docsMessage.message = "The documentation for all analyzer warnings is available here: https://pvs-studio.com/en/docs/warnings/.";
   return docsMessage;
 }
 
@@ -122,28 +122,28 @@ std::string Warning::GetVivaUrl() const
 {
   if (IsRenewMessage())
   {
-    return "https://www.viva64.com/en/renewal/";
+    return "https://pvs-studio.com/en/renewal/";
   }
 
   if (IsExternalMessage())
   {
-    return "https://www.viva64.com/en/w/";
+    return "https://pvs-studio.com/en/docs/warnings/";
   }
 
   if (IsUpdateMessage())
   {
-    return "https://www.viva64.com/en/pvs-studio-download/";
+    return "https://pvs-studio.com/en/pvs-studio/download/";
   }
 
   if (IsTrialMessage())
   {
-    return "https://www.viva64.com/en/pvs-studio-download/#trial_form";
+    return "https://pvs-studio.com/en/pvs-studio/download/#trial_form";
   }
 
   const auto errorCode = GetErrorCode();
   if (errorCode != 0)
   {
-    return "https://www.viva64.com/en/w/v" + LeftPad(std::to_string(errorCode), 3, '0') + '/';
+    return "https://pvs-studio.com/en/docs/warnings/v" + LeftPad(std::to_string(errorCode), 3, '0') + '/';
   }
 
   return {};
