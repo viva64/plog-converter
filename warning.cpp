@@ -76,7 +76,7 @@ Warning Warning::GetDocumentationLinkMessage()
   Warning docsMessage;
   docsMessage.code = "Help:";
   docsMessage.level = 1;
-  docsMessage.positions = { {"https://pvs-studio.com/en/docs/warnings/", 1u } };
+  docsMessage.positions = { {"pvs-studio.com/en/docs/warnings/", 1u } };
   docsMessage.message = "The documentation for all analyzer warnings is available here: https://pvs-studio.com/en/docs/warnings/.";
   return docsMessage;
 }
