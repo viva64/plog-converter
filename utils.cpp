@@ -232,12 +232,12 @@ std::string LeftPad(const std::string &str, size_t size, char ch)
   return res;
 }
 
+#ifdef _WIN32
 static void ConvertWithCodePage(std::string& source,
                                 unsigned fromCodePage,
                                 unsigned toCodePage,
                                 std::unordered_map<std::string, std::string>& cache)
 {
-#ifdef _WIN32
   auto [newEntry, ok] = cache.try_emplace(source);
   if (!ok)
   {
@@ -258,19 +258,24 @@ static void ConvertWithCodePage(std::string& source,
   WideCharToMultiByte(toCodePage, 0, intermediateBuf, intermediateSize, source.data(), size_needed, nullptr, nullptr);
 
   newEntry->second = source;
+
+}
+#endif
+
+void UTF8toANSI([[maybe_unused]] std::string& source)
+{
+#ifdef _WIN32
+  static std::unordered_map<std::string, std::string> cache;
+  ConvertWithCodePage(source, CP_UTF8, CP_ACP, cache);
 #endif
 }
 
-void UTF8toANSI(std::string& source)
+void ANSItoUTF8([[maybe_unused]] std::string& source)
 {
-  static std::unordered_map<std::string, std::string> cache;
-  ConvertWithCodePage(source, CP_UTF8, CP_ACP, cache);
-}
-
-void ANSItoUTF8(std::string& source)
-{
+#ifdef _WIN32
   static std::unordered_map<std::string, std::string> cache;
   ConvertWithCodePage(source, CP_ACP, CP_UTF8, cache);
+#endif
 }
 
 }
