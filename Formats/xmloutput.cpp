@@ -33,7 +33,7 @@ void XMLOutput::Write(const Warning& msg)
             << "    <ErrorCode>" << msg.code << "</ErrorCode>" << std::endl
             << "    <Message>" << EscapeHtml(msg.message) << "</Message>" << std::endl
             << "    <Line>" << msg.GetLine() << "</Line>" << std::endl
-            << "    <File>" << msg.GetFile() << "</File>" << std::endl;
+            << "    <File>" << msg.GetFileUTF8() << "</File>" << std::endl;
 
   auto extendedLines = msg.GetExtendedLines();
   if(extendedLines.size() > 1)

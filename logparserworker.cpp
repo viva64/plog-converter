@@ -36,6 +36,7 @@ void LogParserWorker::OnWarning(Warning &warning)
 {
   for (auto &position : warning.positions)
   {
+    UTF8toANSI(position.file);
     Replace(position.file, "|?|", m_root);
   }
 

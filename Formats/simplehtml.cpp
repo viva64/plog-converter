@@ -26,7 +26,7 @@ static char HtmlHead[] = R"(
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
   <title>Messages</title>
-  <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <style type="text/css">
     td {
       padding: 0;
@@ -144,9 +144,10 @@ void SimpleHTMLOutput::PrintMessages(const std::vector<Warning> &messages, const
   for (const auto &err : messages)
   {
 #ifdef WIN32
+    std::string fileUTF8 = err.GetFileUTF8();
     m_ostream << R"(    <tr>)" << endl;
     m_ostream << R"(      <td style='width: 10%;'></td>)" << endl;
-    m_ostream << R"(      <td style='width: 20%;'><div title=")" << EscapeHtml(err.GetFile()) << R"(">)" << FileBaseName(err.GetFile())
+    m_ostream << R"(      <td style='width: 20%;'><div title=")" << EscapeHtml(fileUTF8) << R"(">)" << FileBaseName(fileUTF8)
               << " (" << err.GetLine() << R"()</div></td>)" << endl;
     m_ostream << R"(      <td style='width: 5%;'><a target="_blank" href=')" << err.GetVivaUrl() << R"('>)"
               << err.code << R"(</a></td>)" << endl;

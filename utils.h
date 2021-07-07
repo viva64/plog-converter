@@ -27,6 +27,9 @@ std::string ToLower(const std::string& src);
 
 std::string LeftPad(const std::string &str, size_t size, char ch = ' ');
 
+void UTF8toANSI(std::string& source);
+void ANSItoUTF8(std::string& source);
+
 bool StartsWith(const std::string& src, const std::string& prefix);
 bool EndsWith(const std::string& src, const std::string& suffix);
 

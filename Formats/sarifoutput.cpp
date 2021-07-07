@@ -29,7 +29,7 @@ void SarifOutput::Finish()
     << "        \"driver\": {" << std::endl
     << "          \"name\": \"PVS-Studio\"," << std::endl
     << "          \"semanticVersion\": \""<< IDS_APP_VERSION << "\"," << std::endl
-    << "          \"informationUri\": \"https://viva64.com\"," << std::endl
+    << "          \"informationUri\": \"https://pvs-studio.com\"," << std::endl
     << "          \"rules\": [" << std::endl;
 
   std::set<std::string> rules;
@@ -69,7 +69,7 @@ void SarifOutput::Finish()
       << "          \"level\": \"" << warning->GetLevelString() << "\"," << std::endl
       << "          \"locations\": [" << std::endl;
     
-    std::string fileName = NormalizeFileName(warning->GetFile());
+    std::string fileName = NormalizeFileName(warning->GetFileUTF8());
     PrintLocation(fileName, warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false, false, warning->message);
 
       m_ostream << "          ]" << std::endl;
@@ -81,7 +81,8 @@ void SarifOutput::Finish()
       for (size_t i = 1; i < warning->positions.size(); i++)
       {
         WarningPosition& position = warning->positions[i];
-        std::string positionFile = NormalizeFileName(position.file);
+        std::string positionFile(NormalizeFileName(position.file));
+        ANSItoUTF8(positionFile);
         PrintLocation(positionFile, position.line, position.endLine, position.column, position.endColumn, i != 1, true, warning->message);
       }
       m_ostream << "          ]" << std::endl;

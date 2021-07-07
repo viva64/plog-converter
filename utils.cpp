@@ -12,11 +12,14 @@
 #include <io.h>
 #include <Shlwapi.h>
 #include <direct.h>
+// for WideCharToMultiByte, MultiByteToWideChar
+#include <stringapiset.h>
 #else
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #endif
+#include <unordered_map>
 
 
 namespace PlogConverter
@@ -227,6 +230,47 @@ std::string LeftPad(const std::string &str, size_t size, char ch)
 
   res.append(str.data(), str.length());
   return res;
+}
+
+static void ConvertWithCodePage(std::string& source,
+                                unsigned fromCodePage,
+                                unsigned toCodePage,
+                                std::unordered_map<std::string, std::string>& cache)
+{
+#ifdef _WIN32
+  auto [newEntry, ok] = cache.try_emplace(source);
+  if (!ok)
+  {
+    source = newEntry->second;
+    return;
+  }
+
+  const auto sourceSize = static_cast<int>(source.size()); //-V202
+  auto sourceBuf = source.c_str();
+  auto size_needed = MultiByteToWideChar(fromCodePage, 0, sourceBuf, sourceSize, nullptr, 0);
+  std::wstring intermediateStr(size_needed, 0);
+  MultiByteToWideChar(fromCodePage, 0, sourceBuf, sourceSize, intermediateStr.data(), size_needed);
+
+  const auto intermediateSize = static_cast<int>(intermediateStr.size()); //-V202
+  auto intermediateBuf = intermediateStr.c_str();
+  size_needed = WideCharToMultiByte(toCodePage, 0, intermediateBuf, intermediateSize, nullptr, 0, nullptr, nullptr);
+  source = std::string(static_cast<size_t>(size_needed), 0); //-V201
+  WideCharToMultiByte(toCodePage, 0, intermediateBuf, intermediateSize, source.data(), size_needed, nullptr, nullptr);
+
+  newEntry->second = source;
+#endif
+}
+
+void UTF8toANSI(std::string& source)
+{
+  static std::unordered_map<std::string, std::string> cache;
+  ConvertWithCodePage(source, CP_UTF8, CP_ACP, cache);
+}
+
+void ANSItoUTF8(std::string& source)
+{
+  static std::unordered_map<std::string, std::string> cache;
+  ConvertWithCodePage(source, CP_ACP, CP_UTF8, cache);
 }
 
 }

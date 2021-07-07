@@ -80,7 +80,7 @@ namespace PlogConverter
     }
     m_ostream << "##teamcity[inspection typeId='" << msg.code << "'"
               << "message = '" << EscapeMessage(securityPrefix + msg.message) << "'"
-              << "file = '" << msg.GetFile() << "'"
+              << "file = '" << msg.GetFileUTF8() << "'"
               << "line = '" << msg.GetLine() << "'"
               << "SEVERITY = 'ERROR']"
               << std::endl;    

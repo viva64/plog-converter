@@ -249,6 +249,7 @@ struct Warning
   unsigned                          GetStartColumn() const;
   unsigned                          GetEndColumn() const;
   const std::string &               GetFile() const;
+  const std::string                 GetFileUTF8() const;
   const NavigationInfo &            GetNavigationInfo() const;
   std::string                       GetVivaUrl() const;
   std::string                       GetCWEUrl() const;

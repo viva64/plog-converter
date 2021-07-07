@@ -338,7 +338,7 @@ void HTMLOutput::PrintTableBody()
   for (auto const &err : m_messages)
   {
     AnalyzerType analyzerType = err.GetType();
-    std::string shortFileName = FileBaseName(err.GetFile());
+    std::string shortFileName = FileBaseName(err.GetFileUTF8());
     size_t id = Trim(err.GetFile()).empty() ? 0 : m_map[err.GetFile()];
     m_ofstream << R"(    <tr>)" << std::endl;
     m_ofstream << R"(      <td id="col_group">)" << m_desc[analyzerType] << R"(</td>)" << std::endl;
@@ -360,7 +360,7 @@ void HTMLOutput::PrintTableBody()
     {
       m_ofstream << R"(      <td id="col_file"><a target="_blank" href="sources/)"
                  << shortFileName << "_" << id << R"(.html#ln)" << err.GetLine() << R"(">)"
-                 << EscapeHtml(FileBaseName(shortFileName)) << ':' << err.GetLine() << R"(</a></td>)" << std::endl;
+                 << EscapeHtml(shortFileName) << ':' << err.GetLine() << R"(</a></td>)" << std::endl;
     }
     m_ofstream << R"(      <td id="col_level" style="color:)" << ColorLevel(err.level) << R"("><b>)" << TextLevel(err.level) << R"(</b></td>)" << std::endl;
     m_ofstream << R"(      <td id="col_code"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)" << err.code << R"(</td>)" << std::endl;

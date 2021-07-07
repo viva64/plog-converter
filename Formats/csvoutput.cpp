@@ -71,10 +71,11 @@ void CSVOutput::Write(const Warning& msg)
       m_ostream << " ,";
   }
 
+  std::string fileUTF8 = msg.GetFileUTF8();
   m_ostream << '"' << Escape(msg.message) << '"' << ','
-            << "\"=HYPERLINK(\"\"file://" << msg.GetFile() << "\"\", \"\" Open file\"\")\"" << ','
+            << "\"=HYPERLINK(\"\"file://" << fileUTF8 << "\"\", \"\" Open file\"\")\"" << ','
             << '"' << msg.GetLine() << '"' << ','
-            << Escape(msg.GetFile()) << std::endl;
+            << Escape(fileUTF8) << std::endl;
 }
 
 }

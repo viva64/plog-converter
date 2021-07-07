@@ -243,6 +243,21 @@ const std::string &Warning::GetFile() const
   return positions.empty() ? empty : positions.front().file;
 }
 
+const std::string Warning::GetFileUTF8() const
+{
+  static const std::string empty;
+  if (positions.empty())
+  {
+    return empty;
+  }
+  else
+  {
+    std::string tmpFile(positions.front().file);
+    ANSItoUTF8(tmpFile);
+    return tmpFile;
+  }
+}
+
 unsigned Warning::GetLine() const
 {
   return positions.empty() ? 0 : positions.front().line;

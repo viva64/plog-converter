@@ -45,7 +45,7 @@ void ErrorFileOutput::Write(const Warning& msg)
     const std::string column { ":1: " };
   #endif
 
-  m_ostream << msg.GetFile() << ":" << msg.GetLine() << column
+  m_ostream << msg.GetFileUTF8() << ":" << msg.GetLine() << column
             << msg.GetLevelString() << ": "
             << msg.code << " "
             << securityPrefix << msg.message << std::endl;

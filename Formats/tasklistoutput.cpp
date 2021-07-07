@@ -46,7 +46,7 @@ void TaskListOutput::Write(const Warning& msg)
     securityPrefix = '[' + securityPrefix + "] ";
   }
 
-  m_ostream << msg.GetFile() << "\t" << msg.GetLine() << "\t"
+  m_ostream << msg.GetFileUTF8() << "\t" << msg.GetLine() << "\t"
             << msg.GetLevelString("err", "warn", "note") << "\t"
             << msg.code << " "
             << securityPrefix << Escape(msg.message) << std::endl;
