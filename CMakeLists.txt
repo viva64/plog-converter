@@ -14,29 +14,39 @@ endif ()
 add_library(plog STATIC
     suppress_base.suppress
     application.cpp
+    application.h
+    charmap.cpp
+    charmap.h
     configparser.cpp
+    configparser.h
+    configs.h
+    ioutput.cpp
+    ioutput.h
     iworker.cpp
+    JsonUtils.h
     logparserworker.cpp
+    logparserworker.h
     messagefilter.cpp
-    suppressfilter.cpp
+    messagefilter.h
     messageparser.cpp
+    messageparser.h
+    multipleoutput.cpp
+    multipleoutput.h
     outputfactory.cpp
-    warning.cpp
+    outputfactory.h
+    suppressfilter.cpp
+    suppressfilter.h
     utils.cpp
     utils.h
-    configs.h
-    ioutput.h
-    ioutput.cpp
-    multipleoutput.h
-    multipleoutput.cpp
-    charmap.cpp
+    warning.cpp
+    warning.h
 
     Formats/htmloutput.cpp
     Formats/htmloutput.h
     Formats/xmloutput.cpp
     Formats/xmloutput.h
-    Formats/teamcityoutput.h
     Formats/teamcityoutput.cpp
+    Formats/teamcityoutput.h
     Formats/csvoutput.cpp
     Formats/csvoutput.h
     Formats/errorfileoutput.cpp
@@ -49,6 +59,8 @@ add_library(plog STATIC
     Formats/sarifoutput.h
 
     ThirdParty/args.hxx
+    ThirdParty/backward.hpp
+    ThirdParty/json.hpp
 )
 
 target_include_directories(plog PUBLIC . ThirdParty "${CMAKE_CURRENT_BINARY_DIR}")

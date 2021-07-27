@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <json.hpp>
+#include "ThirdParty/json.hpp"
 
 namespace PvsStudio
 {
@@ -110,4 +110,3 @@ auto to_json(nlohmann::json &json, const T &st) -> decltype(std::declval<T&>().S
 }
 
 }
-

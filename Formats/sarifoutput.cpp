@@ -2,142 +2,254 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2021 (c) PVS-Studio LLC
 
+#include <filesystem>
+#include <optional>
+
 #include "sarifoutput.h"
 #include "PVS-StudioVersionInfo.h"
 
 namespace PlogConverter
 {
 
-void SarifOutput::Write(const Warning& msg)
+inline std::string to_hex(unsigned char x)
+{
+  std::string hex;
+  hex.resize(2);
+  snprintf(hex.data(), hex.size() + 1, "%2X", static_cast<uint32_t>(x));
+  return std::string{"%"} + (x < 0x10 ? "0" : "") + hex;
+}
+
+std::string UriFileEscape(const std::filesystem::path& path)
+{
+  using UriCache_t = std::unordered_map<std::filesystem::path::string_type, std::string>;
+  static UriCache_t uriCache;
+
+  auto [cacheIter, isNew] = uriCache.try_emplace(path.native(), "");
+  if (!isNew)
+  {
+    return cacheIter->second;
+  }
+
+  constexpr auto isUnreserved = [](const char c)
+  {
+    // RFC 3986 section 2.3 Unreserved Characters(January 2005)
+    // A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+    // a b c d e f g h i j k l m n o p q r s t u v w x y z
+    // 0 1 2 3 4 5 6 7 8 9 - _ . ~
+
+    return (c >= '0' && c <= '9')
+        || (c >= 'A' && c <= 'Z')
+        || (c >= 'a' && c <= 'z')
+        || c == '-'
+        || c == '.'
+        || c == '_'
+        || c == '~';
+  };
+
+  // Works similar to the curl_easy_escape function from curl
+  // https://curl.se/libcurl/c/curl_easy_escape.html
+  // > ...encodes the data byte-by-byte into the URL encoded version
+  // > without knowledge or care for what particular character encoding
+  // > the application or the receiving server may assume that the data uses
+  const auto escapeElement = [&isUnreserved](const std::filesystem::path& element) -> std::string
+  {
+    std::string str = element.string();
+    if (str.empty() || str == "/")
+    {
+      return {};
+    }
+
+    std::string output;
+    output.reserve(str.size() + 1);
+    output.push_back('/');
+    for (auto ch : str)
+    {
+      if (isUnreserved(ch))
+      {
+        output.push_back(ch);
+      }
+      else
+      {
+        output.append(to_hex(ch));
+      }
+    }
+
+    return output;
+  };
+
+  std::string output;
+  output.reserve(10);       // reserved for scheme and Windows drive letter
+  output.append("file://");
+  cacheIter->second = output + Join(path, escapeElement, "");
+
+  return cacheIter->second;
+}
+
+void SarifOutput::Write(const Warning &msg)
 {
   if (msg.IsDocumentationLinkMessage())
   {
     return;
   }
+
   m_warnings.push_back(msg);
 }
 
+nlohmann::ordered_json MessageJson(const std::string &message)
+{
+  return
+  { "message",
+    { { "text", message } }
+  };
+}
+
+struct Region
+{
+  unsigned int startLine;
+  unsigned int endLine;
+  unsigned int startColumn;
+  unsigned int endColumn;
+};
+
+nlohmann::ordered_json LocationJson(const std::string& uri, const Region &region, std::optional<std::string> message = {})
+{
+  nlohmann::ordered_json location;
+
+  if (message)
+  {
+    location = nlohmann::ordered_json::object({ MessageJson(*message) });
+  }
+
+  location["physicalLocation"] =
+  {
+    { "artifactLocation",
+      nlohmann::ordered_json::object({ { "uri", uri } })
+    },
+    { "region",
+      {
+        { "startLine", region.startLine },
+        { "endLine", region.endLine },
+        { "startColumn", region.startColumn },
+        { "endColumn", region.endColumn }
+      }
+    }
+  };
+
+  return location;
+}
+
+struct PvsStudioSarifRun
+{
+  nlohmann::ordered_json rules;
+  nlohmann::ordered_json results;
+
+  PvsStudioSarifRun(const std::list<Warning> &warnings)
+  {
+    for (auto&& warning : warnings)
+    {
+      // Add "rules" section
+
+      if (ruleIds.insert(warning.code).second)
+      {
+        nlohmann::ordered_json rule
+        {
+          { "id", warning.code },
+          { "name", "Rule" + warning.code },
+          { "help",
+            { { "text", warning.GetVivaUrl() } }
+          },
+          { "helpUri", warning.GetVivaUrl() }
+        };
+
+        if (warning.HasCWE())
+        {
+          rule["properties"] = {
+            { "tags",
+              { "security", "external/cwe/cwe-" + std::to_string(warning.cwe) }
+            }
+          };
+        }
+
+        rules.push_back(rule);
+      }
+
+      // Add "results" section
+
+      nlohmann::ordered_json locations
+      {
+        LocationJson(UriFileEscape(warning.GetFileUTF8()),
+                     { warning.GetLine(), warning.GetEndLine(), warning.GetStartColumn(), warning.GetEndColumn() }),
+      };
+
+      nlohmann::ordered_json result
+      {
+        { "ruleId", warning.code },
+        MessageJson(warning.message),
+        { "level", warning.GetLevelString() },
+        { "locations", std::vector{ std::move(locations) } }
+      };
+
+      if (auto size = warning.positions.size(); size > 1)
+      {
+        std::vector<nlohmann::json> relatedLocations;
+
+        // todo [c++20]: ranges
+        for (size_t i = 1; i < size; ++i)
+        {
+          auto&& position = warning.positions[i];
+          auto positionFile = position.file;
+          ANSItoUTF8(positionFile);
+
+          relatedLocations.push_back(LocationJson(UriFileEscape(positionFile),
+                                                  { position.line, position.endLine, position.column, position.endColumn },
+                                                  warning.message));
+        }
+
+        result["relatedLocations"] = std::move(relatedLocations);
+      }
+
+      results.push_back(std::move(result));
+    }
+  }
+
+  nlohmann::ordered_json GetDriverJson()
+  {
+    nlohmann::ordered_json driver
+    {
+      { "name", "PVS-Studio" },
+      { "semanticVersion", IDS_APP_VERSION },
+      { "informationUri", "https://pvs-studio.com" },
+      { "rules", std::move(rules) }
+    };
+
+    return
+    {
+      { "driver", std::move(driver) }
+    };
+  }
+
+private:
+  std::set<std::string> ruleIds;
+};
+
 void SarifOutput::Finish()
 {
-  m_ostream
-    << "{" << std::endl
-    << "  \"version\": \"2.1.0\"," << std::endl
-    << "  \"$schema\": \"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json\"," << std::endl
-    << "  \"runs\": [" << std::endl
-    << "    {" << std::endl
-    << "       \"tool\": {" << std::endl
-    << "        \"driver\": {" << std::endl
-    << "          \"name\": \"PVS-Studio\"," << std::endl
-    << "          \"semanticVersion\": \""<< IDS_APP_VERSION << "\"," << std::endl
-    << "          \"informationUri\": \"https://pvs-studio.com\"," << std::endl
-    << "          \"rules\": [" << std::endl;
+  PvsStudioSarifRun pvsStudioRun { m_warnings };
 
-  std::set<std::string> rules;
-  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); ++warning)
+  nlohmann::ordered_json run
   {
-    if (!rules.insert(warning->code).second)
-    {
-      continue;
-    }
-    
-    m_ostream
-      << "            " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
-      << "              \"id\": \"" << warning->code << "\"," << std::endl
-      << "              \"name\": \"Rule" << warning->code << "\"," << std::endl
-      << "              \"help\": { \"text\": \"" << warning->GetVivaUrl() << "\" }," << std::endl
-      << "              \"helpUri\": \"" << warning->GetVivaUrl() << "\"" << std::endl;
+    { "tool", pvsStudioRun.GetDriverJson() },
+    { "results", std::move(pvsStudioRun.results) }
+  };
 
-    if (warning->HasCWE())
-    {
-      m_ostream << "              ,\"properties\": { \"tags\": [ \"security\", \"external/cwe/cwe-" << warning->cwe << "\" ] }" << std::endl;
-    }
-    m_ostream << "            }" << std::endl;
-  }
-
-  m_ostream
-    << "          ]" << std::endl
-    << "        }" << std::endl
-    << "      }," << std::endl
-    << "      \"results\": [" << std::endl;
-
-  for (auto warning = m_warnings.begin(); warning != m_warnings.end(); ++warning)
+  nlohmann::ordered_json sarif
   {
-    m_ostream
-      << "        " << (warning == m_warnings.begin() ? "{" : ",{") << std::endl
-      << "          \"ruleId\": \"" << warning->code << "\"," << std::endl
-      << "          \"message\": { \"text\": \"" << EscapeJson(warning->message) << "\" }," << std::endl
-      << "          \"level\": \"" << warning->GetLevelString() << "\"," << std::endl
-      << "          \"locations\": [" << std::endl;
-    
-    std::string fileName = NormalizeFileName(warning->GetFileUTF8());
-    PrintLocation(fileName, warning->GetLine(), warning->GetEndLine(), warning->GetStartColumn(), warning->GetEndColumn(), false, false, warning->message);
+    { "version", "2.1.0" },
+    { "$schema", "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json" },
+    { "runs", std::vector { std::move(run) } }
+  };
 
-      m_ostream << "          ]" << std::endl;
-
-    if (warning->positions.size() > 1)
-    {
-      m_ostream << "          ,\"relatedLocations\": [" << std::endl;
-
-      for (size_t i = 1; i < warning->positions.size(); i++)
-      {
-        WarningPosition& position = warning->positions[i];
-        std::string positionFile(NormalizeFileName(position.file));
-        ANSItoUTF8(positionFile);
-        PrintLocation(positionFile, position.line, position.endLine, position.column, position.endColumn, i != 1, true, warning->message);
-      }
-      m_ostream << "          ]" << std::endl;
-    }
-    m_ostream << "        }" << std::endl;
-  }
-
-  m_ostream
-    << "      ]" << std::endl
-    << "    }" << std::endl
-    << "  ]" << std::endl
-    << "}" << std::endl;
-}
-
-void SarifOutput::PrintLocation(std::string& file, unsigned int startLine, unsigned int endLine, unsigned int startColumn, unsigned int endColumn, bool comma, bool withMessage, std::string& message)
-{
-  m_ostream
-    << "            " << (comma ? ",{" : "{") << std::endl;
-  if (withMessage) {
-    m_ostream
-      << "              \"message\": {" << std::endl
-      << "                \"text\": \"" << message << "\"" << std::endl
-      << "              }," << std::endl;
-  }
-
-  m_ostream
-    << "              \"physicalLocation\": {" << std::endl
-    << "                \"artifactLocation\": {" << " \"uri\": \"" << file << "\"" << "}," << std::endl
-    << "                \"region\": { \"startLine\": " << startLine << ", \"endLine\": " << endLine << ", \"startColumn\": " << startColumn << ", \"endColumn\": " << endColumn << " }" << std::endl
-    << "              }" << std::endl
-    << "            }" << std::endl;
-}
-
-std::string SarifOutput::EscapeJson(std::string& src)
-{
-  std::string str = src;
-  ReplaceAll(str, "\b", "\\b");
-  ReplaceAll(str, "\f", "\\f");
-  ReplaceAll(str, "\n", "\\n");
-  ReplaceAll(str, "\r", "\\r");
-  ReplaceAll(str, "\t", "\\t");
-  ReplaceAll(str, "\\", "\\\\");
-  ReplaceAll(str, "\"", "\\\"");
-  return str;
-}
-
-std::string SarifOutput::NormalizeFileName(const std::string& file)
-{
-  std::string str = file;
-  ReplaceAll(str, "\\", "/");
-  if (!str.empty() && str[0] == '/')
-  {
-    str = str.substr(1);
-  }
-  return str;
+  m_ofstream << sarif.dump(2) << std::endl;
 }
 
 }
