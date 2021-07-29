@@ -8,6 +8,8 @@
 #include "sarifoutput.h"
 #include "PVS-StudioVersionInfo.h"
 
+namespace stdfs = std::filesystem;
+
 namespace PlogConverter
 {
 
@@ -19,11 +21,12 @@ inline std::string to_hex(unsigned char x)
   return std::string{"%"} + (x < 0x10 ? "0" : "") + hex;
 }
 
-std::string UriFileEscape(const std::filesystem::path& path)
+std::string UriFileEscape(const std::string &filePath)
 {
-  using UriCache_t = std::unordered_map<std::filesystem::path::string_type, std::string>;
+  using UriCache_t = std::unordered_map<stdfs::path::string_type, std::string>;
   static UriCache_t uriCache;
 
+  auto path = stdfs::path{ filePath }.make_preferred();
   auto [cacheIter, isNew] = uriCache.try_emplace(path.native(), "");
   if (!isNew)
   {
@@ -51,10 +54,10 @@ std::string UriFileEscape(const std::filesystem::path& path)
   // > ...encodes the data byte-by-byte into the URL encoded version
   // > without knowledge or care for what particular character encoding
   // > the application or the receiving server may assume that the data uses
-  const auto escapeElement = [&isUnreserved](const std::filesystem::path& element) -> std::string
+  const auto escapeElement = [&isUnreserved](const stdfs::path &element) -> std::string
   {
     std::string str = element.string();
-    if (str.empty() || str == "/")
+    if (str.empty() || stdfs::path::preferred_separator == element.native().front())
     {
       return {};
     }
@@ -111,7 +114,7 @@ struct Region
   unsigned int endColumn;
 };
 
-nlohmann::ordered_json LocationJson(const std::string& uri, const Region &region, std::optional<std::string> message = {})
+nlohmann::ordered_json LocationJson(const std::string &uri, const Region &region, std::optional<std::string> message = {})
 {
   nlohmann::ordered_json location;
 
