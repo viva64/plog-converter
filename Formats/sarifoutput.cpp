@@ -114,7 +114,8 @@ struct Region
   unsigned int endColumn;
 };
 
-nlohmann::ordered_json LocationJson(const std::string &uri, const Region &region, std::optional<std::string> message = {})
+nlohmann::ordered_json LocationJson(const std::string &uri, const Region &region,
+                                    const std::optional<std::string> &message = {})
 {
   nlohmann::ordered_json location;
 
@@ -146,7 +147,7 @@ struct PvsStudioSarifRun
   nlohmann::ordered_json rules;
   nlohmann::ordered_json results;
 
-  PvsStudioSarifRun(const std::list<Warning> &warnings)
+  PvsStudioSarifRun(const std::list<Warning> &warnings) //-V826
   {
     for (auto&& warning : warnings)
     {
@@ -203,7 +204,7 @@ struct PvsStudioSarifRun
           auto positionFile = position.file;
           ANSItoUTF8(positionFile);
 
-          relatedLocations.push_back(LocationJson(UriFileEscape(positionFile),
+          relatedLocations.push_back(LocationJson(UriFileEscape(positionFile), //-V823
                                                   { position.line, position.endLine, position.column, position.endColumn },
                                                   warning.message));
         }
