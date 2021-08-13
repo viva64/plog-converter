@@ -89,6 +89,11 @@ MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
 
 void MisraComplianceOutput::Start()
 {
+  for (auto& complianceData : Categories())
+  {
+    complianceData.second.guideline = complianceData.first;
+  }
+
   RecategoriesByGRP();
 }
 
@@ -128,7 +133,6 @@ void MisraComplianceOutput::Finish()
 {
   for (auto& complianceData : Categories())
   {
-    complianceData.second.guideline = complianceData.first;
     SetComplianceContent(complianceData.second);
   }
 
@@ -177,7 +181,7 @@ void MisraComplianceOutput::RecategoriesByGRP()
       auto& element = it->second;
       if (category < element.defaultCategory)
       {
-        throw std::runtime_error("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + "for" + element.guideline);
+        throw std::runtime_error("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline);
       }
 
       element.recategorization = category;
