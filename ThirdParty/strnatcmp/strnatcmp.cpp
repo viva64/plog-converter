@@ -37,7 +37,6 @@
 
 #include "strnatcmp.h"
 
-
 /* These are defined as macros to make it easier to adapt this code to
  * different characters types or comparison functions. */
 static inline int
@@ -46,13 +45,11 @@ nat_isdigit(nat_char a)
   return isdigit(static_cast<unsigned char>(a));
 }
 
-
 static inline int
 nat_isspace(nat_char a)
 {
   return isspace(static_cast<unsigned char>(a));
 }
-
 
 static inline nat_char
 nat_toupper(nat_char a)
@@ -60,9 +57,10 @@ nat_toupper(nat_char a)
   return static_cast<nat_char>(toupper(static_cast<unsigned char>(a)));
 }
 
-
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4702)
+#endif
 static int
 compare_right(nat_char const *a, nat_char const *b)
 {
@@ -90,10 +88,14 @@ compare_right(nat_char const *a, nat_char const *b)
   }
   return 0;
 }
+#ifdef _MSC_VER
 #pragma warning( pop )
+#endif
 
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4702)
+#endif
 static int
 compare_left(nat_char const *a, nat_char const *b)
 {
@@ -113,8 +115,9 @@ compare_left(nat_char const *a, nat_char const *b)
   }
   return 0;
 }
+#ifdef _MSC_VER
 #pragma warning( pop )
-
+#endif
 
 static int strnatcmp0(nat_char const *a, nat_char const *b, int fold_case)
 {
