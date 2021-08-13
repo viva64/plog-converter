@@ -40,7 +40,7 @@ void LogParserWorker::OnWarning(Warning &warning)
     Replace(position.file, "|?|", m_root);
   }
 
-  if (m_filter == nullptr || m_filter->Check(warning))
+  if (m_filter == nullptr || m_filter->Check(warning) || isMisraCompliance)
   {
     if (m_output != nullptr)
     {
@@ -172,6 +172,27 @@ void LogParserWorker::ParseJsonLog(InputFile &file)
 void LogParserWorker::Run(const ProgramOptions &optionsSrc)
 {
   auto options = optionsSrc;
+
+  std::vector<std::string> tokens;
+  Split(options.cmdLine, " ", std::back_inserter(tokens));
+  bool isGRP = false;
+  for (std::string token : tokens)
+  {
+    if (ToLower(token) == "misra")
+    {
+      isMisraCompliance = true;
+    }
+
+    if (ToLower(token) == "--grp")
+    {
+      isGRP = true;
+    }
+  }
+
+  if (isGRP && !isMisraCompliance)
+  {
+    std::cout << "The use of the 'grp' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
+  }
 
   std::vector<InputFile> inputFiles;
   for (const auto &path : options.inputFiles)

@@ -8,6 +8,7 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
+#include <vector>
 
 namespace PlogConverter
 {
@@ -41,7 +42,8 @@ void Split(const std::string& src, const std::string& delim, OutIt it, Fn fn)
     return;
   }
 
-  std::string::size_type pos = 0, next_pos;
+  std::string::size_type pos = 0;
+  std::string::size_type next_pos;
   do
   {
     next_pos = src.find(delim, pos);
@@ -56,6 +58,19 @@ template <typename OutIt>
 void Split(const std::string& src, const std::string& delim, OutIt it)
 {
   Split(src, delim, it, [](std::string &&s)->std::string&& { return std::move(s); });
+}
+
+inline std::vector<std::string> Split(std::string text, std::string separator)
+{
+  size_t pos = 0;
+  std::vector<std::string> tokens;
+  while ((pos = text.find(separator)) != std::string::npos)
+  {
+    tokens.push_back(Trim(text.substr(0, pos)));
+    text.erase(0, pos + separator.length());
+  }
+  tokens.push_back(Trim(text));
+  return tokens;
 }
 
 template <typename Range, typename Map>

@@ -57,10 +57,14 @@ add_library(plog STATIC
     Formats/simplehtml.h
     Formats/sarifoutput.cpp
     Formats/sarifoutput.h
+    Formats/misracomplianceoutput.cpp
+    Formats/misracomplianceoutput.h
 
     ThirdParty/args.hxx
     ThirdParty/backward.hpp
     ThirdParty/json.hpp
+    ThirdParty/strnatcmp/strnatcmp.cpp
+    ThirdParty/strnatcmp/strnatcmp.h
 )
 
 target_include_directories(plog PUBLIC . ThirdParty "${CMAKE_CURRENT_BINARY_DIR}")
@@ -140,6 +144,7 @@ add_resources(
     DescGif             "Resources/desc.gif"
     SortGif             "Resources/sort.gif"
     LogoPng             "Resources/logo.png"
+    LogoMisra           "Resources/logomisra.png"
 )
 
 include(ThirdParty/Catch.cmake)

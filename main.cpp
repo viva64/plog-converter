@@ -32,4 +32,3 @@ int main(int argc, const char** argv)
   app.AddWorker(std::make_unique<PlogConverter::LogParserWorker>());
   return app.Exec(argc, argv);
 }
-

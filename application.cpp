@@ -227,6 +227,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   Flag indicateWarnings(parser, "INDICATEWARNINGS", "Set this option to detect the presense of analyzer warnings after filtering analysis log by setting the converter exit code to '2'.", { 'w', "indicate-warnings" }, Options::Single);
   PositionalList<std::string> logs(parser, "logs", "Input files.", Options::Required | Options::HiddenFromDescription);
   CompletionFlag comp(parser, {"complete"});
+  ValueFlag<std::string> grp(parser, "GRP", "Path to txt file with Guideline Re-categorization Plan. Used only for generating misra compliance report.", { "grp" }, Options::Single);
 
   try
   {
@@ -241,10 +242,11 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.codeMappings = get(mappingTypes);
     m_options.configFile = Expand(get(settings));
     m_options.outputName = Expand(get(name));
+    m_options.grp = Expand(get(grp));
     m_options.useStderr = useCerr;
     m_options.indicateWarnings = indicateWarnings;
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
-    ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
+    ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers); 
   }
   catch (Completion &e)
   {
