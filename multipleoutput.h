@@ -6,6 +6,8 @@
 #define MULTIOUTPUT
 #include "ioutput.h"
 
+#include "Formats/misracomplianceoutput.h"
+
 namespace PlogConverter
 {
 
@@ -20,6 +22,8 @@ public:
   void Finish() override;
 
   void Add(std::unique_ptr<IOutput> output);
+
+  MisraComplianceOutput* GetMisraComplianceOutput() noexcept;
 
 private:
   std::vector<std::unique_ptr<IOutput>> m_outputs;

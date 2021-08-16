@@ -49,7 +49,6 @@ private:
   void ParseCerrLog(InputFile& file);
   void OnWarning(Warning &warning);
 
-  bool isMisraCompliance = false;
   MessageParser m_messageParser;
   size_t m_countSuccess = 0;
   size_t m_countNonError = 0;

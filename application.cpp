@@ -246,7 +246,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.useStderr = useCerr;
     m_options.indicateWarnings = indicateWarnings;
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
-    ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers); 
+    ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
   }
   catch (Completion &e)
   {
