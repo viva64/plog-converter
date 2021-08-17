@@ -1,7 +1,8 @@
 #  2006-2008 (c) Viva64.com Team
 #  2008-2020 (c) OOO "Program Verification Systems"
 #  2020-2021 (c) PVS-Studio LLC
-cmake_minimum_required(VERSION 3.10)
+
+cmake_minimum_required(VERSION 3.11)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -41,24 +42,24 @@ add_library(plog STATIC
     warning.cpp
     warning.h
 
-    Formats/htmloutput.cpp
-    Formats/htmloutput.h
-    Formats/xmloutput.cpp
-    Formats/xmloutput.h
-    Formats/teamcityoutput.cpp
-    Formats/teamcityoutput.h
     Formats/csvoutput.cpp
     Formats/csvoutput.h
     Formats/errorfileoutput.cpp
     Formats/errorfileoutput.h
-    Formats/tasklistoutput.cpp
-    Formats/tasklistoutput.h
-    Formats/simplehtml.cpp
-    Formats/simplehtml.h
-    Formats/sarifoutput.cpp
-    Formats/sarifoutput.h
+    Formats/htmloutput.cpp
+    Formats/htmloutput.h
     Formats/misracomplianceoutput.cpp
     Formats/misracomplianceoutput.h
+    Formats/sarifoutput.cpp
+    Formats/sarifoutput.h
+    Formats/simplehtml.cpp
+    Formats/simplehtml.h
+    Formats/tasklistoutput.cpp
+    Formats/tasklistoutput.h
+    Formats/teamcityoutput.cpp
+    Formats/teamcityoutput.h
+    Formats/xmloutput.cpp
+    Formats/xmloutput.h
 
     ThirdParty/args.hxx
     ThirdParty/backward.hpp
@@ -76,7 +77,17 @@ add_executable(plog-converter main.cpp suppress_base.suppress)
 target_link_libraries(plog-converter plog)
 
 add_executable(plog-converter-test test.cpp suppress_base.suppress)
-target_link_libraries(plog-converter-test plog)
+
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+include(ThirdParty/GetGoogletest.cmake)
+
+if (NOT WIN32 AND NOT APPLE AND NOT PVS_STUDIO_SHARED)
+    # fix weak symbols
+    # https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
+    target_link_libraries(plog-converter-test plog gtest gtest_main -Wl,--whole-archive,-lrt,-lpthread,--no-whole-archive)
+else ()
+    target_link_libraries(plog-converter-test plog gtest gtest_main)
+endif ()
 
 if (WIN32)
     install(TARGETS plog-converter DESTINATION .)
@@ -147,5 +158,4 @@ add_resources(
     LogoMisra           "Resources/logomisra.png"
 )
 
-include(ThirdParty/Catch.cmake)
-catch_discover_tests(plog-converter-test)
+gtest_discover_tests(plog-converter-test)
