@@ -18,12 +18,14 @@ void MultipleOutput::Start()
   }
 }
 
-void MultipleOutput::Write(const Warning &msg)
+bool MultipleOutput::Write(const Warning &msg)
 {
+  bool written = false;
   for (auto &o : m_outputs)
   {
-    o->Write(msg);
+    written |= o->Write(msg);
   }
+  return written;
 }
 
 void MultipleOutput::Finish()
@@ -42,19 +44,6 @@ void MultipleOutput::Add(std::unique_ptr<IOutput> output)
   }
 
   m_outputs.push_back(std::move(output));
-}
-
-MisraComplianceOutput* MultipleOutput::GetMisraComplianceOutput() noexcept
-{
-  for (auto& output : m_outputs)
-  {
-    if (auto result = dynamic_cast<MisraComplianceOutput*>(output.get()))
-    {
-      return result;
-    }
-  }
-
-  return nullptr;
 }
 
 }

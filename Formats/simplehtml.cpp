@@ -216,11 +216,11 @@ void SimpleHTMLOutput::Start()
   PrintHtmlStart();
 }
 
-void SimpleHTMLOutput::Write(const Warning& msg)
+bool SimpleHTMLOutput::Write(const Warning& msg)
 {
   if (msg.IsDocumentationLinkMessage())
   {
-    return;
+    return false;
   }
 
   AnalyzerType analyzerType = msg.GetType();
@@ -240,6 +240,8 @@ void SimpleHTMLOutput::Write(const Warning& msg)
     m_owasp.push_back(msg);
   else
     m_info.push_back(msg);
+
+  return true;
 }
 
 void SimpleHTMLOutput::Finish()

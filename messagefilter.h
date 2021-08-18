@@ -7,18 +7,12 @@
 #include "configs.h"
 #include "warning.h"
 #include "utils.h"
+#include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class IMessageFilter
-{
-public:
-  virtual bool Check(const Warning& message) const = 0;
-  virtual ~IMessageFilter();
-};
-
-class MessageFilter : public IMessageFilter
+class MessageFilter : public IFilter
 {
 private:
   std::vector<int8_t> m_enabledAnalyzerLevels;
@@ -27,7 +21,7 @@ private:
   std::set<std::string> m_disabledWarnings;
 
 public:
-  explicit MessageFilter(const ProgramOptions& options);
+  explicit MessageFilter(IOutput* output, const ProgramOptions& options);
   ~MessageFilter() override;
   bool Check(const Warning& message) const override;
 

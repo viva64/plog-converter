@@ -18,12 +18,15 @@ public:
   ~MultipleOutput() override;
 
   void Start() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
 
   void Add(std::unique_ptr<IOutput> output);
 
-  MisraComplianceOutput* GetMisraComplianceOutput() noexcept;
+  bool empty()
+  {
+    return m_outputs.empty();
+  }
 
 private:
   std::vector<std::unique_ptr<IOutput>> m_outputs;

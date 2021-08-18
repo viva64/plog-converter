@@ -25,15 +25,15 @@ static auto FactoryFunction()
 
 OutputFactory::OutputFactory()
   : m_formats {
-      { "csv",           FactoryFunction<CSVOutput>() },
-      { "xml",           FactoryFunction<XMLOutput>() },
-      { "fullhtml",      FactoryFunction<HTMLOutput>() },
-      { "errorfile",     FactoryFunction<ErrorFileOutput>() },
-      { "tasklist",      FactoryFunction<TaskListOutput>() },
-      { "html",          FactoryFunction<SimpleHTMLOutput>() },
-      { "teamcity",      FactoryFunction<TeamCityOutput>() },
-      { "sarif",         FactoryFunction<SarifOutput>() },
-      { "misra",    FactoryFunction<MisraComplianceOutput>() }
+      { "csv",                 FactoryFunction<CSVOutput>() },
+      { "xml",                 FactoryFunction<XMLOutput>() },
+      { "fullhtml",            FactoryFunction<HTMLOutput>() },
+      { "errorfile",           FactoryFunction<ErrorFileOutput>() },
+      { "tasklist",            FactoryFunction<TaskListOutput>() },
+      { "html",                FactoryFunction<SimpleHTMLOutput>() },
+      { "teamcity",            FactoryFunction<TeamCityOutput>() },
+      { "sarif",               FactoryFunction<SarifOutput>() },
+      { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() }
     }
 {
 }

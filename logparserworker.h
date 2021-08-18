@@ -35,7 +35,6 @@ public:
 
   void ParseLog(
     std::vector<InputFile> &inputFiles,
-    IMessageFilter &filter,
     IOutput &output,
     const std::string &root
   );
@@ -53,7 +52,6 @@ private:
   size_t m_countSuccess = 0;
   size_t m_countNonError = 0;
   size_t m_countTotal = 0;
-  IMessageFilter *m_filter = nullptr;
   IOutput *m_output = nullptr;
   std::string m_root;
 

@@ -16,7 +16,7 @@ public:
   explicit SimpleHTMLOutput(const ProgramOptions &);
   ~SimpleHTMLOutput() override;
   void Start() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
 
   static const int DefaultCweColumnWidth;

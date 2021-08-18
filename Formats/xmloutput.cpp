@@ -20,11 +20,11 @@ void XMLOutput::Start()
             << "<NewDataSet>" << std::endl;
 }
 
-void XMLOutput::Write(const Warning& msg)
+bool XMLOutput::Write(const Warning& msg)
 {
   if (msg.IsDocumentationLinkMessage())
   {
-    return;
+    return false;
   }
 
   m_ostream << "  <PVS-Studio_Analysis_Log>" << std::endl
@@ -54,6 +54,8 @@ void XMLOutput::Write(const Warning& msg)
   }
 
   m_ostream << "  </PVS-Studio_Analysis_Log>" << std::endl;
+
+  return true;
 }
 
 void XMLOutput::Finish()

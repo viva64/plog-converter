@@ -14,7 +14,7 @@ class CSVOutput : public IOutput
 public:
   explicit CSVOutput(const ProgramOptions&);
   void Start() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
 };
 
 }

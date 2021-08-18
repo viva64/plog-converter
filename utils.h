@@ -114,6 +114,19 @@ bool IsDirectory(const std::string &path);
 bool MakeDirectory(const std::string &path);
 bool Exists(const std::string &path);
 
+template <typename To, typename From, typename Deleter>
+std::unique_ptr<To, Deleter> dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) noexcept
+{
+  if (auto cast = dynamic_cast<To *>(p.get()))
+  {
+    std::unique_ptr<To, Deleter> result { cast, std::move(p.get_deleter()) };
+    p.release();
+    return result;
+  }
+
+  return {};
+}
+
 }
 
 #endif // UTILS_H

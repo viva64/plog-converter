@@ -9,12 +9,11 @@ namespace PlogConverter
 
 ErrorFileOutput::ErrorFileOutput(const ProgramOptions &opt) : IOutput(opt, "err")
 {
-
 }
 
 ErrorFileOutput::~ErrorFileOutput() = default;
 
-void ErrorFileOutput::Write(const Warning& msg)
+bool ErrorFileOutput::Write(const Warning& msg)
 {
   std::string securityPrefix;
 
@@ -49,6 +48,8 @@ void ErrorFileOutput::Write(const Warning& msg)
             << msg.GetLevelString() << ": "
             << msg.code << " "
             << securityPrefix << msg.message << std::endl;
+
+  return true;
 }
 
 }

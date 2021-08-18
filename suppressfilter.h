@@ -11,11 +11,12 @@
 #include "messagefilter.h"
 #include "utils.h"
 #include "warning.h"
+#include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class SuppressFilter : public IMessageFilter
+class SuppressFilter : public IFilter
 {
 private:
   struct File
@@ -40,7 +41,7 @@ private:
   std::vector<uint32_t> m_enabledWarnings;
 
 public:
-  explicit SuppressFilter(const ProgramOptions& options);
+  explicit SuppressFilter(IOutput* output, const ProgramOptions& options);
   ~SuppressFilter() override;
   bool Check(const Warning& message) const override;
 

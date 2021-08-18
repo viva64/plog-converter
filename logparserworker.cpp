@@ -40,41 +40,23 @@ void LogParserWorker::OnWarning(Warning &warning)
     Replace(position.file, "|?|", m_root);
   }
 
-  if (m_output)
+  if (m_output && m_output->Write(warning))
   {
-    if (auto mux = dynamic_cast<MultipleOutput*>(m_output))
-    {
-      if (auto misraOutput = mux->GetMisraComplianceOutput())
-      {
-        misraOutput->Write(warning);
-      }
-    }
+    ++m_countSuccess;
   }
 
-  if (!m_filter || m_filter->Check(warning))
+  if (warning.IsRenewMessage())
   {
-    if (m_output)
-    {
-      m_output->Write(warning);
-    }
-
-    ++m_countSuccess;
-
-    if (warning.IsRenewMessage())
-    {
-      ++m_countNonError;
-    }
+    ++m_countNonError;
   }
 
   ++m_countTotal;
 }
 
 void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
-                               IMessageFilter& filter,
                                IOutput &output,
                                const std::string &root)
 {
-  m_filter = &filter;
   m_output = &output;
   m_root = root;
 
@@ -190,10 +172,6 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     inputFiles.emplace_back(path);
   }
 
-  MessageFilter filter(options);
-
-  MultipleOutput output;
-
   auto &formats = options.formats;
   if (formats.empty())
   {
@@ -212,17 +190,37 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  if (!options.grp.empty() && !output.GetMisraComplianceOutput())
+  MultipleOutput filterPipeline;
+  std::unique_ptr<MisraComplianceOutput, std::default_delete<IOutput>> misraCompliance;
+  for (const auto &format : formats)
+  {
+    auto f = format(options);
+    if (auto misra = dynamic_unique_cast<MisraComplianceOutput>(std::move(f)))
+    {
+      misraCompliance = std::move(misra);
+    }
+    else
+    {
+      filterPipeline.Add(std::move(f));
+    }
+  }
+
+  MultipleOutput output;
+  if (!filterPipeline.empty())
+  {
+    output.Add(std::make_unique<MessageFilter>( &filterPipeline, options ));
+  }
+
+  if (misraCompliance)
+  {
+    output.Add(std::move(misraCompliance));
+  }
+  else if (!options.grp.empty())
   {
     std::cout << "The use of the 'grp' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
   }
 
-  for (const auto &format : formats)
-  {
-    output.Add(format(options));
-  }
-
-  ParseLog(inputFiles, filter, output, options.projectRoot);
+  ParseLog(inputFiles, output, options.projectRoot);
 
   std::cout << "Total messages: " << m_countTotal << std::endl
             << "Filtered messages: " << m_countSuccess << std::endl;

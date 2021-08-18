@@ -14,7 +14,7 @@ class ErrorFileOutput : public IOutput
 public:
   explicit ErrorFileOutput(const ProgramOptions&);
   ~ErrorFileOutput() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
 };
 
 }

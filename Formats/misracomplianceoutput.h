@@ -64,7 +64,7 @@ class MisraComplianceOutput : public IOutput
 public:
   explicit MisraComplianceOutput(const ProgramOptions& opt);
   void Start() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
   ~MisraComplianceOutput() override = default;
 

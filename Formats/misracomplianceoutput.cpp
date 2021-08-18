@@ -97,17 +97,17 @@ void MisraComplianceOutput::Start()
   RecategoriesByGRP();
 }
 
-void MisraComplianceOutput::Write(const Warning& msg)
+bool MisraComplianceOutput::Write(const Warning& msg)
 {
   if (msg.GetType() != AnalyzerType::Misra)
   {
-    return;
+    return false;
   }
 
   std::string misraCCode = GetMisraCCode(msg.sastId);
   if (misraCCode == "")
   {
-    return;
+    return false;
   }
 
   auto& m_misra_c = Categories();
@@ -127,6 +127,8 @@ void MisraComplianceOutput::Write(const Warning& msg)
       it->second.violationsCount++;
     }
   }
+
+  return true;
 }
 
 void MisraComplianceOutput::Finish()

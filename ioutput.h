@@ -17,9 +17,9 @@ class IOutput
 {
 public:
   virtual void Start();
-  virtual void Write(const Warning& msg) = 0;
+  virtual bool Write(const Warning& message) = 0;
   virtual void Finish();
-  virtual ~IOutput();
+  virtual ~IOutput() = default;
 
 protected:
   IOutput(const ProgramOptions &options, const std::string &extension);
@@ -33,7 +33,42 @@ protected:
   std::vector<SecurityCodeMapping> m_errorCodeMappings;
 };
 
+class IFilter : public IOutput
+{
+public:
+  IFilter(IOutput* output) : m_output(output) { };
+
+  void Start() override
+  {
+    if (m_output)
+      m_output->Start();
+  }
+
+  bool Write(const Warning& message) override
+  {
+    if (!Check(message))
+      return false;
+
+    if (m_output)
+      return m_output->Write(message);
+
+    return true;
+  }
+
+  void Finish() override
+  {
+    if (m_output)
+      m_output->Finish();
+  }
+
+  virtual ~IFilter() = default;
+
+protected:
+  virtual bool Check(const Warning& message) const = 0;
+
+  IOutput* m_output = nullptr;
+};
+
 }
 
 #endif // IOUTPUT
-

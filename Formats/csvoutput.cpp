@@ -10,7 +10,6 @@ namespace PlogConverter
 
 CSVOutput::CSVOutput(const ProgramOptions &opt) : IOutput(opt, "csv")
 {
-
 }
 
 static std::string Escape(const std::string &src)
@@ -44,7 +43,7 @@ void CSVOutput::Start()
             << "FilePath" << std::endl;
 }
 
-void CSVOutput::Write(const Warning& msg)
+bool CSVOutput::Write(const Warning& msg)
 {
   m_ostream << ","
             << msg.GetLevelString() << ","
@@ -76,6 +75,8 @@ void CSVOutput::Write(const Warning& msg)
             << "\"=HYPERLINK(\"\"file://" << fileUTF8 << "\"\", \"\" Open file\"\")\"" << ','
             << '"' << msg.GetLine() << '"' << ','
             << Escape(fileUTF8) << std::endl;
+
+  return true;
 }
 
 }

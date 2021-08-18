@@ -14,7 +14,7 @@ class XMLOutput : public IOutput
 public:
   explicit XMLOutput(const ProgramOptions &);
   void Start() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
   ~XMLOutput() override;
 };

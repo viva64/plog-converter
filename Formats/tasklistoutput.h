@@ -14,7 +14,7 @@ class TaskListOutput : public IOutput
 public:
   explicit TaskListOutput(const ProgramOptions &);
   ~TaskListOutput() override;
-  void Write(const Warning &msg) override;
+  bool Write(const Warning &msg) override;
 };
 
 }

@@ -486,11 +486,11 @@ void HTMLOutput::PrintFileSources()
   }
 }
 
-void HTMLOutput::Write(const Warning &msg)
+bool HTMLOutput::Write(const Warning &msg)
 {
   if (msg.IsDocumentationLinkMessage())
   {
-    return;
+    return false;
   }
 
   if (!Trim(msg.GetFile()).empty() && m_map.find(msg.GetFile()) == m_map.end())
@@ -517,6 +517,8 @@ void HTMLOutput::Write(const Warning &msg)
     ++m_fails;
 
   m_messages.push_back(msg);
+
+  return true;
 }
 
 void HTMLOutput::Finish()

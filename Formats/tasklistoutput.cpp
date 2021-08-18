@@ -21,7 +21,7 @@ static std::string Escape(const std::string &str)
   return res;
 }
 
-void TaskListOutput::Write(const Warning& msg)
+bool TaskListOutput::Write(const Warning& msg)
 {
   std::string securityPrefix;
 
@@ -50,6 +50,8 @@ void TaskListOutput::Write(const Warning& msg)
             << msg.GetLevelString("err", "warn", "note") << "\t"
             << msg.code << " "
             << securityPrefix << Escape(msg.message) << std::endl;
+
+  return true;
 }
 
 }

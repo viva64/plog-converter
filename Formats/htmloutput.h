@@ -53,7 +53,7 @@ private:
 public:
   explicit HTMLOutput(const ProgramOptions &);
   ~HTMLOutput() override;
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
 };
 

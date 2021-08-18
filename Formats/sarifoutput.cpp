@@ -88,14 +88,16 @@ std::string UriFileEscape(const std::string &filePath)
   return cacheIter->second;
 }
 
-void SarifOutput::Write(const Warning &msg)
+bool SarifOutput::Write(const Warning &msg)
 {
   if (msg.IsDocumentationLinkMessage())
   {
-    return;
+    return false;
   }
 
   m_warnings.push_back(msg);
+
+  return true;
 }
 
 nlohmann::ordered_json MessageJson(const std::string &message)

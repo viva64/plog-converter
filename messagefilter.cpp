@@ -13,8 +13,6 @@
 namespace PlogConverter
 {
 
-IMessageFilter::~IMessageFilter() = default;
-
 static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
 {
   assert(level >= 1 && level <= Analyzer::LevelsCount);
@@ -22,8 +20,9 @@ static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
   return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1);
 }
 
-MessageFilter::MessageFilter(const ProgramOptions &options)
-  : m_enabledAnalyzerLevels(Analyzer::AnalyzersCount * Analyzer::LevelsCount, options.enabledAnalyzers.empty() ? 1 : 0)
+MessageFilter::MessageFilter(IOutput* output, const ProgramOptions &options)
+  : IFilter(output)
+  , m_enabledAnalyzerLevels(Analyzer::AnalyzersCount * Analyzer::LevelsCount, options.enabledAnalyzers.empty() ? 1 : 0)
   , m_disabledKeywords(options.disabledKeywords)
   , m_disabledPaths(options.disabledPaths)
   , m_disabledWarnings(options.disabledWarnings)

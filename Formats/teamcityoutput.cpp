@@ -17,7 +17,7 @@ namespace PlogConverter
     std::string result;
     result.reserve(messageToEscape.size() + messageToEscape.size() / 2);
     for (const auto symbol : messageToEscape)
-    {      
+    {
       switch (symbol)
       {
         case '|':
@@ -43,8 +43,8 @@ namespace PlogConverter
     return result;
   }
 
-  void TeamCityOutput::Write(const Warning& msg) 
-  {   
+  bool TeamCityOutput::Write(const Warning& msg)
+  {
     std::string securityPrefix;
 
     bool showSAST = false;
@@ -68,14 +68,14 @@ namespace PlogConverter
     {
       securityPrefix = '[' + securityPrefix + "] ";
     }
-     
+
     if(m_inspectionsIDs.find(msg.code) == m_inspectionsIDs.end())
-    {    
+    {
       m_ostream << "##teamcity[inspectionType id='" << msg.code << "'"
                 << "name = '" << msg.code << "'"
                 << "description = '" << msg.GetVivaUrl() << "'"
                 << "category = '" << msg.GetLevelString("High" , "Medium" , "Low") << "']"
-                << std::endl;     
+                << std::endl;
       m_inspectionsIDs.emplace(msg.code);
     }
     m_ostream << "##teamcity[inspection typeId='" << msg.code << "'"
@@ -83,7 +83,9 @@ namespace PlogConverter
               << "file = '" << msg.GetFileUTF8() << "'"
               << "line = '" << msg.GetLine() << "'"
               << "SEVERITY = 'ERROR']"
-              << std::endl;    
+              << std::endl;
+
+    return true;
   }
 
   TeamCityOutput::~TeamCityOutput() = default;

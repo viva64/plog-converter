@@ -16,7 +16,7 @@ class SarifOutput : public IOutput
 public:
   explicit SarifOutput(const ProgramOptions& opt) : IOutput(opt, "sarif") {}
   void Start() override {}
-  void Write(const Warning& msg) override;
+  bool Write(const Warning& msg) override;
   void Finish() override;
   ~SarifOutput() override = default;
 };

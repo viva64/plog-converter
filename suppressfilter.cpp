@@ -20,8 +20,9 @@ static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
   return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1);
 }
 
-SuppressFilter::SuppressFilter(const ProgramOptions &options)
-  : m_disabledWarnings(options.disabledWarnings)
+SuppressFilter::SuppressFilter(IOutput* output, const ProgramOptions &options)
+  : IFilter(output)
+  , m_disabledWarnings(options.disabledWarnings)
   , m_enabledAnalyzerLevels(Analyzer::AnalyzersCount * Analyzer::LevelsCount, options.enabledAnalyzers.empty() ? 1 : 0)
   , m_enabledFiles(options.enabledFiles.size())
   , m_enabledWarnings(options.enabledWarnings)

@@ -16,7 +16,7 @@ namespace PlogConverter
     std::set<std::string> m_inspectionsIDs;
   public:
     explicit TeamCityOutput(const ProgramOptions&);
-    void Write(const Warning&) override; 
+    bool Write(const Warning &msg) override;
     ~TeamCityOutput() override; 
   };
 }  

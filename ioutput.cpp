@@ -9,7 +9,6 @@ namespace PlogConverter
 
 void IOutput::Start() {}
 void IOutput::Finish() {}
-IOutput::~IOutput() = default;
 
 static std::basic_ostream<char> &OfstreamOrStdOut(std::ofstream &of, bool useStdErr, const std::string &path)
 {
