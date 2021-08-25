@@ -181,7 +181,7 @@ void MisraComplianceOutput::RecategoriesByGRP()
       }
 
       auto& element = it->second;
-      if (category < element.defaultCategory)
+      if (category < element.defaultCategory && element.defaultCategory != Category::Advisory)
       {
         throw std::runtime_error("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline);
       }
@@ -391,6 +391,12 @@ void MisraComplianceOutput::SetComplianceContent(ComplianceData &cd)
     return;
   }
 
+  if (cd.recategorization == Category::Disapplied)
+  {
+    cd.compliance = Compliance::Disapplied;
+    return;
+  }
+
   if (cd.deviationsCount == 0 && cd.violationsCount == 0)
   {
     cd.compliance = Compliance::Compliant;
@@ -460,6 +466,10 @@ Category MisraComplianceOutput::ToCategory(const std::string& category)
   {
     return Category::Advisory;
   }
+  else if (lower == "disapplied")
+  {
+    return Category::Disapplied;
+  }
   else
   {
     throw std::runtime_error("Unknown GRP category: " + category);
@@ -479,6 +489,9 @@ std::string MisraComplianceOutput::ToString(Category category)
     case (Category::Advisory):
       return "Advisory";
  
+    case (Category::Disapplied):
+      return "Disapplied";
+
     default:
       return "";
   }
@@ -500,6 +513,9 @@ std::string MisraComplianceOutput::ToString(Compliance compliance, int deviation
   case (Compliance::ViolationsDeviations):
     return "Violations (" + std::to_string(violationsCount) + "), "
          + "Deviations (" + std::to_string(violationsCount) + ")";
+
+  case (Compliance::Disapplied):
+    return "Disapplied";
 
   case (Compliance::NotSupported):
     return "Not Supported";

@@ -15,9 +15,10 @@ namespace PlogConverter
 enum class Category
 {
   None = 0,
-  Advisory = 1,
-  Required = 2,
-  Mandatory = 3
+  Disapplied = 1,
+  Advisory = 2,
+  Required = 3,
+  Mandatory = 4
 };
 
 enum class Compliance
@@ -26,7 +27,8 @@ enum class Compliance
   Deviations,
   Violations,
   ViolationsDeviations,
-  NotSupported
+  NotSupported,
+  Disapplied
 };
 
 struct ComplianceData
