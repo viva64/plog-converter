@@ -358,7 +358,7 @@ void HTMLOutput::PrintTableBody()
     }
     else
     {
-      m_ofstream << R"(      <td id="col_file"><a target="_blank" href="sources/)"
+      m_ofstream << R"(      <td id="col_file"><a target="_blank" href="sources/)" //-V128
                  << shortFileName << "_" << id << R"(.html#ln)" << err.GetLine() << R"(">)"
                  << EscapeHtml(shortFileName) << ':' << err.GetLine() << R"(</a></td>)" << std::endl;
     }

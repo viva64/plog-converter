@@ -54,7 +54,7 @@ MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
     throw std::logic_error("No output directory for html report");
   }
 
-  if (m_grpFile != "" && !Exists(m_grpFile))
+  if (!m_grpFile.empty() && !Exists(m_grpFile))
   {
     throw std::runtime_error("File not found: " + m_grpFile);
   }
@@ -105,7 +105,7 @@ bool MisraComplianceOutput::Write(const Warning& msg)
   }
 
   std::string misraCCode = GetMisraCCode(msg.sastId);
-  if (misraCCode == "")
+  if (misraCCode.empty())
   {
     return false;
   }
@@ -348,20 +348,24 @@ std::string MisraComplianceOutput::GetSummaryGuidelines(Compliance compliance, i
   }
 
   std::vector<std::string> content;
+  content.reserve(3);
 
   if (mandatoryCount > 0)
   {
-    content.push_back(std::to_string(mandatoryCount) + " mandatory guideline" + (mandatoryCount > 1 ? "s" : ""));
+    auto str = std::to_string(mandatoryCount) + " mandatory guideline" + (mandatoryCount > 1 ? "s" : "");
+    content.push_back(std::move(str));
   }
 
   if (requiredCount > 0)
   {
-    content.push_back(std::to_string(requiredCount) + " required guideline" + (requiredCount > 1 ? "s" : ""));
+    auto str = std::to_string(requiredCount) + " required guideline" + (requiredCount > 1 ? "s" : "");
+    content.push_back(std::move(str));
   }
 
   if (advisoryCount > 0)
   {
-    content.push_back(std::to_string(advisoryCount) + " advisory guideline" + (advisoryCount > 1 ? "s" : ""));
+    auto str = std::to_string(advisoryCount) + " advisory guideline" + (advisoryCount > 1 ? "s" : "");
+    content.push_back(std::move(str));
   }
 
   std::string summary;

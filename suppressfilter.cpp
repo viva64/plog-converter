@@ -17,7 +17,7 @@ static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
 {
   assert(level >= 1 && level <= Analyzer::LevelsCount);
   assert(type != AnalyzerType::Unknown);
-  return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1);
+  return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1); //-V104
 }
 
 SuppressFilter::SuppressFilter(IOutput* output, const ProgramOptions &options)

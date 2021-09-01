@@ -61,21 +61,21 @@ void Split(const std::string& src, const std::string& delim, OutIt it)
   Split(src, delim, it, [](std::string &&s)->std::string&& { return std::move(s); });
 }
 
-inline std::vector<std::string> Split(std::string text, std::string separator)
+inline std::vector<std::string> Split(std::string text, const std::string &separator)
 {
   size_t pos = 0;
   std::vector<std::string> tokens;
   while ((pos = text.find(separator)) != std::string::npos)
   {
-    tokens.push_back(Trim(text.substr(0, pos)));
+    tokens.push_back(Trim(text.substr(0, pos))); //-V823
     text.erase(0, pos + separator.length());
   }
-  tokens.push_back(Trim(text));
+  tokens.push_back(Trim(text)); //-V823
   return tokens;
 }
 
 template <typename Range, typename Map>
-std::string Join(Range &&range, Map fn, std::string delimiter)
+std::string Join(Range &&range, Map fn, const std::string &delimiter)
 {
   std::string res;
   auto it = std::begin(range);
@@ -98,7 +98,7 @@ std::string Join(Range &&range, Map fn, std::string delimiter)
 }
 
 template <typename Range>
-std::string Join(Range &&range, std::string delimiter = " ")
+std::string Join(Range &&range, const std::string &delimiter = " ")
 {
   return Join(range, [](auto v) { return v; }, delimiter);
 }
