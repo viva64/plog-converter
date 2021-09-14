@@ -116,14 +116,14 @@ struct Region
   unsigned int endColumn;
 };
 
-nlohmann::ordered_json LocationJson(const std::string &uri, const Region &region,
-                                    const std::optional<std::string> &message = {})
+nlohmann::ordered_json MakeLocationJson(const std::string &uri, const Region &region,
+                                        const std::string &message = {})
 {
   nlohmann::ordered_json location;
 
-  if (message)
+  if (!message.empty())
   {
-    location = nlohmann::ordered_json::object({ MessageJson(*message) });
+    location = nlohmann::ordered_json::object({ MessageJson(message) });
   }
 
   location["physicalLocation"] =
@@ -151,7 +151,7 @@ struct PvsStudioSarifRun
 
   PvsStudioSarifRun(const std::list<Warning> &warnings) //-V826
   {
-    for (auto&& warning : warnings)
+    for (const auto &warning : warnings)
     {
       // Add "rules" section
 
@@ -176,15 +176,20 @@ struct PvsStudioSarifRun
           };
         }
 
-        rules.push_back(rule);
+        rules.emplace_back(std::move(rule));
       }
 
       // Add "results" section
 
       nlohmann::ordered_json locations
       {
-        LocationJson(UriFileEscape(warning.GetFileUTF8()),
-                     { warning.GetLine(), warning.GetEndLine(), warning.GetStartColumn(), warning.GetEndColumn() }),
+        MakeLocationJson(UriFileEscape(warning.GetFileUTF8()),
+                        { 
+                          warning.GetLine(), 
+                          warning.GetEndLine(), 
+                          warning.GetStartColumn(), 
+                          warning.GetEndColumn() 
+                        }),
       };
 
       nlohmann::ordered_json result
@@ -192,29 +197,35 @@ struct PvsStudioSarifRun
         { "ruleId", warning.code },
         MessageJson(warning.message),
         { "level", warning.GetLevelString() },
-        { "locations", std::vector{ std::move(locations) } }
+        { "locations", std::vector { std::move(locations) } }
       };
 
-      if (auto size = warning.positions.size(); size > 1)
+      if (warning.positions.size() > 1)
       {
         std::vector<nlohmann::json> relatedLocations;
+        std::set<WarningPosition> uniquePositions;
+        uniquePositions.insert(warning.positions.begin(), warning.positions.end());
 
         // todo [c++20]: ranges
-        for (size_t i = 1; i < size; ++i)
+        for (const auto &position : uniquePositions)
         {
-          auto&& position = warning.positions[i];
           auto positionFile = position.file;
           ANSItoUTF8(positionFile);
 
-          relatedLocations.push_back(LocationJson(UriFileEscape(positionFile), //-V823
-                                                  { position.line, position.endLine, position.column, position.endColumn },
-                                                  warning.message));
+          relatedLocations.emplace_back(MakeLocationJson(UriFileEscape(positionFile),
+                                                         {
+                                                           position.line,
+                                                           position.endLine,
+                                                           position.column,
+                                                           position.endColumn
+                                                         },
+                                                         warning.message));
         }
 
         result["relatedLocations"] = std::move(relatedLocations);
       }
 
-      results.push_back(std::move(result));
+      results.emplace_back(std::move(result));
     }
   }
 
