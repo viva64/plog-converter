@@ -109,6 +109,8 @@ struct WarningPosition
     , endLine { static_cast<unsigned>(line_) }
   {}
 
+  bool operator<(const WarningPosition& other) const noexcept;
+
   template <typename T>
   void Serialize(T& stream)
   {
