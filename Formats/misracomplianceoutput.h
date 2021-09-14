@@ -64,16 +64,21 @@ struct naturalCmp
 class MisraComplianceOutput : public IOutput
 {
 public:
+  using CategoriesMap = std::map<std::string, ComplianceData, naturalCmp>;
+
   explicit MisraComplianceOutput(const ProgramOptions& opt);
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
   ~MisraComplianceOutput() override = default;
 
+  static CategoriesMap& Categories();
+
 private:
   const std::string misraPrefix = "MISRA-C-";
   std::string m_directory;
   std::string m_grpFile;
+  std::set<std::string> m_customDiviations;
 
   void PrintHtmlStart();
   void PrintHtmlEnd();
@@ -85,7 +90,6 @@ private:
   std::string GetMisraCCode(const std::string&);
   std::pair<bool, std::string> GetComplianceResult();
   std::string GetSummaryGuidelines(Compliance, int, int, int);
-  std::map<std::string, ComplianceData, naturalCmp> &Categories();
   void SetComplianceContent(ComplianceData&);
   void RecategoriesByGRP();
 

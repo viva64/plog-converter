@@ -3,6 +3,7 @@
 //  2020-2021 (c) PVS-Studio LLC
 
 #include "ioutput.h"
+#include "utils.h"
 
 namespace PlogConverter
 {

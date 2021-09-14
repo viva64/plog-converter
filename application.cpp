@@ -3,15 +3,17 @@
 //  2020-2021 (c) PVS-Studio LLC
 
 #include <args.hxx>
+#include <iostream>
+#include <cstring>
+#include <iterator>
+
 #include "application.h"
 #include "configparser.h"
 #include "warning.h"
 #include "outputfactory.h"
 #include "logparserworker.h"
 #include "utils.h"
-#include <iostream>
-#include <cstring>
-#include <iterator>
+#include "Formats/misracomplianceoutput.h"
 
 namespace PlogConverter
 {
@@ -170,6 +172,33 @@ int Application::Exec(int argc, const char** argv)
   return 0;
 }
 
+static std::set<std::string> ParseMisraDiviations(std::string_view flagValue)
+{
+  std::set<std::string> result;
+
+  auto startPos = flagValue.begin();
+  while (startPos != flagValue.end())
+  {
+    auto semicolonPos = std::find(startPos, flagValue.end(), ';');
+
+    std::string word = { startPos, semicolonPos };
+    if (MisraComplianceOutput::Categories().count(word) == 0)
+    {
+      std::cout << "Warning: The rule \"" << word << "\" not found." << std::endl;
+    }
+
+    result.emplace(std::move(word));
+
+    startPos = semicolonPos;
+    if (semicolonPos != flagValue.end())
+    {
+      ++startPos; // skip semicolon
+    }
+  }
+
+  return result;
+}
+
 const std::string Application::AppName_Default = "Analyzer log conversion tool.";
 const std::string Application::AppName_Win = "Analyzer log conversion tool.";
 const std::string Application::AboutPVSStudio = R"(
@@ -228,7 +257,8 @@ void Application::SetCmdOptions(int argc, const char** argv)
   PositionalList<std::string> logs(parser, "logs", "Input files.", Options::Required | Options::HiddenFromDescription);
   CompletionFlag comp(parser, {"complete"});
   ValueFlag<std::string> grp(parser, "GRP", "Path to txt file with Guideline Re-categorization Plan. Used only for generating misra compliance report.", { "grp" }, Options::Single);
-
+  ValueFlag<std::string> misraDiviations(parser, "Misra Diviations", "Misra Diviations.", { "misra_deviations" }, Options::Single);
+  
   try
   {
     parser.ParseCLI(argc, argv);
@@ -243,6 +273,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.configFile = Expand(get(settings));
     m_options.outputName = Expand(get(name));
     m_options.grp = Expand(get(grp));
+    m_options.misraDivations = ParseMisraDiviations(get(misraDiviations));
     m_options.useStderr = useCerr;
     m_options.indicateWarnings = indicateWarnings;
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));

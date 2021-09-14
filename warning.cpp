@@ -280,25 +280,13 @@ unsigned Warning::GetEndColumn() const
 
 static std::string ConvertToString(const std::vector<WarningPosition> &positions)
 {
-  using PathComparator = bool (*)(std::string_view, std::string_view);
-
-#ifdef _WIN32
-  constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
-  {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-                      [](char a, char b) { return tolower(a) == tolower(b);});
-  };
-#else
-  constexpr PathComparator pathCmp = &std::operator==;
-#endif
-
   auto posIt = positions.begin();
   std::string mainFile = posIt->file;
   std::string result = std::to_string(positions.front().line);
 
   for (const auto &position: positions)
   {
-    if (!pathCmp(position.file, mainFile))
+    if (!ComparePath(position.file, mainFile))
     {
       return {};
     }
@@ -421,29 +409,7 @@ static void from_json(const nlohmann::json &j, SourceFilePosition &p)
 
 nlohmann::json Warning::ConvertToJson(Warning w)
 {
-  constexpr auto writeOption = [](nlohmann::json &j, auto &&fieldName, auto &&value)
-  {
-    if (!std::empty(value))
-    {
-      value.erase(std::remove_if(std::begin(value), std::end(value),
-                                 [](unsigned char symb) { return symb >= 0x80; }),
-                  std::end(value));
-      j.emplace(std::forward<decltype(fieldName)>(fieldName), std::forward<decltype(value)>(value));
-    }
-  };
-
-  using PathComparator = bool (*)(std::string_view, std::string_view);
-
-#ifdef _WIN32
-  constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
-    {
-      return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-                        [](char a, char b) { return tolower(a) == tolower(b);});
-    };
-#else
-  constexpr PathComparator pathCmp = &std::operator==;
-#endif
-
+  
   nlohmann::json j {
     { "falseAlarm", w.falseAlarm },
     { "level",      w.level },
@@ -458,7 +424,7 @@ nlohmann::json Warning::ConvertToJson(Warning w)
 
     for (auto &position : w.positions)
     {
-      if (!pathCmp(currentFileName, position.file))
+      if (!ComparePath(currentFileName, position.file))
       {
         currentFileName = joinedPositions.emplace_back(std::move(position.file),
                                                        std::vector { static_cast<size_t>(position.line) })
@@ -481,12 +447,12 @@ nlohmann::json Warning::ConvertToJson(Warning w)
 
     if (w.HasSAST())
     {
-      writeOption(j, "sastId",   std::move(w.sastId));
+      WriteOption(j, "sastId",   std::move(w.sastId));
     }
 
-    writeOption(j, "prevLine", std::move(navigation.previousLineString));
-    writeOption(j, "currLine", std::move(navigation.currentLineString));
-    writeOption(j, "nextLine", std::move(navigation.nextLineString));
+    WriteOption(j, "prevLine", std::move(navigation.previousLineString));
+    WriteOption(j, "currLine", std::move(navigation.currentLineString));
+    WriteOption(j, "nextLine", std::move(navigation.nextLineString));
   }
 
   return j;

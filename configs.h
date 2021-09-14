@@ -39,6 +39,7 @@ struct ProgramOptions
   std::set<std::string>                       disabledKeywords;
   std::vector<Analyzer>                       enabledAnalyzers;
   std::vector<std::string>                    enabledFiles;
+  std::set<std::string>                       misraDivations;
   std::vector<uint32_t>                       enabledWarnings;
   std::string                                 projectRoot = ".";
   std::string                                 outputName;

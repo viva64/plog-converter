@@ -20,37 +20,40 @@
 #include "messagefilter.h"
 #include "multipleoutput.h"
 #include "outputfactory.h"
+#include "sourceroottransformer.h"
 #include "utils.h"
+
+#include "Formats/jsonoutput.h"
+#include "Formats/misracomplianceoutput.h"
 
 namespace PlogConverter
 {
 
-InputFile::InputFile(std::string path_)
-  : path(std::move(path_)), stream(OpenFile(path))
-{
-}
-
-LogParserWorker::~LogParserWorker() = default;
-
-void LogParserWorker::OnWarning(Warning &warning)
-{
-  for (auto &position : warning.positions)
+  InputFile::InputFile(std::string path_)
+    : path(std::move(path_)), stream(OpenFile(path))
   {
-    UTF8toANSI(position.file);
-    Replace(position.file, "|?|", m_root);
   }
 
-  if (m_output && m_output->Write(warning))
-  {
-    ++m_countSuccess;
-  }
+  LogParserWorker::~LogParserWorker() = default;
 
-  if (warning.IsRenewMessage())
+  void LogParserWorker::OnWarning(Warning &warning)
   {
-    ++m_countNonError;
-  }
+    for (auto &position : warning.positions)
+    {
+      UTF8toANSI(position.file);
+    }
 
-  ++m_countTotal;
+    if (m_output && m_output->Write(warning))
+    {
+      ++m_countSuccess;
+    }
+
+    if (warning.IsRenewMessage())
+    {
+      ++m_countNonError;
+    }
+
+    ++m_countTotal;
 }
 
 void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
@@ -190,19 +193,37 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  MultipleOutput filterPipeline;
   std::unique_ptr<MisraComplianceOutput, std::default_delete<IOutput>> misraCompliance;
+  std::unique_ptr<JsonOutput, std::default_delete<IOutput>> jsonOutput;
+
+  MultipleOutput transformPipeline;
   for (const auto &format : formats)
   {
     auto f = format(options);
-    if (auto misra = dynamic_unique_cast<MisraComplianceOutput>(std::move(f)))
+    if (IsA<MisraComplianceOutput>(f))
     {
-      misraCompliance = std::move(misra);
+      misraCompliance = UnsafeTo<MisraComplianceOutput>(std::move(f));
+    }
+    else if (optionsSrc.projectRoot.empty() && IsA<JsonOutput>(f))
+    {
+      jsonOutput = UnsafeTo<JsonOutput>(std::move(f));
     }
     else
     {
-      filterPipeline.Add(std::move(f));
+      transformPipeline.Add(std::move(f));
     }
+  }
+
+  MultipleOutput filterPipeline;
+
+  if (!transformPipeline.empty())
+  {
+    filterPipeline.Add(std::make_unique<SourceRootTransformer>( &transformPipeline, options ));
+  }
+
+  if (jsonOutput)
+  {
+    filterPipeline.Add(std::move(jsonOutput));
   }
 
   MultipleOutput output;
@@ -213,11 +234,19 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
 
   if (misraCompliance)
   {
-    output.Add(std::move(misraCompliance));
+    output.Add(std::make_unique<SourceRootTransformer>(misraCompliance.get(), options));
   }
-  else if (!options.grp.empty())
+  else
   {
-    std::cout << "The use of the 'grp' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
+    if (!options.grp.empty())
+    {
+      std::cout << "The use of the 'grp' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
+    }
+
+    if (!options.misraDivations.empty())
+    {
+      std::cout << "The use of the 'misra_deviations' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
+    }
   }
 
   ParseLog(inputFiles, output, options.projectRoot);

@@ -10,6 +10,9 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <string>
+
+#include "json.hpp"
 
 namespace PlogConverter
 {
@@ -115,18 +118,51 @@ bool IsDirectory(const std::string &path);
 bool MakeDirectory(const std::string &path);
 bool Exists(const std::string &path);
 
+
 template <typename To, typename From, typename Deleter>
-std::unique_ptr<To, Deleter> dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) noexcept
+bool IsA(const std::unique_ptr<From, Deleter> &p) noexcept
 {
-  if (auto cast = dynamic_cast<To *>(p.get()))
+  if (auto cast = dynamic_cast<To*>(p.get()))
   {
-    std::unique_ptr<To, Deleter> result { cast, std::move(p.get_deleter()) };
+    return true;
+  }
+
+  return false;
+}
+
+template <typename ResultType, typename From, typename Deleter>
+std::unique_ptr<ResultType, Deleter> To(std::unique_ptr<From, Deleter> &&p) noexcept
+{
+  if (auto cast = dynamic_cast<ResultType*>(p.get()))
+  {
+    std::unique_ptr<ResultType, Deleter> result { cast, std::move(p.get_deleter()) };
     p.release();
     return result;
   }
 
   return {};
 }
+
+template <typename ResultType, typename From, typename Deleter>
+std::unique_ptr<ResultType, Deleter> UnsafeTo(std::unique_ptr<From, Deleter>&& p) noexcept
+{
+  std::unique_ptr<ResultType, Deleter> result{ static_cast<ResultType*>(p.get()), std::move(p.get_deleter()) };
+  p.release();
+  return result;
+}
+
+template <typename Key, typename Value>
+constexpr auto WriteOption(nlohmann::json& j, Key&& fieldName, Value&& value)
+{
+  if (!std::empty(value))
+  {
+    value.erase(std::remove_if(std::begin(value), std::end(value),
+      [](unsigned char symb) { return symb >= 0x80; }), std::end(value));
+    j.emplace(std::forward<decltype(fieldName)>(fieldName), std::forward<decltype(value)>(value));
+  }
+};
+
+bool ComparePath(std::string_view lhs, std::string_view rhs);
 
 }
 

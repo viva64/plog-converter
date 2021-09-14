@@ -45,10 +45,10 @@ static char HtmlEnd[] = R"(
 )";
 
 MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
+  : m_directory { opt.output }
+  , m_grpFile{ opt.grp }
+  , m_customDiviations { opt.misraDivations }
 { 
-  m_directory = opt.output; 
-  m_grpFile = opt.grp;
-
   if (m_directory.empty())
   {
     throw std::logic_error("No output directory for html report");
@@ -118,7 +118,9 @@ bool MisraComplianceOutput::Write(const Warning& msg)
   }
   else
   {
-    if (msg.falseAlarm)
+    auto isInExceptions = std::find(m_customDiviations.begin(), m_customDiviations.end(), code) != m_customDiviations.end();
+
+    if (msg.falseAlarm || isInExceptions)
     {
       it->second.deviationsCount++;
     }
@@ -535,9 +537,9 @@ void MisraComplianceOutput::PrintFileExtra(const std::string& fileName, const st
   file.write(data.c_str(), data.length());
 }
 
-std::map<std::string, ComplianceData, naturalCmp> &MisraComplianceOutput::Categories()
+MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
 {
-  static std::map<std::string, ComplianceData, naturalCmp> m_misra_c =
+  static MisraComplianceOutput::CategoriesMap misra_c =
   {
     { "Rule 1.1", { Category::Required, Compliance::NotSupported } },
     { "Rule 1.2", { Category::Advisory, Compliance::NotSupported } },
@@ -722,7 +724,7 @@ std::map<std::string, ComplianceData, naturalCmp> &MisraComplianceOutput::Catego
     { "Directive 4.13", { Category::Advisory, Compliance::NotSupported } }
   };
 
-  return m_misra_c;
+  return misra_c;
 }
 
 }

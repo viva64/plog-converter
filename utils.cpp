@@ -278,5 +278,22 @@ void ANSItoUTF8([[maybe_unused]] std::string& source)
 #endif
 }
 
+bool ComparePath(std::string_view lhs, std::string_view rhs)
+{
+  using PathComparator = bool (*)(std::string_view, std::string_view);
+
+#ifdef _WIN32
+  constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
+  {
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+      [](char a, char b) { return tolower(a) == tolower(b); });
+  };
+#else
+  constexpr PathComparator pathCmp = &std::operator==;
+#endif
+
+  return pathCmp(lhs, rhs);
+}
+
 }
 

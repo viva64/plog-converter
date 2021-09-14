@@ -35,6 +35,8 @@ add_library(plog STATIC
     multipleoutput.h
     outputfactory.cpp
     outputfactory.h
+    sourceroottransformer.cpp
+    sourceroottransformer.h
     suppressfilter.cpp
     suppressfilter.h
     utils.cpp
@@ -48,6 +50,8 @@ add_library(plog STATIC
     Formats/errorfileoutput.h
     Formats/htmloutput.cpp
     Formats/htmloutput.h
+    Formats/jsonoutput.h
+    Formats/jsonoutput.cpp
     Formats/misracomplianceoutput.cpp
     Formats/misracomplianceoutput.h
     Formats/sarifoutput.cpp

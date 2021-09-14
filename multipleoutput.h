@@ -6,8 +6,6 @@
 #define MULTIOUTPUT
 #include "ioutput.h"
 
-#include "Formats/misracomplianceoutput.h"
-
 namespace PlogConverter
 {
 

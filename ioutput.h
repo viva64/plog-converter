@@ -69,6 +69,36 @@ protected:
   IOutput* m_output = nullptr;
 };
 
+class ITransform : public IOutput
+{
+public:
+  ITransform(IOutput* output) : m_output(output) { };
+
+  void Start() override
+  {
+    if (m_output)
+      m_output->Start();
+  }
+
+  bool Write(const Warning& message) override
+  {
+    return m_output->Write(Transform(message));
+  }
+
+  void Finish() override
+  {
+    if (m_output)
+      m_output->Finish();
+  }
+
+  virtual ~ITransform() = default;
+
+protected:
+  virtual Warning Transform(const Warning& message) const = 0;
+
+  IOutput* m_output = nullptr;
+};
+
 }
 
 #endif // IOUTPUT

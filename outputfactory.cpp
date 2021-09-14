@@ -13,6 +13,7 @@
 #include "Formats/teamcityoutput.h"
 #include "Formats/sarifoutput.h"
 #include "Formats/misracomplianceoutput.h"
+#include "Formats/jsonoutput.h"
 
 namespace PlogConverter
 {
@@ -33,7 +34,8 @@ OutputFactory::OutputFactory()
       { "html",                FactoryFunction<SimpleHTMLOutput>() },
       { "teamcity",            FactoryFunction<TeamCityOutput>() },
       { "sarif",               FactoryFunction<SarifOutput>() },
-      { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() }
+      { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() },
+      { "json",                FactoryFunction<JsonOutput>() }
     }
 {
 }
