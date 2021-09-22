@@ -156,6 +156,40 @@ void MisraComplianceOutput::PrintHtmlEnd()
   m_ofstream << HtmlEnd << std::endl;
 }
 
+namespace 
+{
+  bool HasOnlySpaces(std::string_view line)
+  {
+    return line.find_first_not_of(" \t\v\f") == std::string::npos;
+  }
+
+  std::string CreateReservedString(std::string_view prefix, size_t size)
+  {
+    if (size < prefix.size())
+    {
+      return {};
+    }
+
+    std::string result;
+    result.reserve(size);
+    result += std::string(prefix);
+
+    return result;
+  }
+
+  constexpr size_t MaxLineNumberLenght = 256;
+
+  void DumpError(const std::string& message, size_t lineNumber)
+  {
+    static constexpr std::string_view lineNumberPrefix{ "In line number " };
+    static auto errorPrefix = CreateReservedString(lineNumberPrefix, lineNumberPrefix.size() + message.size() + MaxLineNumberLenght);
+    errorPrefix += std::to_string(lineNumber);
+    errorPrefix += " - ";
+    errorPrefix += message;
+    throw std::runtime_error(errorPrefix);
+  }
+}
+
 void MisraComplianceOutput::RecategoriesByGRP()
 {
   std::ifstream in(m_grpFile);
@@ -164,28 +198,40 @@ void MisraComplianceOutput::RecategoriesByGRP()
     std::string line;
     auto& m_misra_c = Categories();
 
-    while (getline(in, line))
+    for (size_t lineNumber = 1; getline(in, line); ++lineNumber)
     {
+      if (HasOnlySpaces(line))
+      {
+        continue;
+      }
+
       auto tokens = Split(line, "=");
 
       if (tokens.size() != 2)
       {
-        throw std::runtime_error("Incorrect GRP line: " + line);
+        DumpError("Incorrect GRP line: \"" + line + "\". Expected \"Rule <ID> = <Category>\".", lineNumber);
       }
 
       const auto& guideline = tokens.front();
-      auto category = ToCategory(tokens[1]);
+      const auto& categoryLine = *std::next(tokens.begin());
+
+      auto category = ToCategory(categoryLine);
+
+      if (category == Category::None)
+      {
+        DumpError("Unknown GRP category: " + categoryLine, lineNumber);
+      }
 
       auto it = m_misra_c.find(guideline);
       if (it == m_misra_c.end())
       {
-        throw std::runtime_error("Unknown GRP guideline: " + guideline);
+        DumpError("Unknown GRP guideline: "+ guideline + ". Expected \"Rule <Number>.<Number>\"", lineNumber);
       }
 
       auto& element = it->second;
       if (category < element.defaultCategory && element.defaultCategory != Category::Advisory)
       {
-        throw std::runtime_error("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline);
+        DumpError("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline, lineNumber);
       }
 
       element.recategorization = category;
@@ -478,7 +524,7 @@ Category MisraComplianceOutput::ToCategory(const std::string& category)
   }
   else
   {
-    throw std::runtime_error("Unknown GRP category: " + category);
+    return Category::None;
   }
 }
 
@@ -543,7 +589,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
   {
     { "Rule 1.1", { Category::Required, Compliance::NotSupported } },
     { "Rule 1.2", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 1.3", Category::Required },
+    { "Rule 1.3", { Category::Required, Compliance::NotSupported } },
 
     { "Rule 2.1", Category::Required },
     { "Rule 2.2", { Category::Required, Compliance::NotSupported } },
@@ -584,9 +630,9 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 8.5", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.6", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.7", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 8.8", Category::Required },
+    { "Rule 8.8", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.9", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 8.10", Category::Required },
+    { "Rule 8.10", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.11", Category::Advisory },
     { "Rule 8.12", Category::Required },
     { "Rule 8.13", { Category::Advisory, Compliance::NotSupported } },
@@ -595,7 +641,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 9.1", Category::Mandatory },
     { "Rule 9.2", { Category::Required, Compliance::NotSupported } },
     { "Rule 9.3", Category::Required },
-    { "Rule 9.4", Category::Required },
+    { "Rule 9.4", { Category::Required, Compliance::NotSupported } },
     { "Rule 9.5", Category::Required },
 
     { "Rule 10.1", Category::Required },
@@ -604,11 +650,11 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 10.4", Category::Required },
     { "Rule 10.5", Category::Advisory },
     { "Rule 10.6", Category::Required },
-    { "Rule 10.7", Category::Required },
+    { "Rule 10.7", { Category::Required, Compliance::NotSupported } },
     { "Rule 10.8", { Category::Required, Compliance::NotSupported } },
 
     { "Rule 11.1", Category::Required },
-    { "Rule 11.2", Category::Required },
+    { "Rule 11.2", { Category::Required, Compliance::NotSupported } },
     { "Rule 11.3", Category::Required },
     { "Rule 11.4", Category::Advisory },
     { "Rule 11.5", Category::Advisory },
@@ -650,7 +696,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 16.6", Category::Required },
     { "Rule 16.7", Category::Required },
 
-    { "Rule 17.1", Category::Required },
+    { "Rule 17.1", { Category::Required, Compliance::NotSupported } },
     { "Rule 17.2", Category::Required },
     { "Rule 17.3", Category::Mandatory },
     { "Rule 17.4", Category::Mandatory },
@@ -672,7 +718,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 19.2", ComplianceData(Category::Advisory)  },
 
     { "Rule 20.1", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 20.2", Category::Required },
+    { "Rule 20.2", { Category::Required, Compliance::NotSupported } },
     { "Rule 20.3", { Category::Required, Compliance::NotSupported } },
     { "Rule 20.4", Category::Required },
     { "Rule 20.5", { Category::Advisory, Compliance::NotSupported } },
@@ -696,13 +742,13 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 21.8", Category::Required },
     { "Rule 21.9", Category::Required },
     { "Rule 21.10", Category::Required },
-    { "Rule 21.11", Category::Required },
+    { "Rule 21.11", { Category::Required, Compliance::NotSupported } },
     { "Rule 21.12", { Category::Advisory, Compliance::NotSupported } },
 
     { "Rule 22.1", ComplianceData(Category::Required)  },
     { "Rule 22.2", Category::Mandatory },
     { "Rule 22.3", { Category::Required, Compliance::NotSupported } },
-    { "Rule 22.4", ComplianceData(Category::Mandatory) },
+    { "Rule 22.4", ComplianceData(Category::Mandatory, Compliance::NotSupported) },
     { "Rule 22.5", Category::Mandatory },
     { "Rule 22.6", Category::Mandatory },
 
