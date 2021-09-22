@@ -589,7 +589,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
   {
     { "Rule 1.1", { Category::Required, Compliance::NotSupported } },
     { "Rule 1.2", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 1.3", { Category::Required, Compliance::NotSupported } },
+    { "Rule 1.3", Category::Required },
 
     { "Rule 2.1", Category::Required },
     { "Rule 2.2", { Category::Required, Compliance::NotSupported } },
@@ -630,9 +630,9 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 8.5", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.6", { Category::Required, Compliance::NotSupported } },
     { "Rule 8.7", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 8.8", { Category::Required, Compliance::NotSupported } },
+    { "Rule 8.8", Category::Required },
     { "Rule 8.9", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 8.10", { Category::Required, Compliance::NotSupported } },
+    { "Rule 8.10", Category::Required },
     { "Rule 8.11", Category::Advisory },
     { "Rule 8.12", Category::Required },
     { "Rule 8.13", { Category::Advisory, Compliance::NotSupported } },
@@ -641,7 +641,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 9.1", Category::Mandatory },
     { "Rule 9.2", { Category::Required, Compliance::NotSupported } },
     { "Rule 9.3", Category::Required },
-    { "Rule 9.4", { Category::Required, Compliance::NotSupported } },
+    { "Rule 9.4", Category::Required },
     { "Rule 9.5", Category::Required },
 
     { "Rule 10.1", Category::Required },
@@ -650,11 +650,11 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 10.4", Category::Required },
     { "Rule 10.5", Category::Advisory },
     { "Rule 10.6", Category::Required },
-    { "Rule 10.7", { Category::Required, Compliance::NotSupported } },
+    { "Rule 10.7", Category::Required },
     { "Rule 10.8", { Category::Required, Compliance::NotSupported } },
 
     { "Rule 11.1", Category::Required },
-    { "Rule 11.2", { Category::Required, Compliance::NotSupported } },
+    { "Rule 11.2", Category::Required },
     { "Rule 11.3", Category::Required },
     { "Rule 11.4", Category::Advisory },
     { "Rule 11.5", Category::Advisory },
@@ -696,7 +696,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 16.6", Category::Required },
     { "Rule 16.7", Category::Required },
 
-    { "Rule 17.1", { Category::Required, Compliance::NotSupported } },
+    { "Rule 17.1", Category::Required },
     { "Rule 17.2", Category::Required },
     { "Rule 17.3", Category::Mandatory },
     { "Rule 17.4", Category::Mandatory },
@@ -718,7 +718,7 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 19.2", ComplianceData(Category::Advisory)  },
 
     { "Rule 20.1", { Category::Advisory, Compliance::NotSupported } },
-    { "Rule 20.2", { Category::Required, Compliance::NotSupported } },
+    { "Rule 20.2", Category::Required },
     { "Rule 20.3", { Category::Required, Compliance::NotSupported } },
     { "Rule 20.4", Category::Required },
     { "Rule 20.5", { Category::Advisory, Compliance::NotSupported } },
@@ -742,13 +742,13 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 21.8", Category::Required },
     { "Rule 21.9", Category::Required },
     { "Rule 21.10", Category::Required },
-    { "Rule 21.11", { Category::Required, Compliance::NotSupported } },
+    { "Rule 21.11", Category::Required },
     { "Rule 21.12", { Category::Advisory, Compliance::NotSupported } },
 
     { "Rule 22.1", ComplianceData(Category::Required)  },
     { "Rule 22.2", Category::Mandatory },
     { "Rule 22.3", { Category::Required, Compliance::NotSupported } },
-    { "Rule 22.4", ComplianceData(Category::Mandatory, Compliance::NotSupported) },
+    { "Rule 22.4", ComplianceData(Category::Mandatory) },
     { "Rule 22.5", Category::Mandatory },
     { "Rule 22.6", Category::Mandatory },
 
