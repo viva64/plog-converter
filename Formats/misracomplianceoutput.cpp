@@ -156,6 +156,40 @@ void MisraComplianceOutput::PrintHtmlEnd()
   m_ofstream << HtmlEnd << std::endl;
 }
 
+namespace 
+{
+  bool HasOnlySpaces(std::string_view line)
+  {
+    return line.find_first_not_of(" \t\v\f") == std::string::npos;
+  }
+
+  std::string CreateReservedString(std::string_view prefix, size_t size)
+  {
+    if (size < prefix.size())
+    {
+      return {};
+    }
+
+    std::string result;
+    result.reserve(size);
+    result += std::string(prefix);
+
+    return result;
+  }
+
+  constexpr size_t MaxLineNumberLenght = 256;
+
+  void DumpError(const std::string& message, size_t lineNumber)
+  {
+    static constexpr std::string_view lineNumberPrefix{ "In line number " };
+    static auto errorPrefix = CreateReservedString(lineNumberPrefix, lineNumberPrefix.size() + message.size() + MaxLineNumberLenght);
+    errorPrefix += std::to_string(lineNumber);
+    errorPrefix += " - ";
+    errorPrefix += message;
+    throw std::runtime_error(errorPrefix);
+  }
+}
+
 void MisraComplianceOutput::RecategoriesByGRP()
 {
   std::ifstream in(m_grpFile);
@@ -164,28 +198,40 @@ void MisraComplianceOutput::RecategoriesByGRP()
     std::string line;
     auto& m_misra_c = Categories();
 
-    while (getline(in, line))
+    for (size_t lineNumber = 1; getline(in, line); ++lineNumber)
     {
+      if (HasOnlySpaces(line))
+      {
+        continue;
+      }
+
       auto tokens = Split(line, "=");
 
       if (tokens.size() != 2)
       {
-        throw std::runtime_error("Incorrect GRP line: " + line);
+        DumpError("Incorrect GRP line: \"" + line + "\". Expected \"Rule <ID> = <Category>\".", lineNumber);
       }
 
       const auto& guideline = tokens.front();
-      auto category = ToCategory(tokens[1]);
+      const auto& categoryLine = *std::next(tokens.begin());
+
+      auto category = ToCategory(categoryLine);
+
+      if (category == Category::None)
+      {
+        DumpError("Unknown GRP category: " + categoryLine, lineNumber);
+      }
 
       auto it = m_misra_c.find(guideline);
       if (it == m_misra_c.end())
       {
-        throw std::runtime_error("Unknown GRP guideline: " + guideline);
+        DumpError("Unknown GRP guideline: "+ guideline + ". Expected \"Rule <Number>.<Number>\"", lineNumber);
       }
 
       auto& element = it->second;
       if (category < element.defaultCategory && element.defaultCategory != Category::Advisory)
       {
-        throw std::runtime_error("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline);
+        DumpError("You cannot downgrade the guideline from " + ToString(element.defaultCategory) + " to " + ToString(category) + " for " + element.guideline, lineNumber);
       }
 
       element.recategorization = category;
@@ -478,7 +524,7 @@ Category MisraComplianceOutput::ToCategory(const std::string& category)
   }
   else
   {
-    throw std::runtime_error("Unknown GRP category: " + category);
+    return Category::None;
   }
 }
 
