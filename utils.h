@@ -160,7 +160,7 @@ constexpr auto WriteOption(nlohmann::json& j, Key&& fieldName, Value&& value)
       [](unsigned char symb) { return symb >= 0x80; }), std::end(value));
     j.emplace(std::forward<decltype(fieldName)>(fieldName), std::forward<decltype(value)>(value));
   }
-};
+}
 
 bool ComparePath(std::string_view lhs, std::string_view rhs);
 
