@@ -606,11 +606,11 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
     { "Rule 4.2", { Category::Advisory, Compliance::NotSupported } },
 
     { "Rule 5.1", { Category::Required, Compliance::NotSupported } },
-    { "Rule 5.2", { Category::Required, Compliance::NotSupported } },
+    { "Rule 5.2", Category::Required },
     { "Rule 5.3", Category::Required },
     { "Rule 5.4", { Category::Required, Compliance::NotSupported } },
     { "Rule 5.5", { Category::Required, Compliance::NotSupported } },
-    { "Rule 5.6", { Category::Required, Compliance::NotSupported } },
+    { "Rule 5.6", Category::Required },
     { "Rule 5.7", { Category::Required, Compliance::NotSupported } },
     { "Rule 5.8", { Category::Required, Compliance::NotSupported } },
     { "Rule 5.9", { Category::Advisory, Compliance::NotSupported } },
