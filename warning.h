@@ -194,7 +194,7 @@ struct Warning
       this->code = "V" + std::to_string(code);
     }
 
-    positions.emplace_back(std::move(file), line);
+    positions.emplace_back(file, line);
   }
 
   Warning(std::string code,
