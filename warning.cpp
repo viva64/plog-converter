@@ -137,7 +137,7 @@ std::string Warning::GetVivaUrl() const
 
   if (IsTrialMessage())
   {
-    return "https://pvs-studio.com/en/pvs-studio/download/#trial_form";
+    return "https://pvs-studio.com/en/pvs-studio/try-free/";
   }
 
   const auto errorCode = GetErrorCode();
