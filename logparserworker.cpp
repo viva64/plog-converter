@@ -58,13 +58,17 @@ namespace PlogConverter
 
 void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
                                IOutput &output,
-                               const std::string &root)
+                               const std::string &root,
+                               const ProgramOptions *options /* = nullptr */)
 {
   m_output = &output;
   m_root = root;
 
   output.Start();
-  output.Write(Warning::GetDocumentationLinkMessage());
+  if (!options || !options->noHelp)
+  {
+    output.Write(Warning::GetDocumentationLinkMessage());
+  }
 
   for (auto &inputFile : inputFiles)
   {
@@ -249,7 +253,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  ParseLog(inputFiles, output, options.projectRoot);
+  ParseLog(inputFiles, output, options.projectRoot, &options);
 
   std::cout << "Total messages: " << m_countTotal << std::endl
             << "Filtered messages: " << m_countSuccess << std::endl;

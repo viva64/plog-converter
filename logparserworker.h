@@ -36,7 +36,8 @@ public:
   void ParseLog(
     std::vector<InputFile> &inputFiles,
     IOutput &output,
-    const std::string &root
+    const std::string &root,
+    const ProgramOptions *options = nullptr
   );
 
   size_t GetTotalWarnings() const;

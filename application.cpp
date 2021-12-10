@@ -258,7 +258,8 @@ void Application::SetCmdOptions(int argc, const char** argv)
   CompletionFlag comp(parser, {"complete"});
   ValueFlag<std::string> grp(parser, "GRP", "Path to txt file with Guideline Re-categorization Plan. Used only for generating misra compliance report.", { "grp" }, Options::Single);
   ValueFlag<std::string> misraDiviations(parser, "Misra Diviations", "Misra Diviations.", { "misra_deviations" }, Options::Single);
-  
+  Flag noHelp(parser, "NOHELP", "Do not display documentation messages in warnings output.", { "noHelpMessages" }, Options::Single);
+
   try
   {
     parser.ParseCLI(argc, argv);
@@ -275,6 +276,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.grp = Expand(get(grp));
     m_options.misraDivations = ParseMisraDiviations(get(misraDiviations));
     m_options.useStderr = useCerr;
+    m_options.noHelp = noHelp;
     m_options.indicateWarnings = indicateWarnings;
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);

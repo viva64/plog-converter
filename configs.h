@@ -47,6 +47,7 @@ struct ProgramOptions
   std::string                                 projectVersion;
   std::string                                 grp;
   bool                                        useStderr = false;
+  bool                                        noHelp = false;
   bool                                        indicateWarnings = false;
 };
 
