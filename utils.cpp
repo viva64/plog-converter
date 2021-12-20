@@ -278,18 +278,60 @@ void ANSItoUTF8([[maybe_unused]] std::string& source)
 #endif
 }
 
-bool ComparePath(std::string_view lhs, std::string_view rhs)
+bool EqualPaths(std::string_view lhs, std::string_view rhs) noexcept
 {
   using PathComparator = bool (*)(std::string_view, std::string_view);
 
 #ifdef _WIN32
   constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
   {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-      [](char a, char b) { return tolower(a) == tolower(b); });
+    return lhs.size() == rhs.size()
+        && std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+                      [](char a, char b) { return tolower(a) == tolower(b); });
   };
 #else
   constexpr PathComparator pathCmp = &std::operator==;
+#endif
+
+  return pathCmp(lhs, rhs);
+}
+
+bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
+{
+  using PathComparator = bool (*)(std::string_view, std::string_view);
+
+#ifdef _WIN32
+  constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
+  {
+    if (lhs.size() < rhs.size())
+    {
+      return true;
+    }
+
+    if (rhs.size() < lhs.size())
+    {
+      return false;
+    }
+
+    for (size_t i = 0; i < lhs.size(); ++i)
+    {
+      const auto ll = tolower(lhs[i]);
+      const auto rl = tolower(rhs[i]);
+      if (ll < rl)
+      {
+        return true;
+      }
+
+      if (rl < ll)
+      {
+        return false;
+      }
+    }
+
+    return false;
+  };
+#else
+  constexpr PathComparator pathCmp = &std::operator<;
 #endif
 
   return pathCmp(lhs, rhs);

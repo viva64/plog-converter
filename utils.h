@@ -162,7 +162,8 @@ constexpr auto WriteOption(nlohmann::json& j, Key&& fieldName, Value&& value)
   }
 }
 
-bool ComparePath(std::string_view lhs, std::string_view rhs);
+bool          EqualPaths(std::string_view lhs, std::string_view rhs) noexcept;
+bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 
 }
 

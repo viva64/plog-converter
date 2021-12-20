@@ -286,7 +286,7 @@ static std::string ConvertToString(const std::vector<WarningPosition> &positions
 
   for (const auto &position: positions)
   {
-    if (!ComparePath(position.file, mainFile))
+    if (!EqualPaths(position.file, mainFile))
     {
       return {};
     }
@@ -424,7 +424,7 @@ nlohmann::json Warning::ConvertToJson(Warning w)
 
     for (auto &position : w.positions)
     {
-      if (!ComparePath(currentFileName, position.file))
+      if (!EqualPaths(currentFileName, position.file))
       {
         currentFileName = joinedPositions.emplace_back(std::move(position.file),
                                                        std::vector { static_cast<size_t>(position.line) })
