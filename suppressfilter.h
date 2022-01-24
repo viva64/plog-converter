@@ -47,7 +47,6 @@ public:
 
 private:
   bool CheckCode(const Warning& message) const;
-  bool CheckFalseAlarm(const Warning& message) const;
   bool CheckFiles(const Warning& message) const;
   bool CheckLevel(const Warning& message) const;
   bool CheckWarnings(const Warning& message) const;

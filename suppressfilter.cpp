@@ -76,7 +76,6 @@ SuppressFilter::~SuppressFilter() = default;
 bool SuppressFilter::Check(const Warning &message) const
 {
   return CheckCode(message)
-      && CheckFalseAlarm(message)
       && CheckFiles(message)
       && CheckLevel(message)
       && CheckWarnings(message);
@@ -85,11 +84,6 @@ bool SuppressFilter::Check(const Warning &message) const
 bool SuppressFilter::CheckCode(const Warning &message) const
 {
   return m_disabledWarnings.find(message.code) == m_disabledWarnings.end();
-}
-
-bool SuppressFilter::CheckFalseAlarm(const Warning &message) const
-{
-  return !message.falseAlarm;
 }
 
 bool SuppressFilter::CheckFiles(const Warning &message) const
