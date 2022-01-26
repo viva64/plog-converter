@@ -1,6 +1,6 @@
 Plog Converter
 ==============
-[![Build Status](https://travis-ci.org/viva64/homebrew-pvs-studio.svg?branch=master)](https://travis-ci.org/viva64/plog-converter) [![Docs](	https://img.shields.io/readthedocs/pip.svg)](https://pvs-studio.com/en/docs/manual/0036/) ![Platforms](https://img.shields.io/badge/platform-linux%20|%20macos-green)
+[![Docs](	https://img.shields.io/readthedocs/pip.svg)](https://pvs-studio.com/en/docs/manual/0036/) ![Platforms](https://img.shields.io/badge/platform-linux%20|%20macos-green)
 
 **Note**. This page is about the tool for Linux and macOS. The appropriate page about the tool for Windows [is available here](https://github.com/viva64/PlogConverter-MSBuild-VS).
 
