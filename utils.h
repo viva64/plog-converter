@@ -167,4 +167,12 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 
 }
 
+unsigned GetHashCodePVS(std::string_view msg) noexcept;
+
+namespace PvsStudio
+{
+  std::string FixErrorString(std::string line);
+  uint32_t PvsHash(std::string_view line, unsigned version = ~0u /* latest version by default */) noexcept;
+}
+
 #endif // UTILS_H

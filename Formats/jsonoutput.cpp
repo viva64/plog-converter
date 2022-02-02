@@ -26,23 +26,6 @@ bool CheckCode(const Warning& msg)
   return true;
 }
 
-static unsigned GetHashCodePVS(std::string_view msg)
-{
-  unsigned sum = 0;
-  for (char ch : msg)
-  {
-    if (ch != ' ' && ch != '\t')
-    {
-      bool hiBit = (sum & 0x80000000u) != 0;
-      sum <<= 1;
-      sum ^= ch;
-      if (hiBit)
-        sum ^= 0x00000001u;
-    }
-  }
-  return sum;
-}
-
 bool JsonOutput::Write(const Warning& msg)
 {
   if (!CheckCode(msg))
@@ -75,9 +58,9 @@ bool JsonOutput::Write(const Warning& msg)
     {
       nlohmann::json navigationJson;
       const auto& nav = position.navigation;
-      navigationJson["previousLine"] = static_cast<int>(GetHashCodePVS(nav.previousLineString));
-      navigationJson["currentLine"] = static_cast<int>(GetHashCodePVS(nav.currentLineString));
-      navigationJson["nextLine"] = static_cast<int>(GetHashCodePVS(nav.nextLineString));
+      navigationJson["previousLine"] = static_cast<int>(PvsStudio::PvsHash(nav.previousLineString));
+      navigationJson["currentLine"] = static_cast<int>(PvsStudio::PvsHash(nav.currentLineString));
+      navigationJson["nextLine"] = static_cast<int>(PvsStudio::PvsHash(nav.nextLineString));
       navigationJson["columns"] = nav.columns;
 
       positionsJson["navigation"] = navigationJson;

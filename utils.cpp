@@ -339,3 +339,152 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
 
 }
 
+unsigned GetHashCodePVS(std::string_view msg) noexcept
+{
+    unsigned sum = 0;
+    for (char ch : msg)
+    {
+        if (ch >= 0 && ch != ' ' && ch != '\t')
+        {
+            bool hiBit = (sum & 0x80000000u) != 0;
+            sum <<= 1;
+            sum ^= ch;
+            if (hiBit)
+                sum ^= 0x00000001u;
+        }
+    }
+    return sum;
+}
+
+static constexpr bool IsDigit(char c) noexcept
+{
+  return '0' <= c && c <= '9';
+}
+
+static constexpr bool IsSpace(char c) noexcept
+{
+  return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\v' || c == '\f';
+}
+
+static constexpr std::string_view TrimRight(std::string_view str) noexcept
+{
+  while (!str.empty() && IsSpace(str.back()))
+  {
+    str.remove_suffix(1);
+  }
+
+  return str;
+}
+
+namespace PvsStudio
+{
+  std::string FixErrorString(std::string line)
+  {
+    char prev = '\0';
+    char cur;
+
+    for (auto it = line.begin(); it != line.end(); prev = cur)
+    {
+      cur = *it;
+      if (IsDigit(cur))
+      {
+        if (IsDigit(prev))
+        {
+          it = line.erase(it);
+        }
+        else
+        {
+          *it++ = '_';
+        }
+      }
+      else if (IsSpace(cur))
+      {
+        if (IsSpace(prev))
+        {
+          it = line.erase(it);
+        }
+        else
+        {
+          *it++ = ' ';
+        }
+      }
+      else
+      {
+        ++it;
+      }
+    }
+
+    while (!line.empty() && IsSpace(line.front()))
+    {
+      line.erase(line.begin());
+    }
+
+    while (!line.empty() && IsSpace(line.back()))
+    {
+      line.pop_back();
+    }
+
+    return line;
+  }
+
+  static bool IsAnalyzerErrorCode(std::string_view errStr)
+  {
+    if (errStr.size() != 4 && errStr.size() != 5)
+    {
+      return false;
+    }
+
+    if (errStr[0] != 'V' && errStr[0] != 'v')
+    {
+      return false;
+    }
+
+    for (auto i = 1; i <= 3; i++)
+    {
+      if (!IsDigit(errStr[i]))
+      {
+        return false;
+      }
+    }
+
+    if (errStr.size() == 5)
+    {
+      if (!IsDigit(errStr[4]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static std::string_view DeleteMinusComments(std::string_view msg) noexcept
+  {
+    bool continueSearch;
+    do
+    {
+      continueSearch = false;
+      if (const auto index = msg.rfind("//-"); index != std::string_view::npos)
+      {
+        std::string_view v_marker = TrimRight(msg.substr(index + 3));
+        if (continueSearch = IsAnalyzerErrorCode(v_marker); continueSearch)
+        {
+          msg = msg.substr(0, index);
+        }
+      }
+    } while (continueSearch);
+
+    return msg;
+  }
+
+  uint32_t PvsHash(std::string_view line, unsigned version) noexcept
+  {
+    if (version < 2)
+    {
+      auto lineFixed = FixErrorString(std::string{ line });
+      return GetHashCodePVS(lineFixed);
+    }
+
+    return GetHashCodePVS(DeleteMinusComments(line));
+  }
+}
