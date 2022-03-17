@@ -259,9 +259,9 @@ struct Warning
   std::string                       GetSASTString() const;
   std::vector<unsigned>             GetExtendedLines() const;
 
-  std::string                       GetLevelString() const;
-  std::string                       GetLevelString(const std::string &l01, const std::string &l2, const std::string &l3) const;
-  std::string                       GetLevelString(const std::string &l0, const std::string &l1, const std::string &l2, const std::string &l3) const;
+  std::string_view                  GetLevelString() const noexcept;
+  std::string_view                  GetLevelString(std::string_view l01, std::string_view l2, std::string_view l3) const noexcept;
+  std::string_view                  GetLevelString(std::string_view l0, std::string_view l1, std::string_view l2, std::string_view l3) const noexcept;
 
   static Warning Parse(const std::string& str);
 

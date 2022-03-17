@@ -4,6 +4,7 @@
 
 #include "warning.h"
 #include <JsonUtils.h>
+#include "utils.h"
 
 namespace PlogConverter
 {
@@ -184,17 +185,18 @@ bool Warning::HasProjects() const
   return !projects.empty();
 }
 
-std::string Warning::GetLevelString() const
+std::string_view Warning::GetLevelString() const noexcept
 {
-  return GetLevelString("error", "warning", "note");
+  using namespace std::literals::string_view_literals;
+  return GetLevelString("error"sv, "warning"sv, "note"sv);
 }
 
-std::string Warning::GetLevelString(const std::string &l01, const std::string &l2, const std::string &l3) const
+std::string_view Warning::GetLevelString(std::string_view l01, std::string_view l2, std::string_view l3) const noexcept
 {
   return GetLevelString(l01, l01, l2, l3);
 }
 
-std::string Warning::GetLevelString(const std::string &l0, const std::string &l1, const std::string &l2, const std::string &l3) const
+std::string_view Warning::GetLevelString(std::string_view l0, std::string_view l1, std::string_view l2, std::string_view l3) const noexcept
 {
   switch (level)
   {

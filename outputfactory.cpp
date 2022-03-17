@@ -7,11 +7,14 @@
 #include "Formats/xmloutput.h"
 #include "Formats/csvoutput.h"
 #include "Formats/errorfileoutput.h"
+#include "Formats/errorfileverboseoutput.h"
 #include "Formats/tasklistoutput.h"
+#include "Formats/tasklistverboseoutput.h"
 #include "Formats/htmloutput.h"
 #include "Formats/simplehtml.h"
 #include "Formats/teamcityoutput.h"
 #include "Formats/sarifoutput.h"
+#include "Formats/sarifvscodeoutput.h"
 #include "Formats/misracomplianceoutput.h"
 #include "Formats/jsonoutput.h"
 
@@ -30,10 +33,13 @@ OutputFactory::OutputFactory()
       { "xml",                 FactoryFunction<XMLOutput>() },
       { "fullhtml",            FactoryFunction<HTMLOutput>() },
       { "errorfile",           FactoryFunction<ErrorFileOutput>() },
+      { "errorfile-verbose",   FactoryFunction<ErrorFileVerboseOutput>() },
       { "tasklist",            FactoryFunction<TaskListOutput>() },
+      { "tasklist-verbose",    FactoryFunction<TaskListVerboseOutput>() },
       { "html",                FactoryFunction<SimpleHTMLOutput>() },
       { "teamcity",            FactoryFunction<TeamCityOutput>() },
       { "sarif",               FactoryFunction<SarifOutput>() },
+      { "sarif-vscode",        FactoryFunction<SarifVSCodeOutput>() },
       { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() },
       { "json",                FactoryFunction<JsonOutput>() }
     }

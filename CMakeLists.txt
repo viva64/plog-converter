@@ -48,6 +48,8 @@ add_library(plog STATIC
     Formats/csvoutput.h
     Formats/errorfileoutput.cpp
     Formats/errorfileoutput.h
+	Formats/errorfileverboseoutput.cpp
+    Formats/errorfileverboseoutput.h
     Formats/htmloutput.cpp
     Formats/htmloutput.h
     Formats/jsonoutput.h
@@ -56,10 +58,14 @@ add_library(plog STATIC
     Formats/misracomplianceoutput.h
     Formats/sarifoutput.cpp
     Formats/sarifoutput.h
+    Formats/sarifvscodeoutput.cpp
+    Formats/sarifvscodeoutput.h
     Formats/simplehtml.cpp
     Formats/simplehtml.h
     Formats/tasklistoutput.cpp
     Formats/tasklistoutput.h
+    Formats/tasklistverboseoutput.cpp
+    Formats/tasklistverboseoutput.h
     Formats/teamcityoutput.cpp
     Formats/teamcityoutput.h
     Formats/xmloutput.cpp

@@ -9,264 +9,280 @@
 #include "PVS-StudioVersionInfo.h"
 
 namespace stdfs = std::filesystem;
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
+namespace
+{
+  inline std::string to_hex(unsigned char x)
+  {
+    std::string hex;
+    hex.resize(2);
+    snprintf(hex.data(), hex.size() + 1, "%2X", static_cast<uint32_t>(x));
+    return std::string{ "%" } + (x < 0x10 ? "0" : "") + hex;
+  }
+}
 
 namespace PlogConverter
 {
+  SarifOutput::SarifOutput(const ProgramOptions &opt)
+    : IOutput(opt, "sarif")
+  {}
 
-inline std::string to_hex(unsigned char x)
-{
-  std::string hex;
-  hex.resize(2);
-  snprintf(hex.data(), hex.size() + 1, "%2X", static_cast<uint32_t>(x));
-  return std::string{"%"} + (x < 0x10 ? "0" : "") + hex;
-}
-
-std::string UriFileEscape(const std::string &filePath)
-{
-  using UriCache_t = std::unordered_map<stdfs::path::string_type, std::string>;
-  static UriCache_t uriCache;
-
-  auto path = stdfs::path{ filePath }.make_preferred();
-  auto [cacheIter, isNew] = uriCache.try_emplace(path.native(), "");
-  if (!isNew)
+  bool SarifOutput::Write(const Warning &msg)
   {
-    return cacheIter->second;
+    if (msg.IsDocumentationLinkMessage())
+    {
+      return false;
+    }
+
+    m_warnings.push_back(msg);
+
+    return true;
   }
 
-  constexpr auto isUnreserved = [](const char c)
+  void SarifOutput::Finish()
   {
-    // RFC 3986 section 2.3 Unreserved Characters(January 2005)
-    // A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-    // a b c d e f g h i j k l m n o p q r s t u v w x y z
-    // 0 1 2 3 4 5 6 7 8 9 - _ . ~
+    Finish(SarifOutputProcessor{});
+  }
 
-    return (c >= '0' && c <= '9')
+  void SarifOutput::Finish(const SarifOutputProcessor &proc)
+  {
+    m_ofstream << proc(m_warnings).dump(2) << std::endl;
+  }
+
+  nlohmann::ordered_json SarifOutputProcessor::operator()(const WarningList &warnings) const
+  {
+    nlohmann::ordered_json rules;
+    nlohmann::ordered_json results;
+    std::set<std::string> ruleIDs;
+    
+    for (const auto &warning : warnings)
+    {
+      results.emplace_back(ProcessRule(warning, rules, ruleIDs));
+    }
+
+    nlohmann::ordered_json run
+    {
+      { "tool"sv, GetDriverJson(std::move(rules)) },
+      { "results"sv, std::move(results) }
+    };
+
+    nlohmann::ordered_json sarif
+    {
+      { "version"sv, "2.1.0"sv },
+      { "$schema"sv, "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"sv },
+      { "runs"sv, std::vector { std::move(run) } }
+    };
+    return sarif;
+  }
+
+  std::string SarifOutputProcessor::UriFileEscape(std::string filePath)
+  {
+    using UriCache_t = std::unordered_map<stdfs::path::string_type, std::string>;
+    static UriCache_t uriCache;
+
+    auto path = stdfs::path{ std::move(filePath) }.make_preferred();
+    auto [cacheIter, isNew] = uriCache.try_emplace(path.native(), "");
+    if (!isNew)
+    {
+      return cacheIter->second;
+    }
+
+    constexpr auto isUnreserved = [](const char c)
+    {
+      // RFC 3986 section 2.3 Unreserved Characters(January 2005)
+      // A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+      // a b c d e f g h i j k l m n o p q r s t u v w x y z
+      // 0 1 2 3 4 5 6 7 8 9 - _ . ~
+
+      return (c >= '0' && c <= '9')
         || (c >= 'A' && c <= 'Z')
         || (c >= 'a' && c <= 'z')
         || c == '-'
         || c == '.'
         || c == '_'
         || c == '~';
-  };
+    };
 
-  // Works similar to the curl_easy_escape function from curl
-  // https://curl.se/libcurl/c/curl_easy_escape.html
-  // > ...encodes the data byte-by-byte into the URL encoded version
-  // > without knowledge or care for what particular character encoding
-  // > the application or the receiving server may assume that the data uses
-  const auto escapeElement = [&isUnreserved](const stdfs::path &element) -> std::string
-  {
-    std::string str = element.string();
-    if (str.empty() || stdfs::path::preferred_separator == element.native().front())
+    // Works similar to the curl_easy_escape function from curl
+    // https://curl.se/libcurl/c/curl_easy_escape.html
+    // > ...encodes the data byte-by-byte into the URL encoded version
+    // > without knowledge or care for what particular character encoding
+    // > the application or the receiving server may assume that the data uses
+    const auto escapeElement = [&isUnreserved](const stdfs::path &element) -> std::string
     {
-      return {};
-    }
+      std::string str = element.string();
+      if (str.empty() || stdfs::path::preferred_separator == element.native().front())
+      {
+        return {};
+      }
+
+      std::string output;
+      output.reserve(str.size() + 1);
+      output.push_back('/');
+      for (auto ch : str)
+      {
+        if (isUnreserved(ch))
+        {
+          output.push_back(ch);
+        }
+        else
+        {
+          output.append(to_hex(ch));
+        }
+      }
+
+      return output;
+    };
 
     std::string output;
-    output.reserve(str.size() + 1);
-    output.push_back('/');
-    for (auto ch : str)
-    {
-      if (isUnreserved(ch))
-      {
-        output.push_back(ch);
-      }
-      else
-      {
-        output.append(to_hex(ch));
-      }
-    }
+    output.reserve(10);       // reserved for scheme and Windows drive letter
+    output.append("file://");
+    cacheIter->second = output + PlogConverter::Join(path, escapeElement, "");
 
-    return output;
-  };
-
-  std::string output;
-  output.reserve(10);       // reserved for scheme and Windows drive letter
-  output.append("file://");
-  cacheIter->second = output + Join(path, escapeElement, "");
-
-  return cacheIter->second;
-}
-
-bool SarifOutput::Write(const Warning &msg)
-{
-  if (msg.IsDocumentationLinkMessage())
-  {
-    return false;
+    return cacheIter->second;
   }
 
-  m_warnings.push_back(msg);
-
-  return true;
-}
-
-nlohmann::ordered_json MessageJson(const std::string &message)
-{
-  return
-  { "message",
-    { { "text", message } }
-  };
-}
-
-struct Region
-{
-  unsigned int startLine;
-  unsigned int endLine;
-  unsigned int startColumn;
-  unsigned int endColumn;
-};
-
-nlohmann::ordered_json MakeLocationJson(const std::string &uri, const Region &region,
-                                        const std::string &message = {})
-{
-  nlohmann::ordered_json location;
-
-  if (!message.empty())
+  nlohmann::ordered_json SarifOutputProcessor::MakeMessageJson(const std::string &message)
   {
-    location = nlohmann::ordered_json::object({ MessageJson(message) });
+    return
+    { "message",
+      { { "text", message } }
+    };
   }
 
-  location["physicalLocation"] =
+  nlohmann::ordered_json SarifOutputProcessor::MakeLocationJson(const std::string &uri, const Region &region, const std::string &message)
   {
-    { "artifactLocation",
-      nlohmann::ordered_json::object({ { "uri", uri } })
-    },
-    { "region",
-      {
-        { "startLine", region.startLine },
-        { "endLine", region.endLine },
-        { "startColumn", region.startColumn },
-        { "endColumn", region.endColumn }
-      }
-    }
-  };
+    nlohmann::ordered_json location;
 
-  return location;
-}
-
-struct PvsStudioSarifRun
-{
-  nlohmann::ordered_json rules;
-  nlohmann::ordered_json results;
-
-  PvsStudioSarifRun(const std::list<Warning> &warnings) //-V826
-  {
-    for (const auto &warning : warnings)
+    if (!message.empty())
     {
-      // Add "rules" section
+      location = nlohmann::ordered_json::object({ MakeMessageJson(message) });
+    }
 
-      if (ruleIds.insert(warning.code).second)
-      {
-        nlohmann::ordered_json rule
+    location["physicalLocation"] =
+    {
+      { "artifactLocation",
+        nlohmann::ordered_json::object({ { "uri", uri } })
+      },
+      { "region",
         {
-          { "id", warning.code },
-          { "name", "Rule" + warning.code },
-          { "help",
-            { { "text", warning.GetVivaUrl() } }
-          },
-          { "helpUri", warning.GetVivaUrl() }
+          { "startLine",   region.startLine },
+          { "endLine",     region.endLine },
+          { "startColumn", region.startColumn },
+          { "endColumn",   region.endColumn }
+        }
+      }
+    };
+
+    return location;
+  }
+
+  nlohmann::ordered_json SarifOutputProcessor::ProcessRule(const Warning &warning, nlohmann::ordered_json &rules, RulesIDs &rulesIDs) const
+  {
+    static const std::string properties_s { "properties"sv };
+    static const std::string rule_s { "Rule"sv };
+    static const std::string cwe_s { "external/cwe/cwe-"sv };
+    const auto vivaUrl { warning.GetVivaUrl() };
+
+    // Add "rules" section
+    if (rulesIDs.insert(warning.code).second)
+    {
+      nlohmann::ordered_json rule
+      {
+        { "id"sv, warning.code },
+        { "name"sv, rule_s + warning.code },
+        { "help"sv,
+          { { "text"sv, vivaUrl } }
+        },
+        { "helpUri"sv, vivaUrl }
+      };
+
+      if (warning.HasCWE())
+      {
+        rule[properties_s] = {
+          { "tags"sv,
+            { "security"sv, cwe_s + std::to_string(warning.cwe) }
+          }
         };
-
-        if (warning.HasCWE())
-        {
-          rule["properties"] = {
-            { "tags",
-              { "security", "external/cwe/cwe-" + std::to_string(warning.cwe) }
-            }
-          };
-        }
-
-        rules.emplace_back(std::move(rule));
       }
 
-      // Add "results" section
-
-      nlohmann::ordered_json locations
-      {
-        MakeLocationJson(UriFileEscape(warning.GetFileUTF8()),
-                        { 
-                          warning.GetLine(), 
-                          warning.GetEndLine(), 
-                          warning.GetStartColumn(), 
-                          warning.GetEndColumn() 
-                        }),
-      };
-
-      nlohmann::ordered_json result
-      {
-        { "ruleId", warning.code },
-        MessageJson(warning.message),
-        { "level", warning.GetLevelString() },
-        { "locations", std::vector { std::move(locations) } }
-      };
-
-      if (warning.positions.size() > 1)
-      {
-        std::vector<nlohmann::json> relatedLocations;
-        std::set<WarningPosition> uniquePositions;
-        uniquePositions.insert(warning.positions.begin(), warning.positions.end());
-
-        // todo [c++20]: ranges
-        for (const auto &position : uniquePositions)
-        {
-          auto positionFile = position.file;
-          ANSItoUTF8(positionFile);
-
-          relatedLocations.emplace_back(MakeLocationJson(UriFileEscape(positionFile),
-                                                         {
-                                                           position.line,
-                                                           position.endLine,
-                                                           position.column,
-                                                           position.endColumn
-                                                         },
-                                                         warning.message));
-        }
-
-        result["relatedLocations"] = std::move(relatedLocations);
-      }
-
-      results.emplace_back(std::move(result));
+      rules.emplace_back(std::move(rule));
     }
+
+    // Add "results" section
+    nlohmann::ordered_json result
+    {
+      { "ruleId"sv, warning.code },
+      MakeMessageJson(warning.message),
+      { "level"sv, warning.GetLevelString() },
+      { "locations"sv, GetLocations(warning) }
+    };
+
+    if (warning.positions.size() > 1)
+    {
+      auto relatedLocations = GetRelatedLocations(warning);
+      if (!relatedLocations.empty())
+      {
+        result["relatedLocations"s] = std::move(relatedLocations);
+      }
+    }
+    return result;
   }
 
-  nlohmann::ordered_json GetDriverJson()
+  nlohmann::ordered_json SarifOutputProcessor::GetDriverJson(nlohmann::ordered_json rules) const
   {
     nlohmann::ordered_json driver
     {
-      { "name", "PVS-Studio" },
-      { "semanticVersion", IDS_APP_VERSION },
-      { "informationUri", "https://pvs-studio.com" },
-      { "rules", std::move(rules) }
+      { "name"sv, "PVS-Studio"sv },
+      { "semanticVersion"sv, IDS_APP_VERSION },
+      { "informationUri"sv, "https://pvs-studio.com"sv },
+      { "rules"sv, std::move(rules) }
     };
 
     return
     {
-      { "driver", std::move(driver) }
+      { "driver"sv, std::move(driver) }
     };
   }
 
-private:
-  std::set<std::string> ruleIds;
-};
-
-void SarifOutput::Finish()
-{
-  PvsStudioSarifRun pvsStudioRun { m_warnings };
-
-  nlohmann::ordered_json run
+  std::vector<nlohmann::ordered_json> SarifOutputProcessor::GetLocations(const Warning &warning) const
   {
-    { "tool", pvsStudioRun.GetDriverJson() },
-    { "results", std::move(pvsStudioRun.results) }
-  };
+    return
+    {
+      MakeLocationJson(UriFileEscape(warning.GetFileUTF8()),
+                      {
+                        warning.GetLine(),
+                        warning.GetEndLine(),
+                        warning.GetStartColumn(),
+                        warning.GetEndColumn()
+                      })
+    };
+  }
 
-  nlohmann::ordered_json sarif
+  std::vector<nlohmann::json> SarifOutputProcessor::GetRelatedLocations(const Warning &warning) const
   {
-    { "version", "2.1.0" },
-    { "$schema", "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json" },
-    { "runs", std::vector { std::move(run) } }
-  };
+    std::vector<nlohmann::json> relatedLocations;
+    std::set<WarningPosition> uniquePositions;
 
-  m_ofstream << sarif.dump(2) << std::endl;
-}
+    // TODO Check error. Standart says that 'relatedLocations' represents a locations relevant to understanding the result. But we pass all of them.
+    uniquePositions.insert(warning.positions.begin(), warning.positions.end());
 
+    for (const auto &position : uniquePositions)
+    {
+      auto positionFile = position.file;
+      ANSItoUTF8(positionFile);
+
+      relatedLocations.emplace_back(MakeLocationJson(UriFileEscape(std::move(positionFile)),
+        {
+          position.line,
+          position.endLine,
+          position.column,
+          position.endColumn
+        },
+        warning.message));
+    }
+    return relatedLocations;
+  }
 }
