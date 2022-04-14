@@ -1,4 +1,4 @@
-//  2006-2008 (c) Viva64.com Team
+﻿//  2006-2008 (c) Viva64.com Team
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
@@ -22,15 +22,16 @@ namespace PlogConverter
 
   SourceRootTransformer::~SourceRootTransformer() = default;
 
-  Warning SourceRootTransformer::Transform(const Warning& message) const
+  Warning SourceRootTransformer::Transform(Warning message) const
   {
-    auto copy = message;
-
-    for (auto &position : copy.positions)
+    if (!m_options.projectRoot.empty())
     {
-      ReplaseRelativeRoot(position.file, m_options.projectRoot);
+      for (auto &position : message.positions)
+      {
+        ReplaseRelativeRoot(position.file, m_options.projectRoot);
+      }
     }
     
-    return copy;
+    return std::move(message);
   }
 }

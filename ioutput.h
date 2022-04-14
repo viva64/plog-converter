@@ -1,4 +1,4 @@
-//  2006-2008 (c) Viva64.com Team
+﻿//  2006-2008 (c) Viva64.com Team
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
@@ -94,7 +94,7 @@ public:
   virtual ~ITransform() = default;
 
 protected:
-  virtual Warning Transform(const Warning& message) const = 0;
+  virtual Warning Transform(Warning message) const = 0;
 
   IOutput* m_output = nullptr;
 };

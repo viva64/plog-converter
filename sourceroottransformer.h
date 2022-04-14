@@ -1,4 +1,4 @@
-//  2006-2008 (c) Viva64.com Team
+﻿//  2006-2008 (c) Viva64.com Team
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
@@ -19,7 +19,7 @@ public:
   ~SourceRootTransformer() override;
 
 private:
-  Warning Transform(const Warning& message) const override;
+  Warning Transform(Warning message) const override;
   const ProgramOptions &m_options;
 };
 
