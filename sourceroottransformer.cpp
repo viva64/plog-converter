@@ -7,8 +7,7 @@
 
 namespace PlogConverter
 {
-
-  static void ReplaseRelativeRoot(std::string& str, const std::string& root)
+  static void ReplaceRelativeRoot(std::string& str, const std::string& root)
   {
     Replace(str, "|?|", root);
   }
@@ -28,10 +27,10 @@ namespace PlogConverter
     {
       for (auto &position : message.positions)
       {
-        ReplaseRelativeRoot(position.file, m_options.projectRoot);
+        ReplaceRelativeRoot(position.file, m_options.projectRoot);
       }
     }
     
-    return std::move(message);
+    return message;
   }
 }
