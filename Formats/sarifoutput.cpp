@@ -152,7 +152,7 @@ namespace PlogConverter
     };
   }
 
-  nlohmann::ordered_json SarifOutputProcessor::MakeLocationJson(const std::string &uri, const Region &region, const std::string &message)
+  nlohmann::ordered_json SarifOutputProcessor::MakeLocationJson(const std::string &uri, Region region, const std::string &message)
   {
     nlohmann::ordered_json location;
 

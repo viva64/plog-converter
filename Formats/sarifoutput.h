@@ -30,7 +30,7 @@ namespace PlogConverter
     static std::string UriFileEscape(std::string filePath);
     static nlohmann::ordered_json MakeMessageJson(const std::string &message);
     static nlohmann::ordered_json MakeLocationJson(const std::string &uri,
-                                                   const Region &region,
+                                                   Region region,
                                                    const std::string &message = {});
 
     virtual nlohmann::ordered_json ProcessRule(const Warning &warning, nlohmann::ordered_json &rules, RulesIDs &rulesIDs) const;
