@@ -2,14 +2,59 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
+#include <filesystem>
+
 #include "sourceroottransformer.h"
 #include "utils.h"
 
 namespace PlogConverter
 {
-  static void ReplaceRelativeRoot(std::string& str, const std::string& root)
+  using namespace std::string_literals;
+  using namespace std::string_view_literals;
+
+  namespace
   {
-    Replace(str, "|?|", root);
+  static std::string sourceTreeRootMarker = "|?|"s;
+
+  std::string GetPathSeparator() noexcept
+  {
+#ifndef _WIN32
+    static std::string sep { "/"sv };
+#else
+    static std::string sep { "\\"sv };
+#endif
+    return sep;
+  }
+
+  void ReplacePathPrefix(std::string &toReplace, std::string replacer)
+  {
+    static std::string_view exception { "pvs-studio.com/en/docs/warnings/"sv };
+
+    if (toReplace.substr(0, exception.length()) == exception)
+    {
+      return;
+    }
+
+    std::error_code err;
+    auto canonicalPath = std::filesystem::weakly_canonical(replacer, err);
+    if (!err)
+    {
+      toReplace = sourceTreeRootMarker
+                              + GetPathSeparator()
+                              + std::filesystem::relative(toReplace, canonicalPath.string())
+                                .string();
+    }
+  }
+
+  void ReplaceRelativeRoot(std::string& str, const std::string& root)
+  {
+    Replace(str, sourceTreeRootMarker, root);
+  }
+
+  void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
+  {
+      ReplacePathPrefix(str, root);
+  }
   }
 
   SourceRootTransformer::SourceRootTransformer(IOutput* output, const ProgramOptions& options)
@@ -27,7 +72,14 @@ namespace PlogConverter
     {
       for (auto &position : message.positions)
       {
-        ReplaceRelativeRoot(position.file, m_options.projectRoot);
+        if (m_options.pathTransformationMode == PathTransformationMode::ToAbsolute)
+        {
+          ReplaceRelativeRoot(position.file, m_options.projectRoot);
+        }
+        else if (m_options.pathTransformationMode == PathTransformationMode::ToRelative)
+        {
+          ReplaceAbsolutePrefix(position.file, m_options.projectRoot);
+        }
       }
     }
     

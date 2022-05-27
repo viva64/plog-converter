@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstring>
 #include <iterator>
+#include <string_view>
 
 #include "application.h"
 #include "configparser.h"
@@ -14,6 +15,9 @@
 #include "logparserworker.h"
 #include "utils.h"
 #include "Formats/misracomplianceoutput.h"
+
+using namespace std::string_view_literals;
+using namespace std::string_literals;
 
 namespace PlogConverter
 {
@@ -199,6 +203,25 @@ static std::set<std::string> ParseMisraDiviations(std::string_view flagValue)
   return result;
 }
 
+static PathTransformationMode ParsePathTransformationMode(std::string_view flagValue, std::string_view srcRoot)
+{
+  if (srcRoot.empty())
+  {
+    return PathTransformationMode::NoTransform;
+  }
+
+  if (flagValue.empty() || flagValue == "to-absolute"sv)
+  {
+    return PathTransformationMode::ToAbsolute;
+  }
+  else if (flagValue == "to-relative"sv)
+  {
+    return PathTransformationMode::ToRelative;
+  }
+
+  return PathTransformationMode::NoTransform;
+}
+
 const std::string Application::AppName_Default = "Analyzer log conversion tool.";
 const std::string Application::AppName_Win = "Analyzer log conversion tool.";
 const std::string Application::AboutPVSStudio = R"(
@@ -259,6 +282,14 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> grp(parser, "GRP", "Path to txt file with Guideline Re-categorization Plan. Used only for generating misra compliance report.", { "grp" }, Options::Single);
   ValueFlag<std::string> misraDiviations(parser, "Misra Diviations", "Misra Diviations.", { "misra_deviations" }, Options::Single);
   Flag noHelp(parser, "NOHELP", "Do not display documentation messages in warnings output.", { "noHelpMessages" }, Options::Single);
+  ValueFlag<std::string> pathTransformationMode { parser,
+                                                  "PATHTRANSFORMATIONMODE",
+                                                  "Trasformation mode:\n"
+                                                  "to-absolute - transform to absolute path,\n"
+                                                  "to-relative - transform to relative with source root (--srcRoot option).",
+                                                  { 'R', "path-transformation-mode" },
+                                                  Options::Single
+                                                 };
 
   try
   {
@@ -278,6 +309,8 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.useStderr = useCerr;
     m_options.noHelp = noHelp;
     m_options.indicateWarnings = indicateWarnings;
+    m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
+
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
   }

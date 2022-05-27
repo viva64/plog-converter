@@ -21,6 +21,13 @@ enum class SecurityCodeMapping
   AUTOSAR
 };
 
+enum class PathTransformationMode
+{
+  ToAbsolute,
+  ToRelative,
+  NoTransform
+};
+
 struct Analyzer;
 class IOutput;
 
@@ -46,6 +53,7 @@ struct ProgramOptions
   std::string                                 projectName;
   std::string                                 projectVersion;
   std::string                                 grp;
+  PathTransformationMode                      pathTransformationMode { PathTransformationMode::NoTransform };
   bool                                        useStderr = false;
   bool                                        noHelp = false;
   bool                                        indicateWarnings = false;

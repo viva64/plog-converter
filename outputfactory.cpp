@@ -17,6 +17,7 @@
 #include "Formats/sarifvscodeoutput.h"
 #include "Formats/misracomplianceoutput.h"
 #include "Formats/jsonoutput.h"
+#include "Formats/totalsoutput.h"
 
 namespace PlogConverter
 {
@@ -41,7 +42,8 @@ OutputFactory::OutputFactory()
       { "sarif",               FactoryFunction<SarifOutput>() },
       { "sarif-vscode",        FactoryFunction<SarifVSCodeOutput>() },
       { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() },
-      { "json",                FactoryFunction<JsonOutput>() }
+      { "json",                FactoryFunction<JsonOutput>() },
+      { "totals",              FactoryFunction<TotalsOutput>() }
     }
 {
 }

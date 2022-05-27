@@ -68,6 +68,8 @@ add_library(plog STATIC
     Formats/tasklistverboseoutput.h
     Formats/teamcityoutput.cpp
     Formats/teamcityoutput.h
+    Formats/totalsoutput.cpp
+    Formats/totalsoutput.h
     Formats/xmloutput.cpp
     Formats/xmloutput.h
 
