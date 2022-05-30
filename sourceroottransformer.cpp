@@ -16,16 +16,6 @@ namespace PlogConverter
   {
   static std::string sourceTreeRootMarker = "|?|"s;
 
-  std::string GetPathSeparator() noexcept
-  {
-#ifndef _WIN32
-    static std::string sep { "/"sv };
-#else
-    static std::string sep { "\\"sv };
-#endif
-    return sep;
-  }
-
   void ReplacePathPrefix(std::string &toReplace, std::string replacer)
   {
     static std::string_view exception { "pvs-studio.com/en/docs/warnings/"sv };
@@ -39,10 +29,7 @@ namespace PlogConverter
     auto canonicalPath = std::filesystem::weakly_canonical(replacer, err);
     if (!err)
     {
-      toReplace = sourceTreeRootMarker
-                              + GetPathSeparator()
-                              + std::filesystem::relative(toReplace, canonicalPath.string())
-                                .string();
+      Replace(toReplace, canonicalPath.string(), sourceTreeRootMarker);
     }
   }
 
