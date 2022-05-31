@@ -14,9 +14,25 @@ namespace PlogConverter
 
   namespace
   {
-  static std::string sourceTreeRootMarker = "|?|"s;
 
-  void ReplacePathPrefix(std::string &toReplace, std::string replacer)
+  const std::string &GetSourceTreeRootMarker()
+  {
+    static auto sourceTreeRootMarker { "|?|"s };
+    return sourceTreeRootMarker;
+  }
+
+  const std::string &GetPathSeparator()
+  {
+#ifdef _WIN32
+    static auto sep { "\\"s };
+#else
+    static auto sep { "/"s  };
+#endif
+
+    return sep;
+  }
+
+  void ReplacePathPrefix(std::string &toReplace, std::string_view replacer)
   {
     static std::string_view exception { "pvs-studio.com/en/docs/warnings/"sv };
 
@@ -25,17 +41,18 @@ namespace PlogConverter
       return;
     }
 
-    std::error_code err;
-    auto canonicalPath = std::filesystem::weakly_canonical(replacer, err);
-    if (!err)
+    std::error_code rc;
+    auto proximated = std::filesystem::proximate(toReplace, replacer, rc);
+
+    if (!rc)
     {
-      Replace(toReplace, canonicalPath.string(), sourceTreeRootMarker);
+      toReplace = GetSourceTreeRootMarker() + GetPathSeparator() + proximated.string();
     }
   }
 
   void ReplaceRelativeRoot(std::string& str, const std::string& root)
   {
-    Replace(str, sourceTreeRootMarker, root);
+    Replace(str, GetSourceTreeRootMarker(), root);
   }
 
   void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
