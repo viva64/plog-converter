@@ -42,7 +42,7 @@ namespace PlogConverter
     }
 
     std::error_code rc;
-    auto proximated = std::filesystem::proximate(toReplace, replacer, rc);
+    auto proximated = std::filesystem::proximate(toReplace, replacer, rc); //-V821
 
     if (!rc)
     {
