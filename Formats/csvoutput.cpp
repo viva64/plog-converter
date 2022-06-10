@@ -29,7 +29,7 @@ void CSVOutput::Start()
   bool showCwe = false;
   bool showSast = false;
 
-  DetectShowTags(&showCwe, &showSast);
+  DetectShowTags(showCwe, showSast);
 
   if (showCwe)
     m_ostream << "CWE" << ',';
@@ -52,7 +52,7 @@ bool CSVOutput::Write(const Warning& msg)
   bool showSAST = false;
   bool showCWE = false;
 
-  DetectShowTags(&showCWE, &showSAST);
+  DetectShowTags(showCWE, showSAST);
 
   if (showCWE)
   {

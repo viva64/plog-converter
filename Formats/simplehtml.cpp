@@ -75,7 +75,7 @@ int SimpleHTMLOutput::GetMessageColumnWidth() const
   bool showSAST = false;
   bool showCWE = false;
 
-  DetectShowTags(&showCWE, &showSAST);
+  DetectShowTags(showCWE, showSAST);
 
   if (showCWE)
     width -= GetCweColumnWidth();
@@ -117,7 +117,7 @@ void SimpleHTMLOutput::PrintTableCaption()
   bool showCwe = false;
   bool showSast = false;
 
-  DetectShowTags(&showCwe, &showSast);
+  DetectShowTags(showCwe, showSast);
 
   if (showCwe) 
   {
@@ -173,7 +173,7 @@ void SimpleHTMLOutput::PrintMessages(const std::vector<Warning> &messages, const
     bool showCwe = false;
     bool showSast = false;
 
-    DetectShowTags(&showCwe, &showSast);
+    DetectShowTags(showCwe, showSast);
 
     if (showCwe)
     {

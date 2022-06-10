@@ -50,7 +50,7 @@ namespace PlogConverter
     bool showSAST = false;
     bool showCWE = false;
 
-    DetectShowTags(&showCWE, &showSAST);
+    DetectShowTags(showCWE, showSAST);
 
     if (showCWE && msg.HasCWE())
     {

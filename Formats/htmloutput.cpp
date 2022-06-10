@@ -2,6 +2,7 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
+#include <filesystem>
 #include <unordered_map>
 #include <algorithm>
 #include <fstream>
@@ -17,26 +18,34 @@
 namespace PlogConverter
 {
 
+namespace stdfs = std::filesystem;
+
 HTMLOutput::HTMLOutput(const ProgramOptions &options)
 {
-  m_errorCodeMappings = options.codeMappings;
-  m_directory = options.output;
-  m_cmdline = options.cmdLine;
-  m_projectName = options.projectName;
-  m_projectVersion = options.projectVersion;
-  if (m_directory.empty())
+  if (options.output.empty())
   {
     throw std::logic_error("No output directory for html report");
   }
 
-  if (m_directory.back() == '/' || m_directory.back() == '\\')
-  {
-    m_directory.pop_back();
-  }
+  m_errorCodeMappings = options.codeMappings;
+  m_directory = stdfs::path { options.output }.string();
+  m_cmdline = options.cmdLine;
+  m_projectName = options.projectName;
+  m_projectVersion = options.projectVersion;
 
-  if (Exists(m_directory))
+  if (!options.outputIsDirectory)
   {
-    m_directory += "/fullhtml";
+    m_directory = (stdfs::path { m_directory }.parent_path() / "fullhtml").string();
+  }
+  else
+  {
+    if (   !stdfs::exists(m_directory)
+        && !stdfs::create_directory(m_directory))
+    {
+      throw std::runtime_error("Can't create directory: " + m_directory);
+    }
+
+    m_directory = (stdfs::path { m_directory } / "fullhtml").string();
   }
 
   if (Exists(m_directory))
@@ -368,7 +377,7 @@ void HTMLOutput::PrintTableBody()
     bool showSAST = false;
     bool showCWE = false;
 
-    DetectShowTags(&showCWE, &showSAST);
+    DetectShowTags(showCWE, showSAST);
 
     if (showCWE && m_hasAnyCWE)
     {

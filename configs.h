@@ -57,6 +57,7 @@ struct ProgramOptions
   bool                                        useStderr = false;
   bool                                        noHelp = false;
   bool                                        indicateWarnings = false;
+  bool                                        outputIsDirectory = false;
 };
 
 }

@@ -16,6 +16,8 @@ add_library(plog STATIC
     suppress_base.suppress
     application.cpp
     application.h
+    argsextentions.cpp
+    argsextentions.h
     charmap.cpp
     charmap.h
     configparser.cpp

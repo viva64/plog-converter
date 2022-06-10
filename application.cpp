@@ -3,6 +3,7 @@
 //  2020-2022 (c) PVS-Studio LLC
 
 #include <args.hxx>
+#include <filesystem>
 #include <iostream>
 #include <cstring>
 #include <iterator>
@@ -15,6 +16,7 @@
 #include "logparserworker.h"
 #include "utils.h"
 #include "Formats/misracomplianceoutput.h"
+#include "argsextentions.h"
 
 using namespace std::string_view_literals;
 using namespace std::string_literals;
@@ -260,7 +262,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   //todo case-insensitive flags/args
   HelpFlag helpFlag(parser, "HELP", "Show this help page", { 'h', "help" }, Options::Hidden);
 
-  args::MapFlagList<std::string, OutputFactory::AllocFunction> renderTypes(parser, "TYPES", "Render types for output.",
+  MapFlagListMulti<std::string, OutputFactory::AllocFunction> renderTypes(parser, "TYPES", "Render types for output.",
                                          { 't', "renderTypes" }, outputFactory.getMap());
   ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
   outputFile.HelpDefault("<stdout>");
@@ -294,6 +296,15 @@ void Application::SetCmdOptions(int argc, const char** argv)
   try
   {
     parser.ParseCLI(argc, argv);
+
+    auto outputPath = get(outputFile);
+
+    if (   (!outputPath.empty() && (   outputPath.back() == '/' 
+                                    || outputPath.back() == '\\'))
+        || std::filesystem::is_directory(outputPath))
+    {
+      m_options.outputIsDirectory = true;
+    }
 
     m_options.output = Expand(get(outputFile));
     std::transform(get(logs).begin(), get(logs).end(), std::back_inserter(m_options.inputFiles), &Expand);

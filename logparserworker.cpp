@@ -2,6 +2,7 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
+#include <filesystem>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -186,12 +187,14 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   }
   else if (formats.size() > 1)
   {
-    if (!options.output.empty())
+    if (options.output.empty())
     {
       options.output = ".";
     }
 
-    if (!Exists(options.output) && !MakeDirectory(options.output))
+    if (   options.outputIsDirectory
+        && !Exists(options.output)
+        && !std::filesystem::create_directory(options.output))
     {
       throw std::runtime_error("Couldn't create directory: " + options.output);
     }

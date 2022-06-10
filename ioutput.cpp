@@ -4,6 +4,7 @@
 
 #include "ioutput.h"
 #include "utils.h"
+#include <filesystem>
 
 namespace PlogConverter
 {
@@ -21,17 +22,29 @@ static std::basic_ostream<char> &OfstreamOrStdOut(std::ofstream &of, bool useStd
   return of;
 }
 
-IOutput::IOutput(const ProgramOptions &options, const std::string &extension) : m_ostream(OfstreamOrStdOut(m_ofstream, options.useStderr, options.output))
+IOutput::IOutput(const ProgramOptions &options, const std::string &extension)
+  : m_ostream(OfstreamOrStdOut(m_ofstream, options.useStderr, options.output))
 {
   if (!options.output.empty())
   {
     std::string output = options.output;
-    if (IsDirectory(output))
+    if (options.outputIsDirectory)
     {
+      if (   !std::filesystem::exists(output)
+          && !std::filesystem::create_directory(output))
+      {
+        throw std::runtime_error("Couldn't create directory: " + output);
+      }
+
       output += '/';
-      output += options.outputName.empty() ? FileStem(FileBaseName(options.inputFiles.at(0))) : options.outputName;
+      output += options.outputName.empty() ? FileStem(FileBaseName(options.inputFiles.at(0)))
+                                           : options.outputName;
       output += '.';
       output += extension;
+    }
+    else if (options.formats.size() > 1)
+    {
+      output += "." + extension;
     }
 
     m_ofstream.open(output);
@@ -61,20 +74,20 @@ IOutput::IOutput(const std::string &path) : m_ostream(m_ofstream)
   }
 }
 
-void IOutput::DetectShowTags(bool* showCWE, bool* showSAST) const
+void IOutput::DetectShowTags(bool &showCWE, bool &showSAST) const
 {
-  *showSAST = false;
-  *showCWE = false;
+  showSAST = false;
+  showCWE = false;
 
   for (const auto& security : m_errorCodeMappings)
   {
     if (security == SecurityCodeMapping::MISRA || security == SecurityCodeMapping::AUTOSAR || security == SecurityCodeMapping::OWASP)
     {
-      *showSAST = true;
+      showSAST = true;
     }
     if (security == SecurityCodeMapping::CWE)
     {
-      *showCWE = true;
+      showCWE = true;
     }
   }
 }
