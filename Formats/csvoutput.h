@@ -9,12 +9,25 @@
 namespace PlogConverter
 {
 
+class CSVOutput;
+template <>
+constexpr std::string_view GetFormatName<CSVOutput>() noexcept
+{
+  return "csv";
+}
+
 class CSVOutput : public IOutput
 {
 public:
   explicit CSVOutput(const ProgramOptions&);
   void Start() override;
   bool Write(const Warning& msg) override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<CSVOutput>();
+  }
 };
 
 }

@@ -24,12 +24,12 @@ public:
   OutputFactory();
 
   std::unique_ptr<IOutput> createOutput(const ProgramOptions &opt, const std::string& format);
-  void registerOutput(const std::string& format, AllocFunction f);
+  void registerOutput(std::string_view format, AllocFunction f);
 
-  const std::unordered_map<std::string, AllocFunction>& getMap() const { return m_formats; }
+  [[nodiscard]] const std::unordered_map<std::string_view, AllocFunction>& getMap() const { return m_formats; }
 
 private:
-  std::unordered_map<std::string, AllocFunction> m_formats;
+  std::unordered_map<std::string_view, AllocFunction> m_formats;
 };
 
 }

@@ -27,7 +27,7 @@ public:
 
   StringSplitter(std::vector<std::string> separators);
 
-  std::vector<std::string> operator()(const std::string &str) const noexcept;
+  std::vector<std::string_view> operator()(std::string_view str) const noexcept;
 
 private:
   std::vector<std::string> m_separators;
@@ -56,7 +56,7 @@ class MapFlagListMulti : public args::MapFlagList<K, AllocFuntion, List, Reader,
 
     for (const auto &rawKey : keys)
     {
-      Base::ParseValue({ rawKey });
+      Base::ParseValue({ std::string { rawKey } });
     }
   }
 };

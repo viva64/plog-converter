@@ -8,6 +8,7 @@ namespace PlogConverter
 JsonOutput::JsonOutput(const ProgramOptions& options)
   : IOutput { options, "json" }
 {
+  m_isSupportRelativePath = true;
 }
 
 void JsonOutput::Start()

@@ -16,6 +16,18 @@ namespace PlogConverter
 Analyzer ParseEnabledAnalyzer(const std::string &str);
 void ParseEnabledAnalyzers(std::string str, std::vector<Analyzer>& analyzers);
 
+enum class ConverterRunState : int
+{
+  Success = 0,                      // Conversion finished successfully
+  GenericException = 1,             // Handled exception
+  OutputLogNotEmpty = 2,            // Output contains non-suppressed warnings after filtration. 
+                                    //   This exit code will be generated only when using converter
+                                    //   with --indicateWarnings (-w) flag;
+                                    // 3 - skipped of Windows PlogConverter compatibility
+                                    // 4 - skipped of Windows PlogConverter compatibility
+  UnsopportedPathTransofrmation = 5 // Some render formats doesn't support relative root
+};
+
 class Application
 {
 public:

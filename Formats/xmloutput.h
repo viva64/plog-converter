@@ -9,6 +9,14 @@
 namespace PlogConverter
 {
 
+class XMLOutput;
+template <>
+constexpr std::string_view GetFormatName<XMLOutput>() noexcept
+{
+  return "xml";
+}
+
+
 class XMLOutput : public IOutput
 {
 public:
@@ -17,6 +25,12 @@ public:
   bool Write(const Warning& msg) override;
   void Finish() override;
   ~XMLOutput() override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<XMLOutput>();
+  }
 };
 
 }

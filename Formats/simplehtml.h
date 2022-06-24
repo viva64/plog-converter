@@ -10,6 +10,13 @@
 namespace PlogConverter
 {
 
+class SimpleHTMLOutput;
+template<>
+constexpr std::string_view GetFormatName<SimpleHTMLOutput>() noexcept
+{
+  return "html";
+}
+
 class SimpleHTMLOutput : public IOutput
 {
 public:
@@ -18,6 +25,12 @@ public:
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<SimpleHTMLOutput>();
+  }
 
   static const int DefaultCweColumnWidth;
   static const int DefaultSASTColumnWidth;

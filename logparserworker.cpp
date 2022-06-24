@@ -207,6 +207,13 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   for (const auto &format : formats)
   {
     auto f = format(options);
+
+    if (!CheckUnsopporterdTransformation(f, options))
+    {
+      std::move(*f).ClearOutput();
+      continue;
+    }
+
     if (IsA<MisraComplianceOutput>(f))
     {
       misraCompliance = UnsafeTo<MisraComplianceOutput>(std::move(f));
@@ -270,6 +277,12 @@ size_t LogParserWorker::GetTotalWarnings() const
 size_t LogParserWorker::GetPrintedWarnings() const
 {
   return std::max(m_countSuccess, m_countNonError) - m_countNonError;
+}
+
+[[nodiscard]]
+bool LogParserWorker::IsErrorHappend() const noexcept
+{
+  return m_isUnsopporterdTransformationErrorHappend;
 }
 
 }

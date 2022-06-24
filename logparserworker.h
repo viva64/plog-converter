@@ -43,11 +43,30 @@ public:
   size_t GetTotalWarnings() const;
   size_t GetPrintedWarnings() const;
 
+  [[nodiscard]]
+  bool IsErrorHappend() const noexcept override;
+
 private:
   void ParseRawLog(InputFile &file);
   void ParseJsonLog(InputFile &file);
   void ParseCerrLog(InputFile& file);
   void OnWarning(Warning &warning);
+
+  template<typename Format>
+  bool CheckUnsopporterdTransformation(const Format &fmt,
+                                       const ProgramOptions &opt) noexcept
+  {
+    if (fmt && !opt.projectRoot.empty()
+            &&  opt.pathTransformationMode == PathTransformationMode::ToRelative
+            && !fmt->IsSupportRelativePath())
+    {
+      std::cout << "Error: the \'" << fmt->GetFormatName() << "\' format doesn't support relative root\n";
+      m_isUnsopporterdTransformationErrorHappend = true;
+      return false;
+    }
+
+    return true;
+  }
 
   MessageParser m_messageParser;
   size_t m_countSuccess = 0;
@@ -58,6 +77,9 @@ private:
 
   std::string m_line;
   std::unordered_set<std::string> m_hashTable {4096};
+
+  bool m_isUnsopporterdTransformationErrorHappend = false;
+
   Warning m_warning;
 };
 

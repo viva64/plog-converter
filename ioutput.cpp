@@ -39,12 +39,21 @@ IOutput::IOutput(const ProgramOptions &options, const std::string &extension)
       output += '/';
       output += options.outputName.empty() ? FileStem(FileBaseName(options.inputFiles.at(0)))
                                            : options.outputName;
-      output += '.';
+      if (output.back() != '.')
+      {
+        output += '.';
+      }
+
       output += extension;
     }
     else if (options.formats.size() > 1)
     {
-      output += "." + extension;
+      if (output.back() != '.')
+      {
+        output += '.';
+      }
+
+      output += extension;
     }
 
     m_ofstream.open(output);
@@ -52,6 +61,8 @@ IOutput::IOutput(const ProgramOptions &options, const std::string &extension)
     {
       throw FilesystemException("Can't write to file: " + output);
     }
+
+    m_output = output;
   }
   m_errorCodeMappings = options.codeMappings;
 }
@@ -89,6 +100,29 @@ void IOutput::DetectShowTags(bool &showCWE, bool &showSAST) const
     {
       showCWE = true;
     }
+  }
+}
+
+[[nodiscard]] bool IOutput::IsSupportRelativePath() const noexcept
+{
+  return m_isSupportRelativePath;
+}
+
+[[nodiscard]] std::string_view IOutput::GetFormatName() const noexcept
+{
+  return ::PlogConverter::GetFormatName<IOutput>();
+}
+
+void IOutput::ClearOutput() &&
+{
+  if (m_ofstream.is_open())
+  {
+    m_ofstream.close();
+  }
+
+  if (std::filesystem::is_empty(m_output))
+  {
+    std::filesystem::remove(m_output);
   }
 }
 

@@ -14,6 +14,9 @@ class IWorker
 public:
   virtual void Run(const ProgramOptions &opt) = 0;
   virtual ~IWorker();
+
+  [[nodiscard]]
+  virtual bool IsErrorHappend() const noexcept;
 };
 
 }

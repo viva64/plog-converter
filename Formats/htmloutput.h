@@ -13,6 +13,13 @@
 namespace PlogConverter
 {
 
+class HTMLOutput;
+template <>
+constexpr std::string_view GetFormatName<HTMLOutput>() noexcept
+{
+  return "fullhtml";
+}
+
 class HTMLOutput : public IOutput
 {
 private:
@@ -55,6 +62,12 @@ public:
   ~HTMLOutput() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<HTMLOutput>();
+  }
 };
 
 }

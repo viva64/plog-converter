@@ -9,4 +9,9 @@ namespace PlogConverter
 
 IWorker::~IWorker() = default;
 
+[[nodiscard]]
+bool IWorker::IsErrorHappend() const noexcept
+{
+  return false;
+}
 }

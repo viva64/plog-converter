@@ -86,8 +86,15 @@ void Application::AddWorker(std::unique_ptr<IWorker> worker)
   m_workers.push_back(std::move(worker));
 }
 
+int GetErrorCode(ConverterRunState state)
+{
+  return static_cast<int>(state);
+}
+
 int Application::Exec(int argc, const char** argv)
 {
+  bool isUnsopportedTransformation = false;
+
   try
   {
 #ifdef _WIN32
@@ -148,6 +155,11 @@ int Application::Exec(int argc, const char** argv)
     for (auto &worker : m_workers)
     {
       worker->Run(m_options);
+
+      if (worker->IsErrorHappend())
+      {
+        isUnsopportedTransformation = true;
+      }
     }
   }
   catch (const ConfigException& e)
@@ -155,12 +167,17 @@ int Application::Exec(int argc, const char** argv)
     const char* err = e.what();
     if (err != nullptr && err[0] != '\0')
       std::cerr << e.what() << std::endl;
-    return 1;
+    return GetErrorCode(ConverterRunState::GenericException);
   }
   catch (const std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << std::endl;
-    return 1;
+    return GetErrorCode(ConverterRunState::GenericException);
+  }
+
+  if (isUnsopportedTransformation)
+  {
+    return GetErrorCode(ConverterRunState::UnsopportedPathTransofrmation);
   }
 
   if (m_options.indicateWarnings)
@@ -170,12 +187,12 @@ int Application::Exec(int argc, const char** argv)
       auto logWorker = dynamic_cast<const PlogConverter::LogParserWorker*>(worker.get());
       if (logWorker != nullptr && logWorker->GetPrintedWarnings() > 0)
       {
-        return 2;
+        return GetErrorCode(ConverterRunState::OutputLogNotEmpty);
       }
     }
   }
 
-  return 0;
+  return GetErrorCode(ConverterRunState::Success);
 }
 
 static std::set<std::string> ParseMisraDiviations(std::string_view flagValue)
@@ -212,11 +229,11 @@ static PathTransformationMode ParsePathTransformationMode(std::string_view flagV
     return PathTransformationMode::NoTransform;
   }
 
-  if (flagValue.empty() || flagValue == "to-absolute"sv)
+  if (flagValue.empty() || flagValue == "toAbsolute"sv)
   {
     return PathTransformationMode::ToAbsolute;
   }
-  else if (flagValue == "to-relative"sv)
+  else if (flagValue == "toRelative"sv)
   {
     return PathTransformationMode::ToRelative;
   }
@@ -262,7 +279,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   //todo case-insensitive flags/args
   HelpFlag helpFlag(parser, "HELP", "Show this help page", { 'h', "help" }, Options::Hidden);
 
-  MapFlagListMulti<std::string, OutputFactory::AllocFunction> renderTypes(parser, "TYPES", "Render types for output.",
+  MapFlagListMulti<std::string_view, OutputFactory::AllocFunction> renderTypes(parser, "TYPES", "Render types for output.",
                                          { 't', "renderTypes" }, outputFactory.getMap());
   ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
   outputFile.HelpDefault("<stdout>");
@@ -278,18 +295,25 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> projectName(parser, "PROJNAME", "Name of the project for fullhtml render type.", { 'p', "projectName" }, "", Options::Single);
   ValueFlag<std::string> projectVersion(parser, "PROJVERSION", "Version of the project for fullhtml render type.", { 'v', "projectVersion" }, "", Options::Single);
   Flag useCerr(parser, "CERR", "Use stderr instead of stdout.", { 'e', "cerr" }, Options::Single);
-  Flag indicateWarnings(parser, "INDICATEWARNINGS", "Set this option to detect the presense of analyzer warnings after filtering analysis log by setting the converter exit code to '2'.", { 'w', "indicate-warnings" }, Options::Single);
+  Flag indicateWarningsDeprecated(parser, "INDICATEWARNINGS (Deprecated)", 
+                                  "(Deprecated) Set this option to detect the presense of analyzer warnings after "
+                                  "filtering analysis log by setting the converter exit code to '2'.\nThis flag is alias to \'indicateWarnings\'", 
+                                  { "indicate-warnings" }, Options::Single | Options::Hidden);
+  Flag indicateWarnings          (parser, "INDICATEWARNINGS", 
+                                  "Set this option to detect the presense of analyzer warnings after "
+                                  "filtering analysis log by setting the converter exit code to '2'.", 
+                                  { 'w', "indicateWarnings" }, Options::Single);
   PositionalList<std::string> logs(parser, "logs", "Input files.", Options::Required | Options::HiddenFromDescription);
   CompletionFlag comp(parser, {"complete"});
   ValueFlag<std::string> grp(parser, "GRP", "Path to txt file with Guideline Re-categorization Plan. Used only for generating misra compliance report.", { "grp" }, Options::Single);
-  ValueFlag<std::string> misraDiviations(parser, "Misra Diviations", "Misra Diviations.", { "misra_deviations" }, Options::Single);
+  ValueFlag<std::string> misraDiviations(parser, "Misra Diviations", "Misra Diviations.", { "misraDeviations" }, Options::Single);
   Flag noHelp(parser, "NOHELP", "Do not display documentation messages in warnings output.", { "noHelpMessages" }, Options::Single);
   ValueFlag<std::string> pathTransformationMode { parser,
                                                   "PATHTRANSFORMATIONMODE",
                                                   "Trasformation mode:\n"
-                                                  "to-absolute - transform to absolute path,\n"
-                                                  "to-relative - transform to relative with source root (--srcRoot option).",
-                                                  { 'R', "path-transformation-mode" },
+                                                  "toAbsolute - transform to absolute path,\n"
+                                                  "toRelative - transform to relative with source root (--srcRoot option).",
+                                                  { 'R', "pathTransformationMode" },
                                                   Options::Single
                                                  };
 
@@ -319,7 +343,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.misraDivations = ParseMisraDiviations(get(misraDiviations));
     m_options.useStderr = useCerr;
     m_options.noHelp = noHelp;
-    m_options.indicateWarnings = indicateWarnings;
+    m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
     m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
 
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
@@ -328,7 +352,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   catch (Completion &e)
   {
     std::cout << e.what();
-    exit(0);
+    exit(GetErrorCode(ConverterRunState::Success));
   }
   catch (Help&)
   {

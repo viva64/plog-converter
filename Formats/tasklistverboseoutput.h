@@ -9,12 +9,25 @@
 namespace PlogConverter
 {
 
+class TaskListVerboseOutput;
+template<>
+constexpr std::string_view GetFormatName<TaskListVerboseOutput>() noexcept
+{
+  return "tasklist-verbose";
+}
+
 class TaskListVerboseOutput : public TaskListOutput
 {
 public:
   explicit TaskListVerboseOutput(const ProgramOptions &);
   ~TaskListVerboseOutput() override;
   bool Write(const Warning &msg) override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<TaskListVerboseOutput>();
+  }
 };
 
 }

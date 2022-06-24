@@ -4,6 +4,7 @@
 
 #ifndef IOUTPUT
 #define IOUTPUT
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include "warning.h"
@@ -13,6 +14,12 @@
 namespace PlogConverter
 {
 
+template <typename Fromat>
+constexpr std::string_view GetFormatName() noexcept
+{
+  return "Unknown";
+}
+
 class IOutput
 {
 public:
@@ -21,7 +28,14 @@ public:
   virtual void Finish();
   virtual ~IOutput() = default;
 
+  [[nodiscard]] bool IsSupportRelativePath() const noexcept;
+  [[nodiscard]] virtual std::string_view GetFormatName() const noexcept;
+
+  void ClearOutput() &&;
+
 protected:
+  friend class OutputFactory;
+
   IOutput(const ProgramOptions &options, const std::string &extension);
   explicit IOutput(const std::string &path);
   IOutput();
@@ -31,6 +45,8 @@ protected:
   std::basic_ostream<char> &m_ostream;
   std::ofstream m_ofstream;
   std::vector<SecurityCodeMapping> m_errorCodeMappings;
+  std::filesystem::path m_output;
+  bool m_isSupportRelativePath = false;
 };
 
 class IFilter : public IOutput

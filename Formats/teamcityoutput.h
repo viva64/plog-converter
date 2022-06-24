@@ -9,6 +9,14 @@
 
 namespace PlogConverter
 {
+
+  class TeamCityOutput;
+  template<>
+  constexpr std::string_view GetFormatName<TeamCityOutput>() noexcept
+  {
+    return "teamcity";
+  }
+  
   class TeamCityOutput : public IOutput
   {
   private:
@@ -17,8 +25,14 @@ namespace PlogConverter
   public:
     explicit TeamCityOutput(const ProgramOptions&);
     bool Write(const Warning &msg) override;
-    ~TeamCityOutput() override; 
+    ~TeamCityOutput() override;
+
+    [[nodiscard]]
+    std::string_view GetFormatName() const noexcept override
+    {
+      return ::PlogConverter::GetFormatName<TeamCityOutput>();
+    }
   };
-}  
+}
 
 #endif

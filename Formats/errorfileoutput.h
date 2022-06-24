@@ -9,12 +9,25 @@
 namespace PlogConverter
 {
 
+class ErrorFileOutput;
+template<>
+constexpr std::string_view GetFormatName<ErrorFileOutput>() noexcept
+{
+  return "errorfile";
+}
+
 class ErrorFileOutput : public IOutput
 {
 public:
   explicit ErrorFileOutput(const ProgramOptions&);
   ~ErrorFileOutput() override;
   bool Write(const Warning& msg) override;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<ErrorFileOutput>();
+  }
 };
 
 }

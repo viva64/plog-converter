@@ -61,6 +61,13 @@ struct naturalCmp
   }
 };
 
+class MisraComplianceOutput;
+template<>
+constexpr std::string_view GetFormatName<MisraComplianceOutput>() noexcept
+{
+  return "misra-compliance";
+}
+
 class MisraComplianceOutput : public IOutput
 {
 public:
@@ -71,6 +78,12 @@ public:
   bool Write(const Warning& msg) override;
   void Finish() override;
   ~MisraComplianceOutput() override = default;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<MisraComplianceOutput>();
+  }
 
   static CategoriesMap& Categories();
 

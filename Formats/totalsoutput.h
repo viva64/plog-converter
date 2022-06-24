@@ -5,6 +5,13 @@
 
 namespace PlogConverter
 {
+  class TotalsOutput;
+  template<>
+  constexpr std::string_view GetFormatName<TotalsOutput>() noexcept
+  {
+    return "totals";
+  }
+
   class TotalsOutput : public IOutput
   {
     struct Staticstic
@@ -26,6 +33,12 @@ namespace PlogConverter
     ~TotalsOutput() override = default;
     bool Write(const Warning& msg) override;
     void Finish() override;
+
+    [[nodiscard]]
+    std::string_view GetFormatName() const noexcept override
+    {
+      return ::PlogConverter::GetFormatName<TotalsOutput>();
+    }
 
   private:
     static void AddByLevel(Staticstic::WarningsCount &value, size_t level);

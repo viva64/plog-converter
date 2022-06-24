@@ -23,27 +23,33 @@ namespace PlogConverter
 {
 
 template <typename T>
-static auto FactoryFunction()
+static OutputFactory::AllocFunction FactoryFunction()
 {
   return [](const ProgramOptions &opt) { return std::make_unique<T>(opt); };
 }
 
+template<typename T>
+std::pair<std::string_view, OutputFactory::AllocFunction> CreateOutputFormatRecord()
+{
+  return { GetFormatName<T>(), FactoryFunction<T>() };
+}
+
 OutputFactory::OutputFactory()
   : m_formats {
-      { "csv",                 FactoryFunction<CSVOutput>() },
-      { "xml",                 FactoryFunction<XMLOutput>() },
-      { "fullhtml",            FactoryFunction<HTMLOutput>() },
-      { "errorfile",           FactoryFunction<ErrorFileOutput>() },
-      { "errorfile-verbose",   FactoryFunction<ErrorFileVerboseOutput>() },
-      { "tasklist",            FactoryFunction<TaskListOutput>() },
-      { "tasklist-verbose",    FactoryFunction<TaskListVerboseOutput>() },
-      { "html",                FactoryFunction<SimpleHTMLOutput>() },
-      { "teamcity",            FactoryFunction<TeamCityOutput>() },
-      { "sarif",               FactoryFunction<SarifOutput>() },
-      { "sarif-vscode",        FactoryFunction<SarifVSCodeOutput>() },
-      { "misra_compliance",    FactoryFunction<MisraComplianceOutput>() },
-      { "json",                FactoryFunction<JsonOutput>() },
-      { "totals",              FactoryFunction<TotalsOutput>() }
+      CreateOutputFormatRecord<CSVOutput>(),
+      CreateOutputFormatRecord<XMLOutput>(),
+      CreateOutputFormatRecord<HTMLOutput>(),
+      CreateOutputFormatRecord<ErrorFileOutput>(),
+      CreateOutputFormatRecord<ErrorFileVerboseOutput>(),
+      CreateOutputFormatRecord<TaskListOutput>(),
+      CreateOutputFormatRecord<TaskListVerboseOutput>(),
+      CreateOutputFormatRecord<SimpleHTMLOutput>(),
+      CreateOutputFormatRecord<TeamCityOutput>(),
+      CreateOutputFormatRecord<SarifOutput>(),
+      CreateOutputFormatRecord<SarifVSCodeOutput>(),
+      CreateOutputFormatRecord<MisraComplianceOutput>(),
+      CreateOutputFormatRecord<JsonOutput>(),
+      CreateOutputFormatRecord<TotalsOutput>(),
     }
 {
 }
@@ -59,7 +65,7 @@ std::unique_ptr<IOutput> OutputFactory::createOutput(const ProgramOptions &os, c
   return std::unique_ptr<IOutput>(it->second(os));
 }
 
-void OutputFactory::registerOutput(const std::string& format, AllocFunction f)
+void OutputFactory::registerOutput(std::string_view format, AllocFunction f)
 {
   if (!f)
   {
@@ -76,4 +82,3 @@ void OutputFactory::registerOutput(const std::string& format, AllocFunction f)
 }
 
 }
-

@@ -73,9 +73,9 @@ It StringSplitter::FindSeparator(It first, It last) const noexcept
   return last;
 }
 
-std::vector<std::string> StringSplitter::operator()(const std::string &str) const noexcept
+std::vector<std::string_view> StringSplitter::operator()(std::string_view str) const noexcept
 {
-  std::vector<std::string> result;
+  std::vector<std::string_view> result;
   auto first = std::begin(str);
   auto last = std::end(str);
 
@@ -84,7 +84,7 @@ std::vector<std::string> StringSplitter::operator()(const std::string &str) cons
        previous != last; 
        substr = FindSeparator(substr, last))
   {
-    result.emplace_back(previous, substr);  
+    result.emplace_back(&*previous, std::distance(previous, substr));
 
     if (substr != last)
     { 
@@ -98,6 +98,6 @@ std::vector<std::string> StringSplitter::operator()(const std::string &str) cons
 }
 
 DefaultSplitter::DefaultSplitter()
-  : StringSplitter { std::vector<std::string>{ ","s, " "s } }
+  : StringSplitter { std::vector<std::string>{ ","s } }
 {
 }

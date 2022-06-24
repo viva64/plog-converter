@@ -39,6 +39,13 @@ namespace PlogConverter
     virtual std::vector<nlohmann::json> GetRelatedLocations(const Warning &warning) const;
   };
 
+class SarifOutput;
+template<>
+constexpr std::string_view GetFormatName<SarifOutput>() noexcept
+{
+  return "sarif";
+}
+
 class SarifOutput : public IOutput
 {
   std::list<Warning> m_warnings;
@@ -49,6 +56,12 @@ public:
   void Finish() override;
   void Finish(const SarifOutputProcessor &proc);
   ~SarifOutput() override = default;
+
+  [[nodiscard]]
+  std::string_view GetFormatName() const noexcept override
+  {
+    return ::PlogConverter::GetFormatName<SarifOutput>();
+  }
 };
 
 }
