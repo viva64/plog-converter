@@ -45,44 +45,21 @@ static char HtmlEnd[] = R"(
 )";
 
 MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
-  : m_directory { opt.output }
+  : IOutput(opt, std::string{ GetFormatName() }, false)
+  , m_directory { m_output }
   , m_grpFile{ opt.grp }
   , m_customDiviations { opt.misraDivations }
 { 
-  if (m_directory.empty())
+  if (!m_grpFile.empty() && !std::filesystem::exists(m_grpFile))
   {
-    throw std::logic_error("No output directory for html report");
+    throw std::runtime_error("File not found: " + m_grpFile.string());
   }
 
-  if (!m_grpFile.empty() && !Exists(m_grpFile))
-  {
-    throw std::runtime_error("File not found: " + m_grpFile);
-  }
-
-  if (m_directory.back() == '/' || m_directory.back() == '\\')
-  {
-    m_directory.pop_back();
-  }
-
-  if (Exists(m_directory))
-  {
-    m_directory += "/misracompliance";
-  }
-
-  if (Exists(m_directory))
-  {
-    throw std::runtime_error("Output directory already exists: " + m_directory);
-  }
-
-  if (!MakeDirectory(m_directory))
-  {
-    throw std::runtime_error("Couldn't create directory for HTML report: " + m_directory);
-  }
-
-  m_ofstream.open(m_directory + "/misracompliance.html");
+  auto misracompliancePath = m_directory / "misracompliance.html";
+  m_ofstream.open(misracompliancePath);
   if (!m_ofstream.is_open())
   {
-    throw FilesystemException("Couldn't open " + m_directory + "/misracompliance.html");
+    throw FilesystemException("Couldn't open " + misracompliancePath.string());
   }
 
 }
@@ -577,9 +554,14 @@ std::string MisraComplianceOutput::ToString(Compliance compliance, int deviation
   }
 }
 
-void MisraComplianceOutput::PrintFileExtra(const std::string& fileName, const std::string& data, std::ios_base::openmode mode)
+void MisraComplianceOutput::PrintFileExtra(const std::filesystem::path& fileName, const std::string& data, std::ios_base::openmode mode)
 {
-  std::ofstream file(m_directory + '/' + fileName, mode);
+  auto filePath = m_directory / fileName;
+  std::ofstream file(filePath, mode);
+  if (!file.is_open())
+  {
+    std::cerr << "Warning: Can't open file: " << filePath << '\n';
+  }
   file.write(data.c_str(), data.length());
 }
 

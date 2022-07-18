@@ -89,8 +89,8 @@ public:
 
 private:
   const std::string misraPrefix = "MISRA-C-";
-  std::string m_directory;
-  std::string m_grpFile;
+  const std::filesystem::path &m_directory;
+  std::filesystem::path m_grpFile;
   std::set<std::string> m_customDiviations;
 
   void PrintHtmlStart();
@@ -98,7 +98,7 @@ private:
   void PrintTableRow(const ComplianceData&, bool);
   void PrintHtmpComplianceReport();
   void PrintHtmlComplianceHeader();
-  void PrintFileExtra(const std::string&, const std::string&, std::ios_base::openmode);
+  void PrintFileExtra(const std::filesystem::path &fileName, const std::string &data, std::ios_base::openmode mode);
 
   std::string GetMisraCCode(const std::string&);
   std::pair<bool, std::string> GetComplianceResult();

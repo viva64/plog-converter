@@ -85,7 +85,7 @@ bool JsonOutput::Write(const Warning& msg)
 
 void JsonOutput::Finish()
 {
-  m_ostream << std::setw(2) << m_jsonOutput;
+  m_ostream << std::setw(2) << m_jsonOutput << std::endl;
 }
 
 }

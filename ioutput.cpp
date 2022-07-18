@@ -12,9 +12,9 @@ namespace PlogConverter
 void IOutput::Start() {}
 void IOutput::Finish() {}
 
-static std::basic_ostream<char> &OfstreamOrStdOut(std::ofstream &of, bool useStdErr, const std::string &path)
+static std::basic_ostream<char> &OfstreamOrStdOut(std::ofstream &of, bool useStdStream, bool useStdErr)
 {
-  if (path.empty())
+  if (useStdStream)
   {
     return useStdErr ? std::cerr : std::cout;
   }
@@ -22,48 +22,67 @@ static std::basic_ostream<char> &OfstreamOrStdOut(std::ofstream &of, bool useStd
   return of;
 }
 
-IOutput::IOutput(const ProgramOptions &options, const std::string &extension)
-  : m_ostream(OfstreamOrStdOut(m_ofstream, options.useStderr, options.output))
+IOutput::IOutput(const ProgramOptions &options, const std::string &extension, bool isFile)
+  : m_ostream(OfstreamOrStdOut(m_ofstream, options.output.empty() && options.outputName.empty(), options.useStderr))
+  , m_output(options.output)
 {
-  if (!options.output.empty())
+  using namespace std::literals;
+
+  if (options.formats.size() > 1)
   {
-    std::string output = options.output;
-    if (options.outputIsDirectory)
+    std::filesystem::path fileName;
+    if (options.outputName.empty())
     {
-      if (   !std::filesystem::exists(output)
-          && !std::filesystem::create_directory(output))
+      if (options.inputFiles.size() == 1)
       {
-        throw std::runtime_error("Couldn't create directory: " + output);
+        fileName = std::filesystem::path{ options.inputFiles.front() }.filename();
       }
-
-      output += '/';
-      output += options.outputName.empty() ? FileStem(FileBaseName(options.inputFiles.at(0)))
-                                           : options.outputName;
-      if (output.back() != '.')
+      else
       {
-        output += '.';
+        fileName = "MergedReport."s;
       }
-
-      output += extension;
     }
-    else if (options.formats.size() > 1)
+    else
     {
-      if (output.back() != '.')
-      {
-        output += '.';
-      }
-
-      output += extension;
+      fileName = options.outputName.back() == '.' ? options.outputName : options.outputName + "."s;
     }
-
-    m_ofstream.open(output);
-    if (!m_ofstream.is_open())
-    {
-      throw FilesystemException("Can't write to file: " + output);
-    }
-
-    m_output = output;
+    fileName.replace_extension(extension);
+    m_output /= fileName;
   }
+  else if (!options.outputName.empty())
+  {
+    m_output /= options.outputName + "."s + extension;
+  }
+
+  if (isFile)
+  {
+    if (!m_output.empty())
+    {
+      m_ofstream.open(m_output);
+      if (!m_ofstream.is_open())
+      {
+        throw FilesystemException("Can't write to file: "s + m_output.string());
+      }
+    }
+  }
+  else
+  {
+    if (m_output.empty())
+    {
+      throw FilesystemException("No output directory for report");
+    }
+
+    if (std::filesystem::exists(m_output))
+    {
+      throw FilesystemException("Output directory already exists: " + m_output.string());
+    }
+
+    if (!std::filesystem::create_directory(m_output))
+    {
+      throw FilesystemException("Couldn't create directory for report: " + m_output.string());
+    }
+  }
+
   m_errorCodeMappings = options.codeMappings;
 }
 

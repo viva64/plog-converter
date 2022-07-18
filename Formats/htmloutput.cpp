@@ -21,50 +21,25 @@ namespace PlogConverter
 namespace stdfs = std::filesystem;
 
 HTMLOutput::HTMLOutput(const ProgramOptions &options)
+  : IOutput(options, std::string{ GetFormatName() }, false)
+  , m_directory(m_output)
+  , m_cmdline(options.cmdLine)
+  , m_projectName(options.projectName)
+  , m_projectVersion(options.projectVersion)
 {
-  if (options.output.empty())
+  for (const auto &s : { m_directory / "images", m_directory / "sources" })
   {
-    throw std::logic_error("No output directory for html report");
-  }
-
-  m_errorCodeMappings = options.codeMappings;
-  m_directory = stdfs::path { options.output }.string();
-  m_cmdline = options.cmdLine;
-  m_projectName = options.projectName;
-  m_projectVersion = options.projectVersion;
-
-  if (!options.outputIsDirectory)
-  {
-    m_directory = (stdfs::path { m_directory }.parent_path() / "fullhtml").string();
-  }
-  else
-  {
-    if (   !stdfs::exists(m_directory)
-        && !stdfs::create_directory(m_directory))
+    if (!std::filesystem::create_directory(s))
     {
-      throw std::runtime_error("Can't create directory: " + m_directory);
-    }
-
-    m_directory = (stdfs::path { m_directory } / "fullhtml").string();
-  }
-
-  if (Exists(m_directory))
-  {
-    throw std::runtime_error("Output directory already exists: " + m_directory);
-  }
-
-  for (const auto &s : { m_directory, m_directory + "/images", m_directory + "/sources" })
-  {
-    if (!MakeDirectory(s))
-    {
-      throw std::runtime_error("Couldn't create directory for HTML report: " + s);
+      throw std::runtime_error("Couldn't create directory for HTML report: " + s.string());
     }
   }
 
-  m_ofstream.open(m_directory + "/index.html");
+  auto indexPath = m_directory / "index.html";
+  m_ofstream.open(indexPath);
   if (!m_ofstream.is_open())
   {
-    throw FilesystemException("Couldn't open " + m_directory + "/index.html");
+    throw FilesystemException("Couldn't open " + indexPath.string());
   }
 
   m_desc.emplace(AnalyzerType::Fail, "Fail/Info");
@@ -240,9 +215,14 @@ void HTMLOutput::CheckProjectsAndCWEAndSAST()
   }
 }
 
-void HTMLOutput::PrintFileExtra(const std::string&fileName, const std::string &data, std::ios_base::openmode mode)
+void HTMLOutput::PrintFileExtra(const std::filesystem::path& fileName, const std::string& data, std::ios_base::openmode mode)
 {
-  std::ofstream file(m_directory + fileName, mode);
+  auto filePath = m_directory / fileName;
+  std::ofstream file(filePath, mode);
+  if (!file.is_open())
+  {
+    std::cerr << "Warning: Can't open file: " << filePath << '\n';
+  }
   file.write(data.c_str(), data.length());
 }
 
@@ -447,7 +427,7 @@ void HTMLOutput::PrintFileSources()
     {
       const auto shortFileName = FileBaseName(sourcePath);
       const auto fileExt = ToLower(FileExtension(shortFileName));
-      const auto htmlPath = m_directory + "/sources/" + shortFileName + "_" + std::to_string(p.second) + ".html";
+      const auto htmlPath = m_directory / "sources" / (shortFileName + "_" + std::to_string(p.second) + ".html");
       int bytes_consumed;
       bool is_reliable;
       const auto fileEncoding = CompactEncDet::DetectEncoding(sourceFileStr.str().c_str(),
@@ -539,18 +519,18 @@ void HTMLOutput::Finish()
   PrintTableCaption();
   PrintTableBody();
   PrintHtmlEnd();
-  PrintFileExtra("/script.js", PlogConverter::Resources::SortJs());
-  PrintFileExtra("/style.css", PlogConverter::Resources::StyleCss());
-  PrintFileExtra("/jquery-3.5.1.min.js", PlogConverter::Resources::JQueryJs());
+  PrintFileExtra("script.js", PlogConverter::Resources::SortJs());
+  PrintFileExtra("style.css", PlogConverter::Resources::StyleCss());
+  PrintFileExtra("jquery-3.5.1.min.js", PlogConverter::Resources::JQueryJs());
 
-  PrintFileExtra("/sources/highlight.css", PlogConverter::Resources::HighlightCodeCss());
-  PrintFileExtra("/sources/highlight.pack.js", PlogConverter::Resources::HighlightPackJs());
-  PrintFileExtra("/sources/highlightjs-line-numbers.js", PlogConverter::Resources::HighlightLineJs());
+  PrintFileExtra("sources/highlight.css", PlogConverter::Resources::HighlightCodeCss());
+  PrintFileExtra("sources/highlight.pack.js", PlogConverter::Resources::HighlightPackJs());
+  PrintFileExtra("sources/highlightjs-line-numbers.js", PlogConverter::Resources::HighlightLineJs());
 
-  PrintFileExtra("/images/asc.gif", PlogConverter::Resources::AscGif(), std::ios_base::binary);
-  PrintFileExtra("/images/desc.gif", PlogConverter::Resources::DescGif(), std::ios_base::binary);
-  PrintFileExtra("/images/sort.gif", PlogConverter::Resources::SortGif(), std::ios_base::binary);
-  PrintFileExtra("/images/logo.png", PlogConverter::Resources::LogoPng(), std::ios_base::binary);
+  PrintFileExtra("images/asc.gif", PlogConverter::Resources::AscGif(), std::ios_base::binary);
+  PrintFileExtra("images/desc.gif", PlogConverter::Resources::DescGif(), std::ios_base::binary);
+  PrintFileExtra("images/sort.gif", PlogConverter::Resources::SortGif(), std::ios_base::binary);
+  PrintFileExtra("images/logo.png", PlogConverter::Resources::LogoPng(), std::ios_base::binary);
   PrintFileSources();
 }
 

@@ -323,13 +323,6 @@ void Application::SetCmdOptions(int argc, const char** argv)
 
     auto outputPath = get(outputFile);
 
-    if (   (!outputPath.empty() && (   outputPath.back() == '/' 
-                                    || outputPath.back() == '\\'))
-        || std::filesystem::is_directory(outputPath))
-    {
-      m_options.outputIsDirectory = true;
-    }
-
     m_options.output = Expand(get(outputFile));
     std::transform(get(logs).begin(), get(logs).end(), std::back_inserter(m_options.inputFiles), &Expand);
     m_options.projectRoot = Expand(get(sourceRoot));
@@ -348,6 +341,16 @@ void Application::SetCmdOptions(int argc, const char** argv)
 
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
+
+    if (m_options.formats.size() == 1 && name)
+    {
+      if (outputFile)
+      {
+        throw ConfigException("Use of '-o' and '-n' flags meant for multiple formats. For single format, use '-o' flag instead.");
+      }
+
+      std::cerr << "WARNING: possibly incorrect use of template flag. For single format, use '-o' flag instead." << std::endl;
+    }
   }
   catch (Completion &e)
   {

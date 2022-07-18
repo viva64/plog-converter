@@ -36,7 +36,7 @@ public:
 protected:
   friend class OutputFactory;
 
-  IOutput(const ProgramOptions &options, const std::string &extension);
+  IOutput(const ProgramOptions &options, const std::string &extension, bool isFile = true);
   explicit IOutput(const std::string &path);
   IOutput();
 

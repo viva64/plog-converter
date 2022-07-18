@@ -187,16 +187,12 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   }
   else if (formats.size() > 1)
   {
-    if (options.output.empty())
-    {
-      options.output = ".";
-    }
+    std::filesystem::path outDir = options.output.empty() ? "." : options.output;
 
-    if (   options.outputIsDirectory
-        && !Exists(options.output)
-        && !std::filesystem::create_directory(options.output))
+    if (   !std::filesystem::exists(outDir)
+        && !std::filesystem::create_directory(outDir))
     {
-      throw std::runtime_error("Couldn't create directory: " + options.output);
+      throw std::runtime_error("Couldn't create directory: " + outDir.string());
     }
   }
 

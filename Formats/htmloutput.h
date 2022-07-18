@@ -37,7 +37,7 @@ private:
   std::map<AnalyzerType, std::string> m_desc;
   std::unordered_map<std::string, size_t> m_map;
 
-  std::string m_directory;
+  const std::filesystem::path &m_directory;
   std::string m_cmdline;
   std::string m_projectName;
   std::string m_projectVersion;
@@ -48,7 +48,7 @@ private:
   bool m_hasAnyProjects = false;
   void CheckProjectsAndCWEAndSAST();
 
-  void PrintFileExtra(const std::string &fileName, const std::string &data, std::ios_base::openmode mode = std::ios_base::out);
+  void PrintFileExtra(const std::filesystem::path &fileName, const std::string &data, std::ios_base::openmode mode = std::ios_base::out);
   void PrintFileSources();
   void PrintHtmlStart();
   void PrintHtmlEnd();
