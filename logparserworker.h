@@ -2,8 +2,8 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef LOGPARSERWORKER_H
-#define LOGPARSERWORKER_H
+#pragma once
+
 #include <memory>
 #include <unordered_set>
 
@@ -35,7 +35,7 @@ public:
 
   void ParseLog(
     std::vector<InputFile> &inputFiles,
-    IOutput &output,
+    IOutput<Warning> &output,
     const std::string &root,
     const ProgramOptions *options = nullptr
   );
@@ -53,14 +53,14 @@ private:
   void OnWarning(Warning &warning);
 
   template<typename Format>
-  bool CheckUnsopporterdTransformation(const Format &fmt,
+  bool CheckUnsupporterdTransformation(const Format &fmt,
                                        const ProgramOptions &opt) noexcept
   {
     if (fmt && !opt.projectRoot.empty()
             &&  opt.pathTransformationMode == PathTransformationMode::ToRelative
-            && !fmt->IsSupportRelativePath())
+            && !fmt->SupportsRelativePath_())
     {
-      std::cout << "Error: the \'" << fmt->GetFormatName() << "\' format doesn't support relative root\n";
+      std::cout << "Error: the \'" << fmt->FormatName_() << "\' format doesn't support relative root\n";
       m_isUnsopporterdTransformationErrorHappend = true;
       return false;
     }
@@ -72,7 +72,7 @@ private:
   size_t m_countSuccess = 0;
   size_t m_countNonError = 0;
   size_t m_countTotal = 0;
-  IOutput *m_output = nullptr;
+  IOutput<Warning>* m_output = nullptr;
   std::string m_root;
 
   std::string m_line;
@@ -84,5 +84,3 @@ private:
 };
 
 }
-
-#endif // LOGPARSERWORKER_H

@@ -1,14 +1,17 @@
+//  2006-2008 (c) Viva64.com Team
+//  2008-2020 (c) OOO "Program Verification Systems"
+//  2020-2022 (c) PVS-Studio LLC
+
 #include <iomanip>
-#include "jsonoutput.h"
+
 #include "json.hpp"
+#include "jsonoutput.h"
 
 namespace PlogConverter
 {
 
-JsonOutput::JsonOutput(const ProgramOptions& options)
-  : IOutput { options, "json" }
+JsonOutput::JsonOutput(const ProgramOptions& options) : BasicFormatOutput{ options }
 {
-  m_isSupportRelativePath = true;
 }
 
 void JsonOutput::Start()
@@ -86,6 +89,7 @@ bool JsonOutput::Write(const Warning& msg)
 void JsonOutput::Finish()
 {
   m_ostream << std::setw(2) << m_jsonOutput << std::endl;
+  BasicFormatOutput<JsonOutput>::Finish();
 }
 
 }

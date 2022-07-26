@@ -2,24 +2,55 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef MULTIOUTPUT
-#define MULTIOUTPUT
+#pragma once
+
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class MultipleOutput : public IOutput
+template<typename T>
+class MultipleOutput : public IOutput<T>
 {
 public:
-  MultipleOutput();
-  ~MultipleOutput() override;
+  MultipleOutput() = default;
+  ~MultipleOutput() override = default;
 
-  void Start() override;
-  bool Write(const Warning& msg) override;
-  void Finish() override;
+  void Start() override
+  {
+    for (auto& o : m_outputs)
+    {
+      o->Start();
+    }
+  }
 
-  void Add(std::unique_ptr<IOutput> output);
+  bool Write(const T& msg) override
+  {
+    bool written = false;
+    for (auto& o : m_outputs)
+    {
+      written |= o->Write(msg);
+    }
+    return written;
+  }
+
+  void Finish() override
+  {
+    for (auto& o : m_outputs)
+    {
+      o->Finish();
+    }
+  }
+
+  void Add(std::unique_ptr<IOutput<T>> output)
+  {
+    if (!output)
+    {
+      throw std::runtime_error("output is nullptr");
+    }
+
+    m_outputs.push_back(std::move(output));
+  }
 
   bool empty()
   {
@@ -27,9 +58,7 @@ public:
   }
 
 private:
-  std::vector<std::unique_ptr<IOutput>> m_outputs;
+  std::vector<std::unique_ptr<IOutput<T>>> m_outputs;
 };
 
 }
-
-#endif // MULTIOUTPUT

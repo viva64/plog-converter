@@ -21,7 +21,7 @@ namespace PlogConverter
 namespace stdfs = std::filesystem;
 
 HTMLOutput::HTMLOutput(const ProgramOptions &options)
-  : IOutput(options, std::string{ GetFormatName() }, false)
+  : BasicFormatOutput{ options }
   , m_directory(m_output)
   , m_cmdline(options.cmdLine)
   , m_projectName(options.projectName)
@@ -36,8 +36,8 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
   }
 
   auto indexPath = m_directory / "index.html";
-  m_ofstream.open(indexPath);
-  if (!m_ofstream.is_open())
+  m_indexFile.open(indexPath);
+  if (!m_indexFile.is_open())
   {
     throw FilesystemException("Couldn't open " + indexPath.string());
   }
@@ -52,10 +52,8 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
   m_desc.emplace(AnalyzerType::Owasp, "OWASP");
 }
 
-HTMLOutput::~HTMLOutput() = default;
-
-static char HtmlHead[] = R"(
-<!DOCTYPE HTML>
+static constexpr std::string_view HtmlHead =
+R"(<!DOCTYPE HTML>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -92,34 +90,31 @@ static char HtmlHead[] = R"(
   </div>
 )";
 
-static char HtmlEnd[] = R"(
-  </table>
+static constexpr std::string_view HtmlEnd =
+R"(  </table>
 <script type="text/javascript">
 var sorter=new table.sorter("sorter");
 sorter.init("sorter",0);
 </script>
 </body>
-</html>
-)";
+</html>)";
 
-static char SourceHead1[] = R"(
-<html>
-<head>
-)";
+static constexpr std::string_view SourceHead1 =
+R"(<html>
+<head>)";
 
-static char SourceHead2[] = R"(
-  <link rel="stylesheet" href="../style.css"/>
+static constexpr std::string_view SourceHead2 =
+R"(  <link rel="stylesheet" href="../style.css"/>
   <script src="../jquery-3.5.1.min.js"></script>
 </head>
-<body>
+<body>)";
+
+static constexpr std::string_view SourceEndPre =
+R"(</code></pre>
 )";
 
-static char SourceEndPre[] = R"(
-</code></pre>
-)";
-
-static char SourceEnd[] = R"(
-<link rel="stylesheet" href="highlight.css">
+static constexpr std::string_view SourceEnd =
+R"(<link rel="stylesheet" href="highlight.css">
 <script src="highlight.pack.js"></script>
 <script src="highlightjs-line-numbers.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
@@ -147,31 +142,52 @@ static char SourceEnd[] = R"(
   });
 </script>
 </body>
-</html>
-)";
+</html>)";
 
 static std::string TextLevel(unsigned level)
 {
-  if (level == 1)
-    return "High";
-  else if (level == 2)
-    return "Medium";
-  else if (level == 3)
-    return "Low";
-  else
-    return "";
+  switch (level)
+  {
+    case 1:
+    {
+      return "High";
+    }
+    case 2:
+    {
+      return "Medium";
+    }
+    case 3:
+    {
+      return "Low";
+    }
+    default:
+    {
+      return "";
+    }
+  }
 }
 
 static std::string ColorLevel(unsigned level)
 {
-  if (level == 1)
-    return "#FF0000";
-  else if (level == 2)
-    return "#FFA500";
-  else if (level == 3)
-    return "#CACA00";
-  else
-    return "#000000";
+  switch (level)
+  {
+    case 1:
+    {
+      return "#FF0000";
+    }
+    case 2:
+    {
+      return "#FFA500";
+    }
+    case 3:
+    {
+      return "#CACA00";
+    }
+    default:
+    {
+      return "#000000";
+    }
+  }
 }
 
 static std::string PVSStudioVersion()
@@ -211,7 +227,9 @@ void HTMLOutput::CheckProjectsAndCWEAndSAST()
     }
 
     if (m_hasAnyCWE && m_showSASTColumn && m_hasAnyProjects)
+    {
       break;
+    }
   }
 }
 
@@ -228,21 +246,22 @@ void HTMLOutput::PrintFileExtra(const std::filesystem::path& fileName, const std
 
 void HTMLOutput::PrintHtmlStart()
 {
-  m_ofstream << HtmlHead << std::endl;
+  m_indexFile << HtmlHead;
 }
 
 void HTMLOutput::PrintHtmlEnd()
 {
-  m_ofstream << HtmlEnd << std::endl;
+  m_indexFile << HtmlEnd;
 }
 
 void HTMLOutput::PrintTableInfo()
 {
-  auto print_tr_th = [&](const std::string &caption, const std::string &value) {
-    m_ofstream << R"(     <tr><th id="col_info">)" << caption << R"(</th><td>)" << value << R"(</td></tr>)" << std::endl;
+  auto print_tr_th = [&](const std::string &caption, const std::string &value)
+  {
+    m_indexFile << R"(     <tr><th id="col_info">)" << caption << R"(</th><td>)" << value << R"(</td></tr>)" << '\n';
   };
 
-  m_ofstream << R"(  <table cellpadding="0" cellspacing="0" border="0" class="infotopic">)" << std::endl;
+  m_indexFile << R"(  <table cellpadding="0" cellspacing="0" border="0" class="infotopic">)" << '\n';
 
   print_tr_th("Date:", CurrentDateTime());
 
@@ -273,54 +292,59 @@ void HTMLOutput::PrintTableInfo()
   if (m_autosar > 0) print_tr_th("Total Warnings (AUTOSAR):", std::to_string(m_autosar));
   if (m_owasp > 0) print_tr_th("Total Warnings (OWASP):", std::to_string(m_owasp));
   if (m_fails > 0) print_tr_th("Fails/Info:", std::to_string(m_fails));
-  m_ofstream << R"(  </table>)" << std::endl;
+  m_indexFile << R"(  </table>)" << std::endl;
 }
 
 void HTMLOutput::PrintTableCaption()
 {
-  m_ofstream << R"(  <table cellpadding="0" cellspacing="0" border="0" class="sortable" id="sorter">)" << std::endl;
-  m_ofstream << R"(    <tr>)" << std::endl;
-  m_ofstream << R"(      <th class="gsort">Group</th>)" << std::endl;
+  m_indexFile << R"(  <table cellpadding="0" cellspacing="0" border="0" class="sortable" id="sorter">)" << '\n';
+  m_indexFile << R"(    <tr>)" << '\n';
+  m_indexFile << R"(      <th class="gsort">Group</th>)" << '\n';
   if (m_hasAnyProjects)
-    m_ofstream << R"(      <th class="psort">Projects</th>)" << std::endl;
-  m_ofstream << R"(      <th>Location</th>)" << std::endl;
-  m_ofstream << R"(      <th class="lsort">Level</th>)" << std::endl;
-  m_ofstream << R"(      <th class="vsort">Code</th>)" << std::endl;
+  {
+    m_indexFile << R"(      <th class="psort">Projects</th>)" << '\n';
+  }
+  m_indexFile << R"(      <th>Location</th>)" << '\n';
+  m_indexFile << R"(      <th class="lsort">Level</th>)" << '\n';
+  m_indexFile << R"(      <th class="vsort">Code</th>)" << '\n';
 
   bool showSAST = false;
 
   for (const auto& security : m_errorCodeMappings)
   {
     if (security == SecurityCodeMapping::CWE && m_hasAnyCWE)
-      m_ofstream << R"(      <th class="csort">CWE</th>)" << std::endl;
+    {
+      m_indexFile << R"(      <th class="csort">CWE</th>)" << '\n';
+    }
 
     bool hasMisra =   security == SecurityCodeMapping::MISRA;
     bool hasOwasp =   security == SecurityCodeMapping::OWASP;
     bool hasAutosar = security == SecurityCodeMapping::AUTOSAR;
-    if (m_showSASTColumn && (hasMisra || hasOwasp || hasAutosar)) {
+    if (m_showSASTColumn && (hasMisra || hasOwasp || hasAutosar))
+    {
       showSAST = true;
     }
-      
   }
-  if (showSAST) {
-    m_ofstream << R"(      <th class="rsort">SAST</th>)" << std::endl;
+  if (showSAST)
+  {
+    m_indexFile << R"(      <th class="rsort">SAST</th>)" << '\n';
   }
 
-  m_ofstream << R"(      <th>Message</th>)" << std::endl;
-  m_ofstream << R"(    </tr>)" << std::endl;
+  m_indexFile << R"(      <th>Message</th>)" << '\n';
+  m_indexFile << R"(    </tr>)" << std::endl;
 }
 
 void HTMLOutput::PrintTableBody()
 {
   if (m_messages.empty())
   {
-    m_ofstream << R"(    <tr>)" << std::endl;
-    m_ofstream << R"(      <td id="col_group">)" << m_desc[AnalyzerType::Fail] << R"(</td>)" << std::endl;
-    m_ofstream << R"(      <td id="col_file"></td>)" << std::endl;
-    m_ofstream << R"(      <td id="col_level" style="color:)" << ColorLevel(1) << R"("><b>)" << TextLevel(1) << R"(</b></td>)" << std::endl;
-    m_ofstream << R"(      <td id="col_code"></td>)" << std::endl;
-    m_ofstream << R"(      <td id="col_message">)" << EscapeHtml("Congratulations! PVS-Studio has not found any issues in your source code!") << R"(</td>)" << std::endl;
-    m_ofstream << R"(    </tr>)" << std::endl;
+    m_indexFile << R"(    <tr>)" << '\n';
+    m_indexFile << R"(      <td id="col_group">)" << m_desc[AnalyzerType::Fail] << R"(</td>)" << '\n';
+    m_indexFile << R"(      <td id="col_file"></td>)" << '\n';
+    m_indexFile << R"(      <td id="col_level" style="color:)" << ColorLevel(1) << R"("><b>)" << TextLevel(1) << R"(</b></td>)" << '\n';
+    m_indexFile << R"(      <td id="col_code"></td>)" << '\n';
+    m_indexFile << R"(      <td id="col_message">)" << EscapeHtml("Congratulations! PVS-Studio has not found any issues in your source code!") << R"(</td>)" << '\n';
+    m_indexFile << R"(    </tr>)" << std::endl;
     return;
   }
 
@@ -329,30 +353,36 @@ void HTMLOutput::PrintTableBody()
     AnalyzerType analyzerType = err.GetType();
     std::string shortFileName = FileBaseName(err.GetFileUTF8());
     size_t id = Trim(err.GetFile()).empty() ? 0 : m_map[err.GetFile()];
-    m_ofstream << R"(    <tr>)" << std::endl;
-    m_ofstream << R"(      <td id="col_group">)" << m_desc[analyzerType] << R"(</td>)" << std::endl;
+    m_indexFile << R"(    <tr>)" << '\n';
+    m_indexFile << R"(      <td id="col_group">)" << m_desc[analyzerType] << R"(</td>)" << '\n';
 
     if (m_hasAnyProjects)
     {
       if (err.projects.size() == 0)
-        m_ofstream << R"(      <td id="col_projects"><p></p></td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_projects"><p></p></td>)" << '\n';
+      }
       else if (err.projects.size() == 1)
-        m_ofstream << R"(      <td id="col_projects"><p>)" << err.projects[0] << R"(</p></td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_projects"><p>)" << err.projects[0] << R"(</p></td>)" << '\n';
+      }
       else
-        m_ofstream << R"(      <td id="col_projects"><p title=")" << Join(err.projects, ", ") << R"(">)" << err.projects[0] << R"( (...)</p></td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_projects"><p title=")" << Join(err.projects, ", ") << R"(">)" << err.projects[0] << R"( (...)</p></td>)" << std::endl;
+      }
     }
     if (shortFileName.empty())
     {
-      m_ofstream << R"(      <td id="col_file"></td>)" << std::endl;
+      m_indexFile << R"(      <td id="col_file"></td>)" << '\n';
     }
     else
     {
-      m_ofstream << R"(      <td id="col_file"><a target="_blank" href="sources/)" //-V128
-                 << shortFileName << "_" << id << R"(.html#ln)" << err.GetLine() << R"(">)"
-                 << EscapeHtml(shortFileName) << ':' << err.GetLine() << R"(</a></td>)" << std::endl;
+      m_indexFile << R"(      <td id="col_file"><a target="_blank" href="sources/)" //-V128
+                  << shortFileName << "_" << id << R"(.html#ln)" << err.GetLine() << R"(">)"
+                  << EscapeHtml(shortFileName) << ':' << err.GetLine() << R"(</a></td>)" << '\n';
     }
-    m_ofstream << R"(      <td id="col_level" style="color:)" << ColorLevel(err.level) << R"("><b>)" << TextLevel(err.level) << R"(</b></td>)" << std::endl;
-    m_ofstream << R"(      <td id="col_code"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)" << err.code << R"(</td>)" << std::endl;
+    m_indexFile << R"(      <td id="col_level" style="color:)" << ColorLevel(err.level) << R"("><b>)" << TextLevel(err.level) << R"(</b></td>)" << '\n';
+    m_indexFile << R"(      <td id="col_code"><a target="_blank" href=")" << err.GetVivaUrl() << R"(">)" << err.code << R"(</td>)" << '\n';
 
     bool showSAST = false;
     bool showCWE = false;
@@ -362,21 +392,29 @@ void HTMLOutput::PrintTableBody()
     if (showCWE && m_hasAnyCWE)
     {
       if (err.HasCWE())
-        m_ofstream << R"(      <td id="col_cwe"><a target="_blank" href=")" << err.GetCWEUrl() << R"(">)" << err.GetCWEString() << R"(</td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_cwe"><a target="_blank" href=")" << err.GetCWEUrl() << R"(">)" << err.GetCWEString() << R"(</td>)" << '\n';
+      }
       else
-        m_ofstream << R"(      <td id="col_cwe"></td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_cwe"></td>)" << '\n';
+      }
     }
 
     if (showSAST && m_showSASTColumn)
     {
       if (err.HasSAST())
-        m_ofstream << R"(      <td id="col_sast">)" << err.sastId << R"(</td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_sast">)" << err.sastId << R"(</td>)" << '\n';
+      }
       else
-        m_ofstream << R"(      <td id="col_sast"></td>)" << std::endl;
+      {
+        m_indexFile << R"(      <td id="col_sast"></td>)" << '\n';
+      }
     }
 
-    m_ofstream << R"(      <td id="col_message">)" << EscapeHtml(err.message) << R"(</td>)" << std::endl;
-    m_ofstream << R"(    </tr>)" << std::endl;
+    m_indexFile << R"(      <td id="col_message">)" << EscapeHtml(err.message) << R"(</td>)" << '\n';
+    m_indexFile << R"(    </tr>)" << std::endl;
   }
 }
 
@@ -452,11 +490,11 @@ void HTMLOutput::PrintFileSources()
 
       std::ofstream stream(htmlPath);
 
-      stream << SourceHead1 << std::endl;
-      stream << R"(  <meta http-equiv="Content-Type" content="text/html; charset=)" << mimeEncodingString << R"(" />)" << std::endl;
-      stream << R"(  <title>)" << shortFileName << R"(</title>)" << std::endl;
-      stream << SourceHead2 << std::endl;
-      stream << sourceLanguage << std::endl;
+      stream << SourceHead1 << '\n';
+      stream << R"(  <meta http-equiv="Content-Type" content="text/html; charset=)" << mimeEncodingString << R"(" />)" << '\n';
+      stream << R"(  <title>)" << shortFileName << R"(</title>)" << '\n';
+      stream << SourceHead2 << '\n';
+      stream << sourceLanguage << '\n';
       stream << sourceHtml << SourceEndPre;
 
       for (auto const &msg : m_messages)
@@ -489,21 +527,37 @@ bool HTMLOutput::Write(const Warning &msg)
 
   const auto analyzerType = msg.GetType();
   if (analyzerType == AnalyzerType::General)
+  {
     ++m_ga;
+  }
   else if (analyzerType == AnalyzerType::Optimization)
+  {
     ++m_op;
+  }
   else if (analyzerType == AnalyzerType::Viva64)
+  {
     ++m_64;
+  }
   else if (analyzerType == AnalyzerType::CustomerSpecific)
+  {
     ++m_cs;
+  }
   else if (analyzerType == AnalyzerType::Misra)
+  {
     ++m_misra;
+  }
   else if (analyzerType == AnalyzerType::Autosar)
+  {
     ++m_autosar;
+  }
   else if (analyzerType == AnalyzerType::Owasp)
+  {
     ++m_owasp;
+  }
   else
+  {
     ++m_fails;
+  }
 
   m_messages.push_back(msg);
 

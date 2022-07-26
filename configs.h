@@ -2,13 +2,13 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef CONFIGS
-#define CONFIGS
-#include <vector>
-#include <string>
-#include <set>
+#pragma once
+
 #include <functional>
 #include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace PlogConverter
 {
@@ -29,11 +29,11 @@ enum class PathTransformationMode
 };
 
 struct Analyzer;
-class IOutput;
+class BaseFormatOutput;
 
 struct ProgramOptions
 {
-  using AllocFunction = std::function<std::unique_ptr<IOutput>(const ProgramOptions&)>;
+  using AllocFunction = std::function<std::unique_ptr<BaseFormatOutput>(const ProgramOptions&)>;
 
   std::string                                 cmdLine;
   std::vector<std::string>                    inputFiles;
@@ -54,11 +54,10 @@ struct ProgramOptions
   std::string                                 projectVersion;
   std::string                                 grp;
   PathTransformationMode                      pathTransformationMode { PathTransformationMode::NoTransform };
+  bool                                        useStdout = false;
   bool                                        useStderr = false;
   bool                                        noHelp = false;
   bool                                        indicateWarnings = false;
 };
 
 }
-
-#endif // CONFIGS

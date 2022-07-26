@@ -4,8 +4,6 @@
 
 #include "charmap.h"
 
-#include <vector>
-
 using namespace CharMap;
 
 static const char EncodeMap[256] = {

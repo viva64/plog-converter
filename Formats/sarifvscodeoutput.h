@@ -2,33 +2,33 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef SARIFVSCODEOUTPUT_H
-#define SARIFVSCODEOUTPUT_H
+#pragma once
+
 #include "sarifoutput.h"
 
 namespace PlogConverter
 {
 
-class SarifVSCodeOutput;
-template<>
-constexpr std::string_view GetFormatName<SarifVSCodeOutput>() noexcept
-{
-  return "sarif-vscode";
-}
-
-class SarifVSCodeOutput : public SarifOutput
+class SarifVSCodeOutput : public SarifOutputImpl<SarifVSCodeOutput>
 {
 public:
   explicit SarifVSCodeOutput(const ProgramOptions &opt);
+  ~SarifVSCodeOutput() override = default;
+
   void Finish() override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static std::string_view FormatName() noexcept
   {
-    return ::PlogConverter::GetFormatName<SarifVSCodeOutput>();
+    return "sarif-vscode";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    static auto suffix = std::string{ "vscode." }.append(SarifOutput::OutputSuffix());
+    return suffix;
   }
 };
 
 }
-
-#endif // SARIFVSCODEOUTPUT_H

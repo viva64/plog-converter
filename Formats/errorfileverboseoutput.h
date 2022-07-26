@@ -2,34 +2,33 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef ERRORFILEVERBOSEOUTPUT_H
-#define ERRORFILEVERBOSEOUTPUT_H
+#pragma once
+
 #include "errorfileoutput.h"
 
 namespace PlogConverter
 {
 
-class ErrorFileVerboseOutput;
-template<>
-constexpr std::string_view GetFormatName<ErrorFileVerboseOutput>() noexcept
-{
-  return "errorfile-verbose";
-}
-
-class ErrorFileVerboseOutput : public ErrorFileOutput
+class ErrorFileVerboseOutput : public ErrorFileOutputImpl<ErrorFileVerboseOutput>
 {
 public:
   explicit ErrorFileVerboseOutput(const ProgramOptions&);
-  ~ErrorFileVerboseOutput() override;
+  ~ErrorFileVerboseOutput() override = default;
+
   bool Write(const Warning& msg) override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static std::string_view FormatName() noexcept
   {
-    return ::PlogConverter::GetFormatName<ErrorFileVerboseOutput>();
+    return "errorfile-verbose";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    static auto suffix = std::string{ "verbose." }.append(ErrorFileOutput::OutputSuffix());
+    return suffix;
   }
 };
 
 }
-
-#endif // ERRORFILEVERBOSEOUTPUT_H

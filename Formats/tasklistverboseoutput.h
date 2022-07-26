@@ -2,34 +2,33 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef TASKLISTVERBOSEOUTPUT_H
-#define TASKLISTVERBOSEOUTPUT_H
+#pragma once
+
 #include "tasklistoutput.h"
 
 namespace PlogConverter
 {
 
-class TaskListVerboseOutput;
-template<>
-constexpr std::string_view GetFormatName<TaskListVerboseOutput>() noexcept
-{
-  return "tasklist-verbose";
-}
-
-class TaskListVerboseOutput : public TaskListOutput
+class TaskListVerboseOutput : public TaskListOutputImpl<TaskListVerboseOutput>
 {
 public:
   explicit TaskListVerboseOutput(const ProgramOptions &);
-  ~TaskListVerboseOutput() override;
+  ~TaskListVerboseOutput() override = default;
+
   bool Write(const Warning &msg) override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static std::string_view FormatName() noexcept
   {
-    return ::PlogConverter::GetFormatName<TaskListVerboseOutput>();
+    return "tasklist-verbose";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    static auto suffix = std::string{ "verbose." }.append(TaskListOutput::OutputSuffix());
+    return suffix;
   }
 };
 
 }
-
-#endif // TASKLISTVERBOSEOUTPUT_H

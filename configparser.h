@@ -2,13 +2,15 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef CONFIGPARSER_H
-#define CONFIGPARSER_H
-#include <vector>
+#pragma once
+
+#include <filesystem>
 #include <map>
-#include <string>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace PlogConverter
 {
@@ -22,10 +24,10 @@ public:
 
 class ConfigParser
 {
-  const std::string m_pathToConfig;
+  const std::filesystem::path m_pathToConfig;
   std::multimap<std::string, std::string> m_configMap;
 public:
-  ConfigParser(const std::string& pathToConfig, const std::vector<std::string>& multiArguments);
+  ConfigParser(const std::filesystem::path& pathToConfig, const std::vector<std::string>& multiArguments);
   ~ConfigParser();
   void get(const std::string& optionName, std::string& destination);
   void get(const std::string& optionName, std::vector<std::string>& destination, const std::string& delim = ",");
@@ -38,5 +40,3 @@ private:
 };
 
 }
-
-#endif // CONFIGPARSER_H

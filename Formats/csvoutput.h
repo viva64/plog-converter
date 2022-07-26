@@ -2,34 +2,44 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef CSVOUTPUT_H
-#define CSVOUTPUT_H
+#pragma once
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class CSVOutput;
-template <>
-constexpr std::string_view GetFormatName<CSVOutput>() noexcept
-{
-  return "csv";
-}
-
-class CSVOutput : public IOutput
+class CSVOutput : public BasicFormatOutput<CSVOutput>
 {
 public:
   explicit CSVOutput(const ProgramOptions&);
+  ~CSVOutput() override = default;
+
   void Start() override;
   bool Write(const Warning& msg) override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<CSVOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "csv";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return FormatName();
   }
 };
 
 }
-
-#endif // CSVOUTPUT_H

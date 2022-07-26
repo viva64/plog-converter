@@ -23,7 +23,6 @@ add_library(plog STATIC
     configparser.cpp
     configparser.h
     configs.h
-    ioutput.cpp
     ioutput.h
     iworker.cpp
     JsonUtils.h
@@ -33,7 +32,6 @@ add_library(plog STATIC
     messagefilter.h
     messageparser.cpp
     messageparser.h
-    multipleoutput.cpp
     multipleoutput.h
     outputfactory.cpp
     outputfactory.h
@@ -48,9 +46,8 @@ add_library(plog STATIC
 
     Formats/csvoutput.cpp
     Formats/csvoutput.h
-    Formats/errorfileoutput.cpp
     Formats/errorfileoutput.h
-	Formats/errorfileverboseoutput.cpp
+    Formats/errorfileverboseoutput.cpp
     Formats/errorfileverboseoutput.h
     Formats/htmloutput.cpp
     Formats/htmloutput.h
@@ -64,7 +61,6 @@ add_library(plog STATIC
     Formats/sarifvscodeoutput.h
     Formats/simplehtml.cpp
     Formats/simplehtml.h
-    Formats/tasklistoutput.cpp
     Formats/tasklistoutput.h
     Formats/tasklistverboseoutput.cpp
     Formats/tasklistverboseoutput.h

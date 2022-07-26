@@ -2,9 +2,10 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef MESSAGEPARSER_H
-#define MESSAGEPARSER_H
+#pragma once
+
 #include <string>
+
 #include "warning.h"
 
 namespace PlogConverter
@@ -40,5 +41,3 @@ private:
 };
 
 }
-
-#endif // MESSAGEPARSER_H

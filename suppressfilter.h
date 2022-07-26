@@ -2,21 +2,20 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef SUPPRESSFILTER_H
-#define SUPPRESSFILTER_H
+#pragma once
 
 #include <optional>
 
 #include "configs.h"
+#include "ioutput.h"
 #include "messagefilter.h"
 #include "utils.h"
 #include "warning.h"
-#include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class SuppressFilter : public IFilter
+class SuppressFilter : public IFilter<Warning>
 {
 private:
   struct File
@@ -41,8 +40,9 @@ private:
   std::vector<uint32_t> m_enabledWarnings;
 
 public:
-  explicit SuppressFilter(IOutput* output, const ProgramOptions& options);
+  explicit SuppressFilter(PlogConverter::IOutput<PlogConverter::Warning>* output, const ProgramOptions& options);
   ~SuppressFilter() override;
+
   bool Check(const Warning& message) const override;
 
 private:
@@ -53,5 +53,3 @@ private:
 };
 
 }
-
-#endif // SUPPRESSFILTER_H

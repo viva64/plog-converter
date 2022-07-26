@@ -3,7 +3,7 @@
 //  2020-2022 (c) PVS-Studio LLC
 
 #include <stdexcept>
-#include "outputfactory.h"
+
 #include "Formats/xmloutput.h"
 #include "Formats/csvoutput.h"
 #include "Formats/errorfileoutput.h"
@@ -18,6 +18,7 @@
 #include "Formats/misracomplianceoutput.h"
 #include "Formats/jsonoutput.h"
 #include "Formats/totalsoutput.h"
+#include "outputfactory.h"
 
 namespace PlogConverter
 {
@@ -31,7 +32,7 @@ static OutputFactory::AllocFunction FactoryFunction()
 template<typename T>
 std::pair<std::string_view, OutputFactory::AllocFunction> CreateOutputFormatRecord()
 {
-  return { GetFormatName<T>(), FactoryFunction<T>() };
+  return { T::FormatName(), FactoryFunction<T>() };
 }
 
 OutputFactory::OutputFactory()
@@ -54,7 +55,7 @@ OutputFactory::OutputFactory()
 {
 }
 
-std::unique_ptr<IOutput> OutputFactory::createOutput(const ProgramOptions &os, const std::string &format)
+std::unique_ptr<BaseFormatOutput> OutputFactory::createOutput(const ProgramOptions &os, const std::string &format)
 {
   auto it = m_formats.find(format);
   if (it == m_formats.end())
@@ -62,7 +63,7 @@ std::unique_ptr<IOutput> OutputFactory::createOutput(const ProgramOptions &os, c
     throw std::runtime_error("Incorrect format given");
   }
 
-  return std::unique_ptr<IOutput>(it->second(os));
+  return std::unique_ptr<BaseFormatOutput>(it->second(os));
 }
 
 void OutputFactory::registerOutput(std::string_view format, AllocFunction f)

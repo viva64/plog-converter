@@ -4,28 +4,23 @@
 
 #include "tasklistverboseoutput.h"
 
+using namespace std::literals::string_view_literals;
+
 namespace PlogConverter
 {
 
-TaskListVerboseOutput::TaskListVerboseOutput(const ProgramOptions &opt) 
-  : TaskListOutput(opt)
+TaskListVerboseOutput::TaskListVerboseOutput(const ProgramOptions &opt) : TaskListOutputImpl<TaskListVerboseOutput>{ opt }
 {
-
 }
-
-TaskListVerboseOutput::~TaskListVerboseOutput() = default;
 
 constexpr std::string_view GetAdditionalPrefix() noexcept
 {
-  using namespace std::literals::string_view_literals;
   return "    |--"sv;
 }
 
 bool TaskListVerboseOutput::Write(const Warning &msg)
 {
-  using namespace std::literals::string_view_literals;
-
-  if (TaskListOutput::Write(msg))
+  if (TaskListOutputImpl::Write(msg))
   {
     if (msg.positions.size() > 1u)
     {
@@ -41,8 +36,10 @@ bool TaskListVerboseOutput::Write(const Warning &msg)
 
       m_ostream.flush();
     }
+
     return true;
   }
+
   return false;
 }
 

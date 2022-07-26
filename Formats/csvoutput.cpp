@@ -3,18 +3,20 @@
 //  2020-2022 (c) PVS-Studio LLC
 
 #include <algorithm>
+#include <string_view>
+
 #include "csvoutput.h"
 
 namespace PlogConverter
 {
 
-CSVOutput::CSVOutput(const ProgramOptions &opt) : IOutput(opt, "csv")
+CSVOutput::CSVOutput(const ProgramOptions &opt) : BasicFormatOutput(opt)
 {
 }
 
-static std::string Escape(const std::string &src)
+static std::string Escape(std::string_view src)
 {
-  std::string str = src;
+  auto str = std::string{ src };
   ReplaceAll(str, "\"", "\"\"");
   ReplaceAll(str, ",", "\\,");
   return str;

@@ -2,11 +2,9 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef MISRACOMPLIANCEOUTPUT_H
-#define MISRACOMPLIANCEOUTPUT_H
+#pragma once
 
 #include "ioutput.h"
-
 #include "ThirdParty/strnatcmp/strnatcmp.h"
 
 namespace PlogConverter
@@ -61,28 +59,40 @@ struct naturalCmp
   }
 };
 
-class MisraComplianceOutput;
-template<>
-constexpr std::string_view GetFormatName<MisraComplianceOutput>() noexcept
-{
-  return "misra-compliance";
-}
-
-class MisraComplianceOutput : public IOutput
+class MisraComplianceOutput : public BasicFormatOutput<MisraComplianceOutput>
 {
 public:
   using CategoriesMap = std::map<std::string, ComplianceData, naturalCmp>;
 
   explicit MisraComplianceOutput(const ProgramOptions& opt);
+  ~MisraComplianceOutput() override = default;
+
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
-  ~MisraComplianceOutput() override = default;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<MisraComplianceOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return false;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "misra-compliance";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return "";
   }
 
   static CategoriesMap& Categories();
@@ -92,6 +102,7 @@ private:
   const std::filesystem::path &m_directory;
   std::filesystem::path m_grpFile;
   std::set<std::string> m_customDiviations;
+  std::ofstream m_htmlFile{};
 
   void PrintHtmlStart();
   void PrintHtmlEnd();
@@ -108,9 +119,7 @@ private:
 
   std::string ToString(Category);
   std::string ToString(Compliance, int, int);
-  Category ToCategory(const std::string&);
+  Category ToCategory(std::string_view);
 };
 
 }
-
-#endif

@@ -2,16 +2,17 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#include "misracomplianceoutput.h"
-#include <resources.h>
 #include <algorithm>
+#include <resources.h>
+
+#include "misracomplianceoutput.h"
 #include "../utils.h"
 
 namespace PlogConverter
 {
 
-static char HtmlHead[] = R"(
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+static constexpr std::string_view MisraHtmlHead =
+R"(<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
   <title>Messages</title>
@@ -38,30 +39,28 @@ static char HtmlHead[] = R"(
 <body>
 )";
 
-static char HtmlEnd[] = R"(
-  </table>
+static constexpr std::string_view MisraHtmlEnd =
+R"(  </table>
 </body>
-</html>
-)";
+</html>)";
 
 MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
-  : IOutput(opt, std::string{ GetFormatName() }, false)
+  : BasicFormatOutput(opt)
   , m_directory { m_output }
   , m_grpFile{ opt.grp }
   , m_customDiviations { opt.misraDivations }
-{ 
+{
   if (!m_grpFile.empty() && !std::filesystem::exists(m_grpFile))
   {
     throw std::runtime_error("File not found: " + m_grpFile.string());
   }
 
   auto misracompliancePath = m_directory / "misracompliance.html";
-  m_ofstream.open(misracompliancePath);
-  if (!m_ofstream.is_open())
+  m_htmlFile.open(misracompliancePath);
+  if (!m_htmlFile.is_open())
   {
     throw FilesystemException("Couldn't open " + misracompliancePath.string());
   }
-
 }
 
 void MisraComplianceOutput::Start()
@@ -81,7 +80,7 @@ bool MisraComplianceOutput::Write(const Warning& msg)
     return false;
   }
 
-  std::string misraCCode = GetMisraCCode(msg.sastId);
+  auto misraCCode = GetMisraCCode(msg.sastId);
   if (misraCCode.empty())
   {
     return false;
@@ -120,17 +119,20 @@ void MisraComplianceOutput::Finish()
   PrintHtmlStart();
   PrintHtmpComplianceReport();
   PrintHtmlEnd();
+
+  m_htmlFile.flush();
+
   PrintFileExtra("logomisra.png", PlogConverter::Resources::LogoMisra(), std::ios_base::binary);
 }
 
 void MisraComplianceOutput::PrintHtmlStart()
 {
-  m_ofstream << HtmlHead << std::endl;
+  m_htmlFile << MisraHtmlHead;
 }
 
 void MisraComplianceOutput::PrintHtmlEnd()
 {
-  m_ofstream << HtmlEnd << std::endl;
+  m_htmlFile << MisraHtmlEnd;
 }
 
 namespace 
@@ -189,8 +191,8 @@ void MisraComplianceOutput::RecategoriesByGRP()
         DumpError("Incorrect GRP line: \"" + line + "\". Expected \"Rule <ID> = <Category>\".", lineNumber);
       }
 
-      const auto& guideline = tokens.front();
-      const auto& categoryLine = *std::next(tokens.begin());
+      auto& guideline = tokens.front();
+      auto& categoryLine = *std::next(tokens.begin());
 
       auto category = ToCategory(categoryLine);
 
@@ -232,14 +234,14 @@ void MisraComplianceOutput::PrintHtmpComplianceReport()
 {
   PrintHtmlComplianceHeader();
 
-  m_ofstream << R"(  <table style="width: 100%; font: 14pt normal Century Gothic;">)" << std::endl;
-  m_ofstream << R"(    <caption style="font-weight: bold;background: #fff;color: #000;border: none !important;"></caption>)" << std::endl;
-  m_ofstream << R"(    <tr style="background: #454545; color: white;">)" << std::endl;
-  m_ofstream << R"(      <th style="width: 25%;">Guideline</th>)" << std::endl;
-  m_ofstream << R"(      <th style="width: 25%;">Category</th>)" << std::endl;
-  m_ofstream << R"(      <th style="width: 25%;">Recategorication</th>)" << std::endl;
-  m_ofstream << R"(      <th style="width: 25%;">Compliance</th>)" << std::endl;
-  m_ofstream << R"(    </tr>)" << std::endl;
+  m_htmlFile << R"(  <table style="width: 100%; font: 14pt normal Century Gothic;">)" << '\n';
+  m_htmlFile << R"(    <caption style="font-weight: bold;background: #fff;color: #000;border: none !important;"></caption>)" << '\n';
+  m_htmlFile << R"(    <tr style="background: #454545; color: white;">)" << '\n';
+  m_htmlFile << R"(      <th style="width: 25%;">Guideline</th>)" << '\n';
+  m_htmlFile << R"(      <th style="width: 25%;">Category</th>)" << '\n';
+  m_htmlFile << R"(      <th style="width: 25%;">Recategorication</th>)" << '\n';
+  m_htmlFile << R"(      <th style="width: 25%;">Compliance</th>)" << '\n';
+  m_htmlFile << R"(    </tr>)" << std::endl;
 
   bool colorFlipFlop = true;
   for (const auto& [_, cd] : Categories())
@@ -253,22 +255,22 @@ void MisraComplianceOutput::PrintHtmlComplianceHeader()
 {
   auto&& [resultCompliant, summary] = GetComplianceResult();
 
-  m_ofstream << R"(<p><img src="logoMisra.png" width="115" height="111" class="leftimg"/>
+  m_htmlFile << R"(<p><img src="logoMisra.png" width="115" height="111" class="leftimg"/>
   <h2>MISRA Guideline Compliance Summary</h2>
   <p style="font: 13pt normal Century Gothic;">Guidelines: <b>MISRA C 2012</b></p>
-  <p style="font: 13pt normal Century Gothic;">Checking tool: <b>PVS-Studio</b></p></p>)" << std::endl;
-  m_ofstream << R"(<hr align="left" width="545" size="1" color="#999999" />)" << std::endl;
+  <p style="font: 13pt normal Century Gothic;">Checking tool: <b>PVS-Studio</b></p></p>)" << '\n';
+  m_htmlFile << R"(<hr align="left" width="545" size="1" color="#999999" />)" << '\n';
 
   if (resultCompliant)
   {
-    m_ofstream << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:green !important;'>Compliant</b></p>)" << std::endl;
+    m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:green !important;'>Compliant</b></p>)" << '\n';
   }
   else
   {
-    m_ofstream << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:red !important;'>Not compliant</b></p>)" << std::endl;
+    m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:red !important;'>Not compliant</b></p>)" << '\n';
   }
 
-  m_ofstream << R"( <p style="font: 13pt normal Century Gothic;">Summary: )" + summary + R"(</p>)" << std::endl;
+  m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Summary: )" + summary + R"(</p>)" << std::endl;
 }
 
 std::pair<bool, std::string> MisraComplianceOutput::GetComplianceResult()
@@ -455,17 +457,17 @@ void MisraComplianceOutput::PrintTableRow(const ComplianceData& cd, bool colorFl
 {
   if (colorFlipFlop)
   {
-    m_ofstream << R"(    <tr style='background: white;'>)" << std::endl;
+    m_htmlFile << R"(    <tr style='background: white;'>)" << '\n';
   }
   else
   {
-    m_ofstream << R"(    <tr style='background: #F4F4F4;'>)" << std::endl;
+    m_htmlFile << R"(    <tr style='background: #F4F4F4;'>)" << '\n';
   }
   colorFlipFlop = !colorFlipFlop;
 
-  m_ofstream << R"(      <td colspan='0' style='color: black; text-align: center; font-size: 1.0em;'>)" << cd.guideline << R"(</td>)" << std::endl;
-  m_ofstream << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.defaultCategory) << R"(</td>)" << std::endl;
-  m_ofstream << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.recategorization) << R"(</td>)" << std::endl;
+  m_htmlFile << R"(      <td colspan='0' style='color: black; text-align: center; font-size: 1.0em;'>)" << cd.guideline << R"(</td>)" << '\n';
+  m_htmlFile << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.defaultCategory) << R"(</td>)" << '\n';
+  m_htmlFile << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.recategorization) << R"(</td>)" << '\n';
 
   std::string bgcolor = "";
   std::string compliance = ToString(cd.compliance, cd.deviationsCount, cd.violationsCount);
@@ -476,11 +478,11 @@ void MisraComplianceOutput::PrintTableRow(const ComplianceData& cd, bool colorFl
     bgcolor = "bgcolor=\"#FADBD8\"";
   }
 
-  m_ofstream << R"(      <td colspan='2' )" + bgcolor + R"( style='color: black; text-align: center; font-size: 1.0em;'>)" << compliance << R"(</td>)" << std::endl;
-  m_ofstream << R"(    </tr>)" << std::endl;
+  m_htmlFile << R"(      <td colspan='2' )" + bgcolor + R"( style='color: black; text-align: center; font-size: 1.0em;'>)" << compliance << R"(</td>)" << '\n';
+  m_htmlFile << R"(    </tr>)" << std::endl;
 }
 
-Category MisraComplianceOutput::ToCategory(const std::string& category)
+Category MisraComplianceOutput::ToCategory(std::string_view category)
 {
   auto lower = ToLower(category);
   if (lower == "mandatory")
@@ -510,19 +512,25 @@ std::string MisraComplianceOutput::ToString(Category category)
   switch (category)
   {
     case (Category::Mandatory):
+    {
       return "Mandatory";
-    
+    }
     case (Category::Required):
+    {
       return "Required";
-
+    }
     case (Category::Advisory):
+    {
       return "Advisory";
- 
+    }
     case (Category::Disapplied):
+    {
       return "Disapplied";
-
+    }
     default:
+    {
       return "";
+    }
   }
 }
 
@@ -530,27 +538,35 @@ std::string MisraComplianceOutput::ToString(Compliance compliance, int deviation
 {
   switch (compliance)
   {
-  case (Compliance::Compliant):
-    return "Compliant";
-
-  case (Compliance::Deviations):
-    return "Deviations (" + std::to_string(deviationsCount) + ")";
-
-  case (Compliance::Violations):
-    return "Violations (" + std::to_string(violationsCount) + ")";
-
-  case (Compliance::ViolationsDeviations):
-    return "Violations (" + std::to_string(violationsCount) + "), "
-         + "Deviations (" + std::to_string(violationsCount) + ")";
-
-  case (Compliance::Disapplied):
-    return "Disapplied";
-
-  case (Compliance::NotSupported):
-    return "Not Supported";
-
-  default:
-    return "";
+    case (Compliance::Compliant):
+    {
+      return "Compliant";
+    }
+    case (Compliance::Deviations):
+    {
+      return "Deviations (" + std::to_string(deviationsCount) + ")";
+    }
+    case (Compliance::Violations):
+    {
+      return "Violations (" + std::to_string(violationsCount) + ")";
+    }
+    case (Compliance::ViolationsDeviations):
+    {
+      return "Violations (" + std::to_string(violationsCount) + "), "
+           + "Deviations (" + std::to_string(violationsCount) + ")";
+    }
+    case (Compliance::Disapplied):
+    {
+      return "Disapplied";
+    }
+    case (Compliance::NotSupported):
+    {
+      return "Not Supported";
+    }
+    default:
+    {
+      return "";
+    }
   }
 }
 

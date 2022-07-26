@@ -2,24 +2,24 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#include "utils.h"
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 
-#include <cstddef>
-
 #ifdef _WIN32
+#include <direct.h>
 #include <io.h>
 #include <Shlwapi.h>
-#include <direct.h>
 // for WideCharToMultiByte, MultiByteToWideChar
 #include <stringapiset.h>
 #else
-#include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #endif
 #include <unordered_map>
+
+#include "utils.h"
 
 
 namespace PlogConverter
@@ -87,12 +87,12 @@ void ReplaceAll(std::string& src, const std::string& toReplace, const std::strin
   }
 }
 
-std::ifstream OpenFile(const std::string &path)
+std::ifstream OpenFile(const std::filesystem::path& path)
 {
   std::ifstream stream(path);
   if (!stream.is_open())
   {
-    throw FilesystemException("File doesn't exist: " + path);
+    throw FilesystemException("File doesn't exist: " + path.string());
   }
 
   const int BOMSize = 3;
@@ -101,9 +101,13 @@ std::ifstream OpenFile(const std::string &path)
   stream.read(header, BOMSize);
 
   if (!memcmp(header, UTF8Bom, BOMSize))
+  {
     stream.seekg(BOMSize);
+  }
   else
+  {
     stream.seekg(0);
+  }
 
   return stream;
 }
@@ -144,12 +148,13 @@ std::string EscapeHtml(const std::string &src)
   return str;
 }
 
-std::string ToLower(const std::string &src)
+std::string ToLower(std::string_view src)
 {
-  std::string str = src;
-  for (char &c : str)
+  std::string str;
+  str.resize(src.size());
+  for (auto c : src)
   {
-    c = static_cast<char>(tolower(c));
+    str.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
   }
 
   return str;

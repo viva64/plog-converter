@@ -2,13 +2,14 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cstring>
+#include <functional>
+
 #include "suppressfilter.h"
 #include "warning.h"
-#include <cstring>
-#include <cctype>
-#include <algorithm>
-#include <functional>
-#include <cassert>
 
 namespace PlogConverter
 {
@@ -20,14 +21,14 @@ static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
   return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1); //-V104
 }
 
-SuppressFilter::SuppressFilter(IOutput* output, const ProgramOptions &options)
-  : IFilter(output)
+SuppressFilter::SuppressFilter(IOutput<Warning>* output, const ProgramOptions &options)
+  : IFilter<Warning>(output)
   , m_disabledWarnings(options.disabledWarnings)
   , m_enabledAnalyzerLevels(Analyzer::AnalyzersCount * Analyzer::LevelsCount, options.enabledAnalyzers.empty() ? 1 : 0)
   , m_enabledFiles(options.enabledFiles.size())
   , m_enabledWarnings(options.enabledWarnings)
 {
-  for (const Analyzer& it : options.enabledAnalyzers)
+  for (auto& it : options.enabledAnalyzers)
   {
     if (it.levels.empty())
     {

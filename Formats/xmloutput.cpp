@@ -7,16 +7,13 @@
 namespace PlogConverter
 {
 
-XMLOutput::XMLOutput(const ProgramOptions &opt) : IOutput(opt, "xml")
+XMLOutput::XMLOutput(const ProgramOptions &opt) : BasicFormatOutput{ opt }
 {
-
 }
-
-XMLOutput::~XMLOutput() = default;
 
 void XMLOutput::Start()
 {
-  m_ostream << "<?xml version=\"1.0\"?>" << std::endl
+  m_ostream << "<?xml version=\"1.0\"?>" << '\n'
             << "<NewDataSet>" << std::endl;
 }
 
@@ -27,30 +24,30 @@ bool XMLOutput::Write(const Warning& msg)
     return false;
   }
 
-  m_ostream << "  <PVS-Studio_Analysis_Log>" << std::endl
-            << "    <Level>" << msg.level << "</Level>" << std::endl
-            << "    <ErrorType>" << msg.GetLevelString() << "</ErrorType>" << std::endl
-            << "    <ErrorCode>" << msg.code << "</ErrorCode>" << std::endl
-            << "    <Message>" << EscapeHtml(msg.message) << "</Message>" << std::endl
-            << "    <Line>" << msg.GetLine() << "</Line>" << std::endl
-            << "    <File>" << msg.GetFileUTF8() << "</File>" << std::endl;
+  m_ostream << "  <PVS-Studio_Analysis_Log>" << '\n'
+            << "    <Level>" << msg.level << "</Level>" << '\n'
+            << "    <ErrorType>" << msg.GetLevelString() << "</ErrorType>" << '\n'
+            << "    <ErrorCode>" << msg.code << "</ErrorCode>" << '\n'
+            << "    <Message>" << EscapeHtml(msg.message) << "</Message>" << '\n'
+            << "    <Line>" << msg.GetLine() << "</Line>" << '\n'
+            << "    <File>" << msg.GetFileUTF8() << "</File>" << '\n';
 
   auto extendedLines = msg.GetExtendedLines();
   if(extendedLines.size() > 1)
   {
-    m_ostream << "    <Positions>" << std::endl;
-    m_ostream << "      <Position lines=\"" << Join(extendedLines, [](auto v) { return std::to_string(v); }, ",") << "\">" << msg.GetFile() << "</Position>" << std::endl;
-    m_ostream << "    </Positions>" << std::endl;
+    m_ostream << "    <Positions>" << '\n';
+    m_ostream << "      <Position lines=\"" << Join(extendedLines, [](auto v) { return std::to_string(v); }, ",") << "\">" << msg.GetFile() << "</Position>" << '\n';
+    m_ostream << "    </Positions>" << '\n';
   }
 
   if (msg.HasCWE())
   {
-    m_ostream << "    <CWECode>" << msg.GetCWEString() << "</CWECode>" << std::endl;
+    m_ostream << "    <CWECode>" << msg.GetCWEString() << "</CWECode>" << '\n';
   }
 
   if (msg.HasSAST())
   {
-    m_ostream << "    <SAST>" << msg.sastId << "</SAST>" << std::endl;
+    m_ostream << "    <SAST>" << msg.sastId << "</SAST>" << '\n';
   }
 
   m_ostream << "  </PVS-Studio_Analysis_Log>" << std::endl;
@@ -61,6 +58,7 @@ bool XMLOutput::Write(const Warning& msg)
 void XMLOutput::Finish()
 {
   m_ostream << "</NewDataSet>" << std::endl;
+  BasicFormatOutput<XMLOutput>::Finish();
 }
 
 }

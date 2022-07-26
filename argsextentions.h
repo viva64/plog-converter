@@ -10,7 +10,7 @@ using namespace std::string_view_literals;
 class StringSplitter
 {
   // todo [c++20]: use forward iterator concept
-  
+
   template <typename It>
   It SkipSeparator(It strIt, It last, std::string_view sep) const noexcept;
 

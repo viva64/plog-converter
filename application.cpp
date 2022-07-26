@@ -4,19 +4,19 @@
 
 #include <args.hxx>
 #include <filesystem>
-#include <iostream>
 #include <cstring>
+#include <iostream>
 #include <iterator>
 #include <string_view>
 
 #include "application.h"
-#include "configparser.h"
-#include "warning.h"
-#include "outputfactory.h"
-#include "logparserworker.h"
-#include "utils.h"
-#include "Formats/misracomplianceoutput.h"
 #include "argsextentions.h"
+#include "configparser.h"
+#include "Formats/misracomplianceoutput.h"
+#include "logparserworker.h"
+#include "outputfactory.h"
+#include "utils.h"
+#include "warning.h"
 
 using namespace std::string_view_literals;
 using namespace std::string_literals;
@@ -283,6 +283,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
                                          { 't', "renderTypes" }, outputFactory.getMap());
   ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
   outputFile.HelpDefault("<stdout>");
+  Flag useStdout(parser, "USESTDOUT", "Display the report to standard output when '--output' parameter specified.", { "stdout" }, Options::Single);
   ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
   ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2'",
                                   { CmdAnalyzerFlagName_Short, CmdAnalyzerFlagName_Full }, "GA:1,2", Options::Single);
@@ -315,7 +316,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
                                                   "toRelative - transform to relative with source root (--srcRoot option).",
                                                   { 'R', "pathTransformationMode" },
                                                   Options::Single
-                                                 };
+                                                };
 
   try
   {
@@ -336,20 +337,16 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.misraDivations = ParseMisraDiviations(get(misraDiviations));
     m_options.useStderr = useCerr;
     m_options.noHelp = noHelp;
+    m_options.useStdout = useStdout;
     m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
     m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
 
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);
 
-    if (m_options.formats.size() == 1 && name)
+    if (m_options.formats.size() > 1 && (m_options.useStdout || (m_options.output.empty() && m_options.outputName.empty())))
     {
-      if (outputFile)
-      {
-        throw ConfigException("Use of '-o' and '-n' flags meant for multiple formats. For single format, use '-o' flag instead.");
-      }
-
-      std::cerr << "WARNING: possibly incorrect use of template flag. For single format, use '-o' flag instead." << std::endl;
+      throw ConfigException("Standard output is not supported for multiple output formats. Specify output directory --output (-o).");
     }
   }
   catch (Completion &e)

@@ -2,8 +2,8 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef CHAR_MAP
-#define CHAR_MAP
+#pragma once
+
 #include <cstddef>
 #include <string>
 
@@ -17,5 +17,3 @@ namespace CharMap
   void DecodeForPlatform(std::string& str);
   bool IsStartEncodedMarker(const std::string &str);
 }
-
-#endif

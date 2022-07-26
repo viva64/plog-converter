@@ -2,13 +2,14 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cstring>
+#include <functional>
+
 #include "messagefilter.h"
 #include "warning.h"
-#include <cstring>
-#include <cctype>
-#include <algorithm>
-#include <functional>
-#include <cassert>
 
 namespace PlogConverter
 {
@@ -20,7 +21,7 @@ static size_t AnalyzerLevelIndex(AnalyzerType type, int level)
   return static_cast<size_t>(type) * Analyzer::LevelsCount + (level - 1); //-V104
 }
 
-MessageFilter::MessageFilter(IOutput* output, const ProgramOptions &options)
+MessageFilter::MessageFilter(IOutput<Warning>* output, const ProgramOptions &options)
   : IFilter(output)
   , m_enabledAnalyzerLevels(Analyzer::AnalyzersCount * Analyzer::LevelsCount, options.enabledAnalyzers.empty() ? 1 : 0)
   , m_disabledKeywords(options.disabledKeywords)
@@ -74,8 +75,8 @@ bool MessageFilter::CheckKeywords(const Warning &message) const
 
   auto isAlNum = [](char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); };
 
-  const std::string& errorString = message.GetNavigationInfo().currentLineString;
-  const size_t errorStringSize = errorString.size();
+  auto errorString = message.GetNavigationInfo().currentLineString;
+  auto errorStringSize = errorString.size();
   for (size_t tokenBegin = 0; tokenBegin < errorStringSize;)
   {
     size_t tokenEnd = 0;

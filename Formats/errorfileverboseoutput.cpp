@@ -7,12 +7,9 @@
 namespace PlogConverter
 {
 
-ErrorFileVerboseOutput::ErrorFileVerboseOutput(const ProgramOptions &opt) 
-  : ErrorFileOutput(opt)
+ErrorFileVerboseOutput::ErrorFileVerboseOutput(const ProgramOptions &opt) : ErrorFileOutputImpl<ErrorFileVerboseOutput>{ opt }
 {
 }
-
-ErrorFileVerboseOutput::~ErrorFileVerboseOutput() = default;
 
 constexpr std::string_view GetColumnDelimeter()
 {
@@ -34,13 +31,13 @@ bool ErrorFileVerboseOutput::Write(const Warning& msg)
 {
   using namespace std::literals::string_view_literals;
 
-  if (ErrorFileOutput::Write(msg))
+  if (ErrorFileOutputImpl::Write(msg))
   {
     if (msg.positions.size() > 1u)
     {
       auto warningLevel = msg.GetLevelString();
-      constexpr auto delimeter = GetColumnDelimeter();
-      constexpr auto prefix = GetAdditionalPrefix();
+      static constexpr auto delimeter = GetColumnDelimeter();
+      static constexpr auto prefix = GetAdditionalPrefix();
 
       for (auto it = std::next(msg.positions.begin(), 1u); it != msg.positions.end(); ++it)
       {

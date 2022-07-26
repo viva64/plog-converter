@@ -1,31 +1,46 @@
-#ifndef JSONOUTPUT_H
-#define JSONOUTPUT_H
+//  2006-2008 (c) Viva64.com Team
+//  2008-2020 (c) OOO "Program Verification Systems"
+//  2020-2022 (c) PVS-Studio LLC
+
+#pragma once
 
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class JsonOutput;
-template<>
-constexpr std::string_view GetFormatName<JsonOutput>() noexcept
-{
-  return "json";
-}
-
-class JsonOutput : public IOutput
+class JsonOutput : public BasicFormatOutput<JsonOutput>
 {
 public:
   explicit JsonOutput(const ProgramOptions&);
   ~JsonOutput() override = default;
+
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<JsonOutput>();
+    return true;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "json";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return FormatName();
   }
 
 private:
@@ -34,5 +49,3 @@ private:
 };
 
 }
-
-#endif // JSONOUTPUT_H

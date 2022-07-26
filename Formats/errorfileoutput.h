@@ -2,34 +2,87 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef ERRORFILEOUTPUT_H
-#define ERRORFILEOUTPUT_H
+#pragma once
+
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class ErrorFileOutput;
-template<>
-constexpr std::string_view GetFormatName<ErrorFileOutput>() noexcept
+template <class Derived = void>
+class ErrorFileOutputImpl : public BasicFormatOutput<std::conditional_t<std::is_void_v<Derived>, ErrorFileOutputImpl<>, Derived>>
 {
-  return "errorfile";
-}
-
-class ErrorFileOutput : public IOutput
-{
+  using Base = BasicFormatOutput<std::conditional_t<std::is_void_v<Derived>, ErrorFileOutputImpl<>, Derived>>;
 public:
-  explicit ErrorFileOutput(const ProgramOptions&);
-  ~ErrorFileOutput() override;
-  bool Write(const Warning& msg) override;
+  explicit ErrorFileOutputImpl(const ProgramOptions& opt) : Base{ opt }
+  {
+  }
+  ~ErrorFileOutputImpl() override = default;
+
+  bool Write(const Warning& msg) override
+  {
+    std::string securityPrefix;
+
+    bool showSAST = false;
+    bool showCWE = false;
+
+    Base::DetectShowTags(showCWE, showSAST);
+
+    if (showCWE && msg.HasCWE())
+      securityPrefix += msg.GetCWEString();
+
+    if (showSAST && msg.HasSAST())
+    {
+      if (!securityPrefix.empty())
+        securityPrefix += ", ";
+
+      securityPrefix += msg.sastId;
+    }
+
+    if (!securityPrefix.empty())
+    {
+      securityPrefix = '[' + securityPrefix + "] ";
+    }
+
+#if defined (_WIN32)
+    const std::string column{ ": " };
+#else
+    const std::string column{ ":1: " };
+#endif
+
+    Base::m_ostream << msg.GetFileUTF8() << ":" << msg.GetLine() << column
+              << msg.GetLevelString() << ": "
+              << msg.code << " "
+              << securityPrefix << msg.message << std::endl;
+
+    return true;
+  }
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<ErrorFileOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "errorfile";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return "err";
   }
 };
 
-}
+using ErrorFileOutput = ErrorFileOutputImpl<>;
 
-#endif // ERRORFILEOUTPUT_H
+}

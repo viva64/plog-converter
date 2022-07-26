@@ -12,8 +12,8 @@
 namespace PlogConverter
 {
 
-ConfigParser::ConfigParser(const std::string& pathToConfig, const std::vector<std::string>& multiArguments) :
-  m_pathToConfig(pathToConfig)
+ConfigParser::ConfigParser(const std::filesystem::path& pathToConfig, const std::vector<std::string>& multiArguments)
+  : m_pathToConfig(pathToConfig)
 {
   try
   {

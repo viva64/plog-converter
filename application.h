@@ -2,11 +2,12 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
-#include "configs.h"
+#pragma once
+
 #include <string>
 #include <vector>
+
+#include "configs.h"
 #include "iworker.h"
 #include "outputfactory.h"
 
@@ -52,5 +53,3 @@ private:
 };
 
 }
-
-#endif // APPLICATION_H

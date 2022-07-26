@@ -2,37 +2,46 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef XMLOUTPUT_H
-#define XMLOUTPUT_H
+#pragma once
+
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class XMLOutput;
-template <>
-constexpr std::string_view GetFormatName<XMLOutput>() noexcept
-{
-  return "xml";
-}
-
-
-class XMLOutput : public IOutput
+class XMLOutput : public BasicFormatOutput<XMLOutput>
 {
 public:
   explicit XMLOutput(const ProgramOptions &);
+  ~XMLOutput() override = default;
+
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
-  ~XMLOutput() override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<XMLOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "xml";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return FormatName();
   }
 };
 
 }
-
-#endif // XMLOUTPUT_H

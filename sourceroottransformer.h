@@ -2,21 +2,21 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef SOURCEROOTTRANSFORMER_H
-#define SOURCEROOTTRANSFORMER_H
+#pragma once
+
 #include "configs.h"
-#include "warning.h"
-#include "utils.h"
 #include "ioutput.h"
+#include "utils.h"
+#include "warning.h"
 
 namespace PlogConverter
 {
 
-class SourceRootTransformer : public ITransform
+class SourceRootTransformer : public ITransform<Warning>
 {
 public:
-  explicit SourceRootTransformer(IOutput* output, const ProgramOptions& options);
-  ~SourceRootTransformer() override;
+  explicit SourceRootTransformer(IOutput<Warning>* output, const ProgramOptions& options);
+  ~SourceRootTransformer() override = default;
 
 private:
   Warning Transform(Warning message) const override;
@@ -24,5 +24,3 @@ private:
 };
 
 }
-
-#endif // SOURCEROOTTRANSFORMER_H

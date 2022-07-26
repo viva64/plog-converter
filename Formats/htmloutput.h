@@ -2,27 +2,21 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef HTMLOUTPUT_H
-#define HTMLOUTPUT_H
-#include <unordered_map>
+#pragma once
+
 #include <map>
-#include <vector>
 #include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-class HTMLOutput;
-template <>
-constexpr std::string_view GetFormatName<HTMLOutput>() noexcept
+class HTMLOutput : public BasicFormatOutput<HTMLOutput>
 {
-  return "fullhtml";
-}
-
-class HTMLOutput : public IOutput
-{
-private:
+  std::ofstream m_indexFile{};
   std::vector<Warning> m_messages;
 
   size_t m_ga = 0;
@@ -59,17 +53,34 @@ private:
 
 public:
   explicit HTMLOutput(const ProgramOptions &);
-  ~HTMLOutput() override;
+  ~HTMLOutput() override = default;
+
   bool Write(const Warning& msg) override;
   void Finish() override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<HTMLOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return false;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "fullhtml";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return FormatName();
   }
 };
 
 }
-
-#endif // HTMLOUTPUT_H

@@ -58,7 +58,7 @@ namespace PlogConverter
 }
 
 void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
-                               IOutput &output,
+                               IOutput<Warning> &output,
                                const std::string &root,
                                const ProgramOptions *options /* = nullptr */)
 {
@@ -196,15 +196,15 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  std::unique_ptr<MisraComplianceOutput, std::default_delete<IOutput>> misraCompliance;
-  std::unique_ptr<JsonOutput, std::default_delete<IOutput>> jsonOutput;
+  std::unique_ptr<MisraComplianceOutput, std::default_delete<BaseFormatOutput>> misraCompliance;
+  std::unique_ptr<JsonOutput, std::default_delete<BaseFormatOutput>> jsonOutput;
 
-  MultipleOutput transformPipeline;
+  MultipleOutput<Warning> transformPipeline;
   for (const auto &format : formats)
   {
     auto f = format(options);
 
-    if (!CheckUnsopporterdTransformation(f, options))
+    if (!CheckUnsupporterdTransformation(f, options))
     {
       std::move(*f).ClearOutput();
       continue;
@@ -224,11 +224,11 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  MultipleOutput filterPipeline;
+  MultipleOutput<Warning> filterPipeline;
 
   if (!transformPipeline.empty())
   {
-    filterPipeline.Add(std::make_unique<SourceRootTransformer>( &transformPipeline, options ));
+    filterPipeline.Add(std::make_unique<SourceRootTransformer>(&transformPipeline, options));
   }
 
   if (jsonOutput)
@@ -236,7 +236,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     filterPipeline.Add(std::move(jsonOutput));
   }
 
-  MultipleOutput output;
+  MultipleOutput<Warning> output;
   if (!filterPipeline.empty())
   {
     output.Add(std::make_unique<MessageFilter>( &filterPipeline, options ));
@@ -261,7 +261,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
 
   ParseLog(inputFiles, output, options.projectRoot, &options);
 
-  std::cout << "Total messages: " << m_countTotal << std::endl
+  std::cout << "Total messages: " << m_countTotal << '\n'
             << "Filtered messages: " << m_countSuccess << std::endl;
 }
 

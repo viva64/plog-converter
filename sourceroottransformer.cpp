@@ -57,18 +57,16 @@ namespace PlogConverter
 
   void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
   {
-      ReplacePathPrefix(str, root);
-  }
+    ReplacePathPrefix(str, root);
   }
 
-  SourceRootTransformer::SourceRootTransformer(IOutput* output, const ProgramOptions& options)
-    : ITransform(output)
+  }
+
+  SourceRootTransformer::SourceRootTransformer(IOutput<Warning>* output, const ProgramOptions& options)
+    : ITransform<Warning>(output)
     , m_options(options)
   {
-
   }
-
-  SourceRootTransformer::~SourceRootTransformer() = default;
 
   Warning SourceRootTransformer::Transform(Warning message) const
   {
@@ -86,7 +84,7 @@ namespace PlogConverter
         }
       }
     }
-    
+
     return message;
   }
 }

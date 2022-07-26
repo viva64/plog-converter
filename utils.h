@@ -2,15 +2,16 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef UTILS_H
-#define UTILS_H
-#include <utility>
-#include <string>
+#pragma once
+
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
-#include <vector>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "json.hpp"
 
@@ -28,7 +29,7 @@ std::string Trim(const std::string& src);
 void Replace(std::string& src, const std::string& toReplace, const std::string& replacer);
 void ReplaceAll(std::string& src, const std::string& toReplace, const std::string& replacer);
 std::string EscapeHtml(const std::string& src);
-std::string ToLower(const std::string& src);
+std::string ToLower(std::string_view src);
 
 std::string LeftPad(const std::string &str, size_t size, char ch = ' ');
 
@@ -108,7 +109,7 @@ std::string Join(Range &&range, const std::string &delimiter = " ")
 
 unsigned ParseUint(const std::string &str);
 
-std::ifstream OpenFile(const std::string &path);
+std::ifstream OpenFile(const std::filesystem::path &path);
 std::string Expand(const std::string &path);
 std::string FileBaseName(const std::string &filePath);
 std::string FileStem(const std::string &path);
@@ -174,5 +175,3 @@ namespace PvsStudio
   std::string FixErrorString(std::string line);
   uint32_t PvsHash(std::string_view line, unsigned version = ~0u /* latest version by default */) noexcept;
 }
-
-#endif // UTILS_H

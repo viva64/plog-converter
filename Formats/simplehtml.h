@@ -2,34 +2,47 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef SIMPLEHTMLOUTPUT_H
-#define SIMPLEHTMLOUTPUT_H
-#include <vector>
+#pragma once
+
 #include "ioutput.h"
+
+#include <vector>
 
 namespace PlogConverter
 {
 
-class SimpleHTMLOutput;
-template<>
-constexpr std::string_view GetFormatName<SimpleHTMLOutput>() noexcept
-{
-  return "html";
-}
-
-class SimpleHTMLOutput : public IOutput
+class SimpleHTMLOutput : public BasicFormatOutput<SimpleHTMLOutput>
 {
 public:
   explicit SimpleHTMLOutput(const ProgramOptions &);
-  ~SimpleHTMLOutput() override;
+  ~SimpleHTMLOutput() override = default;
+
   void Start() override;
   bool Write(const Warning& msg) override;
   void Finish() override;
 
   [[nodiscard]]
-  std::string_view GetFormatName() const noexcept override
+  static bool SupportsRelativePath() noexcept
   {
-    return ::PlogConverter::GetFormatName<SimpleHTMLOutput>();
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
+  {
+    return "html";
+  }
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
+  {
+    return FormatName();
   }
 
   static const int DefaultCweColumnWidth;
@@ -59,5 +72,3 @@ private:
 };
 
 }
-
-#endif // SIMPLEHTMLOUTPUT_H

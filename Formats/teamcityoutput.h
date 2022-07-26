@@ -2,37 +2,50 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef TEAMCITYOUTPUT_H
-#define TEAMCITYOUTPUT_H
+#pragma once
+
+#include <string_view>
 
 #include "ioutput.h"
 
 namespace PlogConverter
 {
 
-  class TeamCityOutput;
-  template<>
-  constexpr std::string_view GetFormatName<TeamCityOutput>() noexcept
+class TeamCityOutput : public BasicFormatOutput<TeamCityOutput>
+{
+private:
+  static std::string EscapeMessage(std::string_view);
+  std::set<std::string> m_inspectionsIDs;
+
+public:
+  explicit TeamCityOutput(const ProgramOptions&);
+  ~TeamCityOutput() override = default;
+
+  bool Write(const Warning &msg) override;
+
+  [[nodiscard]]
+  static bool SupportsRelativePath() noexcept
+  {
+    return false;
+  }
+
+  [[nodiscard]]
+  static bool OutputIsFile() noexcept
+  {
+    return true;
+  }
+
+  [[nodiscard]]
+  static std::string_view FormatName() noexcept
   {
     return "teamcity";
   }
-  
-  class TeamCityOutput : public IOutput
+
+  [[nodiscard]]
+  static std::string_view OutputSuffix() noexcept
   {
-  private:
-    std::string EscapeMessage(const std::string&);
-    std::set<std::string> m_inspectionsIDs;
-  public:
-    explicit TeamCityOutput(const ProgramOptions&);
-    bool Write(const Warning &msg) override;
-    ~TeamCityOutput() override;
+    return "TeamCity.txt";
+  }
+};
 
-    [[nodiscard]]
-    std::string_view GetFormatName() const noexcept override
-    {
-      return ::PlogConverter::GetFormatName<TeamCityOutput>();
-    }
-  };
 }
-
-#endif

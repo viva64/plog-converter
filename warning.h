@@ -2,13 +2,14 @@
 //  2008-2020 (c) OOO "Program Verification Systems"
 //  2020-2022 (c) PVS-Studio LLC
 
-#ifndef ANALYZERMESSAGE
-#define ANALYZERMESSAGE
-#include <vector>
-#include <string>
+#pragma once
+
 #include <algorithm>
-#include "utils.h"
+#include <string>
+#include <vector>
+
 #include "JsonUtils.h"
+#include "utils.h"
 
 namespace PlogConverter
 {
@@ -282,5 +283,3 @@ private:
 };
 
 }
-
-#endif // ANALYZERMESSAGE
