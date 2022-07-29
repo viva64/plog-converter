@@ -503,7 +503,7 @@ void HTMLOutput::PrintFileSources()
         {
           stream << R"(<div class="balloon" rel=")" << std::to_string(msg.GetLine()) << R"(">)"
                  << R"(<p><span style="font-size:18px">&uarr;</span> <a href=")" << msg.GetVivaUrl() << R"(" )"
-                 << R"(target="_blank">)" << msg.code << R"(</a> )" << msg.message << R"(</p></div>)"
+                 << R"(target="_blank">)" << msg.code << R"(</a> )" << EscapeHtml(msg.message) << R"(</p></div>)"
                  << "\n";
         }
       }
