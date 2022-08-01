@@ -23,6 +23,8 @@ add_library(plog STATIC
     configparser.cpp
     configparser.h
     configs.h
+    helpmessageoutput.cpp
+    helpmessageoutput.h
     ioutput.h
     iworker.cpp
     JsonUtils.h

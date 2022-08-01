@@ -56,11 +56,6 @@ public:
   void Start() override {}
   bool Write(const Warning& msg) override
   {
-    if (msg.IsDocumentationLinkMessage())
-    {
-      return false;
-    }
-
     m_warnings.push_back(msg);
 
     return true;

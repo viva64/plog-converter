@@ -34,13 +34,6 @@ namespace PlogConverter
 
   void ReplacePathPrefix(std::string &toReplace, std::string_view replacer)
   {
-    static std::string_view exception { "pvs-studio.com/en/docs/warnings/"sv };
-
-    if (toReplace.substr(0, exception.length()) == exception)
-    {
-      return;
-    }
-
     std::error_code rc;
     auto relative = std::filesystem::relative(toReplace, replacer, rc); //-V821
 

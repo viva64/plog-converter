@@ -212,11 +212,6 @@ void SimpleHTMLOutput::Start()
 
 bool SimpleHTMLOutput::Write(const Warning& msg)
 {
-  if (msg.IsDocumentationLinkMessage())
-  {
-    return false;
-  }
-
   switch (msg.GetType())
   {
     case (AnalyzerType::General):

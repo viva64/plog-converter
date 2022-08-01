@@ -31,7 +31,7 @@ class BaseFormatOutput : public IOutput<Warning>
 {
 public:
   virtual ~BaseFormatOutput() = default;
-  void ClearOutput() noexcept
+  void ClearOutput(bool removeEmptyFile = true) noexcept
   {
     m_buf.pubsync();
     if (auto& fstream = m_buf.m_ofstream)
@@ -42,7 +42,7 @@ public:
       }
 
       std::error_code ignored;
-      if (std::filesystem::is_empty(m_output, ignored))
+      if (removeEmptyFile && std::filesystem::is_empty(m_output, ignored))
       {
         std::filesystem::remove(m_output, ignored);
       }
@@ -57,7 +57,7 @@ public:
   virtual bool Write(const Warning& message) override = 0;
   virtual void Finish() override
   {
-    ClearOutput();
+    ClearOutput(false);
   };
 
   [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept = 0;
@@ -346,7 +346,7 @@ public:
 
   bool Write(const T& message) override
   {
-    return m_output->Write(Transform(message));
+    return m_output && m_output->Write(Transform(message));
   }
 
   void Finish() override

@@ -17,6 +17,7 @@
 
 #include "application.h"
 #include "charmap.h"
+#include "helpmessageoutput.h"
 #include "logparserworker.h"
 #include "messagefilter.h"
 #include "multipleoutput.h"
@@ -26,6 +27,10 @@
 
 #include "Formats/jsonoutput.h"
 #include "Formats/misracomplianceoutput.h"
+#include "Formats/errorfileoutput.h"
+#include "Formats/errorfileverboseoutput.h"
+#include "Formats/tasklistoutput.h"
+#include "Formats/tasklistverboseoutput.h"
 
 namespace PlogConverter
 {
@@ -59,17 +64,12 @@ namespace PlogConverter
 
 void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
                                IOutput<Warning> &output,
-                               const std::string &root,
-                               const ProgramOptions *options /* = nullptr */)
+                               const std::string &root)
 {
   m_output = &output;
   m_root = root;
 
   output.Start();
-  if (!options || !options->noHelp)
-  {
-    output.Write(Warning::GetDocumentationLinkMessage());
-  }
 
   for (auto &inputFile : inputFiles)
   {
@@ -206,7 +206,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
 
     if (!CheckUnsupporterdTransformation(f, options))
     {
-      std::move(*f).ClearOutput();
+      std::move(*f).ClearOutput(true);
       continue;
     }
 
@@ -217,6 +217,11 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     else if (optionsSrc.projectRoot.empty() && IsA<JsonOutput>(f))
     {
       jsonOutput = UnsafeTo<JsonOutput>(std::move(f));
+    }
+    else if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f) 
+                                 || IsA<TaskListOutput> (f) || IsA<TaskListVerboseOutput> (f)))
+    {
+      transformPipeline.Add(std::make_unique<HelpMessageOutput>(std::move(f)));
     }
     else
     {
@@ -259,7 +264,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  ParseLog(inputFiles, output, options.projectRoot, &options);
+  ParseLog(inputFiles, output, options.projectRoot);
 
   std::cout << "Total messages: " << m_countTotal << '\n'
             << "Filtered messages: " << m_countSuccess << std::endl;

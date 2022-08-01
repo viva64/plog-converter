@@ -19,11 +19,6 @@ void XMLOutput::Start()
 
 bool XMLOutput::Write(const Warning& msg)
 {
-  if (msg.IsDocumentationLinkMessage())
-  {
-    return false;
-  }
-
   m_ostream << "  <PVS-Studio_Analysis_Log>" << '\n'
             << "    <Level>" << msg.level << "</Level>" << '\n'
             << "    <ErrorType>" << msg.GetLevelString() << "</ErrorType>" << '\n'
