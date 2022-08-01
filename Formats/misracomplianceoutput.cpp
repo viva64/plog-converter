@@ -46,7 +46,6 @@ R"(  </table>
 
 MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
   : BasicFormatOutput(opt)
-  , m_directory{ m_output }
   , m_grpFile{ opt.grp }
   , m_customDiviations{ opt.misraDivations }
 {

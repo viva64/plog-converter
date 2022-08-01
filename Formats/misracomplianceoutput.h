@@ -100,7 +100,6 @@ public:
 
 private:
   const std::string misraPrefix = "MISRA-C-";
-  const std::filesystem::path &m_directory;
   std::filesystem::path m_grpFile;
   std::set<std::string> m_customDiviations;
 
