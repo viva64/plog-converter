@@ -157,11 +157,10 @@ nlohmann::ordered_json SarifOutputProcessor::MakeLocationJson(const std::string 
 
 nlohmann::ordered_json SarifOutputProcessor::ProcessRule(const Warning &warning, nlohmann::ordered_json &rules, RulesIDs &rulesIDs) const
 {
-  const auto vivaUrl { warning.GetVivaUrl() };
-
   // Add "rules" section
   if (rulesIDs.insert(warning.code).second)
   {
+    const auto vivaUrl { warning.GetVivaUrl() };
     nlohmann::ordered_json rule
     {
       { "id"sv, warning.code },

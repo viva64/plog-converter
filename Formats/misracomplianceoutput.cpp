@@ -46,20 +46,13 @@ R"(  </table>
 
 MisraComplianceOutput::MisraComplianceOutput(const ProgramOptions& opt)
   : BasicFormatOutput(opt)
-  , m_directory { m_output }
+  , m_directory{ m_output }
   , m_grpFile{ opt.grp }
-  , m_customDiviations { opt.misraDivations }
+  , m_customDiviations{ opt.misraDivations }
 {
   if (!m_grpFile.empty() && !std::filesystem::exists(m_grpFile))
   {
     throw std::runtime_error("File not found: " + m_grpFile.string());
-  }
-
-  auto misracompliancePath = m_directory / "misracompliance.html";
-  m_htmlFile.open(misracompliancePath);
-  if (!m_htmlFile.is_open())
-  {
-    throw FilesystemException("Couldn't open " + misracompliancePath.string());
   }
 }
 
@@ -120,22 +113,20 @@ void MisraComplianceOutput::Finish()
   PrintHtmpComplianceReport();
   PrintHtmlEnd();
 
-  m_htmlFile.flush();
-
-  PrintFileExtra("logomisra.png", PlogConverter::Resources::LogoMisra(), std::ios_base::binary);
+  m_ostream.flush();
 }
 
 void MisraComplianceOutput::PrintHtmlStart()
 {
-  m_htmlFile << MisraHtmlHead;
+  m_ostream << MisraHtmlHead;
 }
 
 void MisraComplianceOutput::PrintHtmlEnd()
 {
-  m_htmlFile << MisraHtmlEnd;
+  m_ostream << MisraHtmlEnd;
 }
 
-namespace 
+namespace
 {
   bool HasOnlySpaces(std::string_view line)
   {
@@ -234,14 +225,14 @@ void MisraComplianceOutput::PrintHtmpComplianceReport()
 {
   PrintHtmlComplianceHeader();
 
-  m_htmlFile << R"(  <table style="width: 100%; font: 14pt normal Century Gothic;">)" << '\n';
-  m_htmlFile << R"(    <caption style="font-weight: bold;background: #fff;color: #000;border: none !important;"></caption>)" << '\n';
-  m_htmlFile << R"(    <tr style="background: #454545; color: white;">)" << '\n';
-  m_htmlFile << R"(      <th style="width: 25%;">Guideline</th>)" << '\n';
-  m_htmlFile << R"(      <th style="width: 25%;">Category</th>)" << '\n';
-  m_htmlFile << R"(      <th style="width: 25%;">Recategorication</th>)" << '\n';
-  m_htmlFile << R"(      <th style="width: 25%;">Compliance</th>)" << '\n';
-  m_htmlFile << R"(    </tr>)" << std::endl;
+  m_ostream << R"(  <table style="width: 100%; font: 14pt normal Century Gothic;">)" << '\n'
+            << R"(    <caption style="font-weight: bold;background: #fff;color: #000;border: none !important;"></caption>)" << '\n'
+            << R"(    <tr style="background: #454545; color: white;">)" << '\n'
+            << R"(      <th style="width: 25%;">Guideline</th>)" << '\n'
+            << R"(      <th style="width: 25%;">Category</th>)" << '\n'
+            << R"(      <th style="width: 25%;">Recategorication</th>)" << '\n'
+            << R"(      <th style="width: 25%;">Compliance</th>)" << '\n'
+            << R"(    </tr>)" << std::endl;
 
   bool colorFlipFlop = true;
   for (const auto& [_, cd] : Categories())
@@ -255,22 +246,98 @@ void MisraComplianceOutput::PrintHtmlComplianceHeader()
 {
   auto&& [resultCompliant, summary] = GetComplianceResult();
 
-  m_htmlFile << R"(<p><img src="logoMisra.png" width="115" height="111" class="leftimg"/>
+  m_ostream
+  << "<p><img src=\"data:image/png;base64,"
+  << "iVBORw0KGgoAAAANSUhEUgAAAPUAAAD0CAMAAAB0M5DyAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAJcEhZcwAAFxIA"
+     "ABcSAWef0lIAAAMAUExURXkAGXkAGXgAGHkAGXkAGXkAGXkAGUxpcXoAGnwAGXgAGXkAGXkAGXoAGXkAGXkAGXgAGHkAGXkAG3sA"
+     "GXoAGXcAF1UAAHoAGXkAGXkAGHkAGnoAGXgAGHkAGXoAGXkAGngAIngAGXgAGHgAGXkAGXkAGHkAGHkAGXkAGnkAGXwAG3YAGXoA"
+     "GnoAGnkAGIAMAIAAI3oAGH0AGXgAFnkAGAAAG3gAGXsAAHkAGWYAG3kAGHYAGXkAG3gAG3gAGf8AUXoAGHkAGXkAGXkAGnkAF3oA"
+     "GXkAGXkAGXkAGXkAGXgAGHkAGXgAGHkAGXkAGHkAGHkAGXgAJHgAGHkAGFUADHkAGXkAGXkAG3kAGXgAFnkAGHoAGXoAGngAGXkA"
+     "GXcAEXoAGHkAGXkAGXgAGXsAG3kAGHkAGnkAGXgAF3gAGIUAHngAGHkAG3kAGXkAGXsAGnkAGnkAGHkAGHkAGXkAGHoAGHkAGXkA"
+     "GnkAGYgAQHkAGXgAF3kAGXkAF3cAFXkAGnkAGXkAGIAAHXEAD3gAGHkAGXkAGXgAGHkAGHwAHHoAGXgAGpkALXkAGIAAgHoAGXkA"
+     "GXgAGXkAGXkAGnkAGHkAGHkAGXkAGHkAGHkAGHkAGXoAGXkAGHkAGXkAGHkAGXkAGnkAGXkAGHkAGKoAPXkAGXgAGHgAGXkAGXgA"
+     "GHgAF3kAGHgAGHgAGHkAGHkAGXkAGHkAGXkAGG0AEnkAGnkAGXkAGXoAGXoAGXwAGH0AHXkAGnkAGXgAGHgAGHkAG3kAGXoAGHoA"
+     "GXYAGnkAGHoAGHkAGXgAGHoAGnoAGnkAGXoAGXkAF3gAGHgAGHkAGXkAGXkAGnkAGXgAGHcAGHkAGXgAGHwAF3kAGXkAGngAGXkA"
+     "GHkAGXoAGXgAGXoAGnUAGXgAGHkAGncAF3kAGHkAGXgAGXkAGX0AG3gAGHkAGHoAGm0AAHEAEngAG3gAGHkAGY4AJnkAGHoAGXoA"
+     "GnsAGnkAGXkAGXUAGHkAGHkAGngAGXkAG3kAGngAGXgAGNYk0uQAAAEAdFJOU+rs8PTd8/IA7ynr7vHr6e228Hg+n2UG8e/y7/Py"
+     "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"
+  << R"(" width="115" height="111" class="leftimg"/>
   <h2>MISRA Guideline Compliance Summary</h2>
   <p style="font: 13pt normal Century Gothic;">Guidelines: <b>MISRA C 2012</b></p>
-  <p style="font: 13pt normal Century Gothic;">Checking tool: <b>PVS-Studio</b></p></p>)" << '\n';
-  m_htmlFile << R"(<hr align="left" width="545" size="1" color="#999999" />)" << '\n';
+  <p style="font: 13pt normal Century Gothic;">Checking tool: <b>PVS-Studio</b></p></p>)" << '\n'
+  << R"(<hr align="left" width="545" size="1" color="#999999" />)" << '\n';
 
   if (resultCompliant)
   {
-    m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:green !important;'>Compliant</b></p>)" << '\n';
+    m_ostream << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:green !important;'>Compliant</b></p>)" << '\n';
   }
   else
   {
-    m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:red !important;'>Not compliant</b></p>)" << '\n';
+    m_ostream << R"( <p style="font: 13pt normal Century Gothic;">Result: <b style='color:red !important;'>Not compliant</b></p>)" << '\n';
   }
 
-  m_htmlFile << R"( <p style="font: 13pt normal Century Gothic;">Summary: )" + summary + R"(</p>)" << std::endl;
+  m_ostream << R"( <p style="font: 13pt normal Century Gothic;">Summary: )" + summary + R"(</p>)" << std::endl;
 }
 
 std::pair<bool, std::string> MisraComplianceOutput::GetComplianceResult()
@@ -457,17 +524,17 @@ void MisraComplianceOutput::PrintTableRow(const ComplianceData& cd, bool colorFl
 {
   if (colorFlipFlop)
   {
-    m_htmlFile << R"(    <tr style='background: white;'>)" << '\n';
+    m_ostream << R"(    <tr style='background: white;'>)" << '\n';
   }
   else
   {
-    m_htmlFile << R"(    <tr style='background: #F4F4F4;'>)" << '\n';
+    m_ostream << R"(    <tr style='background: #F4F4F4;'>)" << '\n';
   }
   colorFlipFlop = !colorFlipFlop;
 
-  m_htmlFile << R"(      <td colspan='0' style='color: black; text-align: center; font-size: 1.0em;'>)" << cd.guideline << R"(</td>)" << '\n';
-  m_htmlFile << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.defaultCategory) << R"(</td>)" << '\n';
-  m_htmlFile << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.recategorization) << R"(</td>)" << '\n';
+  m_ostream << R"(      <td colspan='0' style='color: black; text-align: center; font-size: 1.0em;'>)" << cd.guideline << R"(</td>)" << '\n'
+            << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.defaultCategory) << R"(</td>)" << '\n'
+            << R"(      <td colspan='1' style='color: black; text-align: center; font-size: 1.0em;'>)" << ToString(cd.recategorization) << R"(</td>)" << '\n';
 
   std::string bgcolor = "";
   std::string compliance = ToString(cd.compliance, cd.deviationsCount, cd.violationsCount);
@@ -478,8 +545,8 @@ void MisraComplianceOutput::PrintTableRow(const ComplianceData& cd, bool colorFl
     bgcolor = "bgcolor=\"#FADBD8\"";
   }
 
-  m_htmlFile << R"(      <td colspan='2' )" + bgcolor + R"( style='color: black; text-align: center; font-size: 1.0em;'>)" << compliance << R"(</td>)" << '\n';
-  m_htmlFile << R"(    </tr>)" << std::endl;
+  m_ostream << R"(      <td colspan='2' )" + bgcolor + R"( style='color: black; text-align: center; font-size: 1.0em;'>)" << compliance << R"(</td>)" << '\n'
+            << R"(    </tr>)" << std::endl;
 }
 
 Category MisraComplianceOutput::ToCategory(std::string_view category)
@@ -568,17 +635,6 @@ std::string MisraComplianceOutput::ToString(Compliance compliance, int deviation
       return "";
     }
   }
-}
-
-void MisraComplianceOutput::PrintFileExtra(const std::filesystem::path& fileName, const std::string& data, std::ios_base::openmode mode)
-{
-  auto filePath = m_directory / fileName;
-  std::ofstream file(filePath, mode);
-  if (!file.is_open())
-  {
-    std::cerr << "Warning: Can't open file: " << filePath << '\n';
-  }
-  file.write(data.c_str(), data.length());
 }
 
 MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()

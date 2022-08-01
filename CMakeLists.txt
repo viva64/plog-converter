@@ -128,7 +128,7 @@ endif ()
 
 if(WIN32)
     add_custom_command(TARGET plog-converter POST_BUILD
-	                   COMMAND cmake -E tar -c $<TARGET_PDB_FILE:plog-converter>.zst --zstd -- $<TARGET_PDB_FILE:plog-converter>)
+                       COMMAND cmake -E tar -c $<TARGET_PDB_FILE:plog-converter>.zst --zstd -- $<TARGET_PDB_FILE:plog-converter>)
 elseif (APPLE)
     add_custom_command(TARGET plog-converter POST_BUILD
                        COMMAND rm -rf $<TARGET_FILE_NAME:plog-converter>*.dSYM*
@@ -144,7 +144,7 @@ elseif (UNIX)
                        COMMAND objcopy --only-keep-debug $<TARGET_FILE:plog-converter> $<TARGET_FILE_NAME:plog-converter>.dwarf
                        COMMAND strip $<TARGET_FILE:plog-converter>
                        COMMAND objcopy --add-gnu-debuglink=$<TARGET_FILE_NAME:plog-converter>.dwarf $<TARGET_FILE:plog-converter>
-					   COMMAND cmake -E tar c $<TARGET_FILE:plog-converter>.dwarf.zst --zstd -- $<TARGET_FILE:plog-converter>.dwarf) 
+                       COMMAND cmake -E tar c $<TARGET_FILE:plog-converter>.dwarf.zst --zstd -- $<TARGET_FILE:plog-converter>.dwarf) 
 endif()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -171,7 +171,6 @@ add_resources(
     DescGif             "Resources/desc.gif"
     SortGif             "Resources/sort.gif"
     LogoPng             "Resources/logo.png"
-    LogoMisra           "Resources/logomisra.png"
 )
 
 gtest_discover_tests(plog-converter-test)

@@ -80,7 +80,7 @@ public:
   [[nodiscard]]
   static bool OutputIsFile() noexcept
   {
-    return false;
+    return true;
   }
 
   [[nodiscard]]
@@ -92,7 +92,8 @@ public:
   [[nodiscard]]
   static std::string_view OutputSuffix() noexcept
   {
-    return "";
+    static auto suffix = std::string{ FormatName() }.append(".html");
+    return suffix;
   }
 
   static CategoriesMap& Categories();
@@ -102,14 +103,12 @@ private:
   const std::filesystem::path &m_directory;
   std::filesystem::path m_grpFile;
   std::set<std::string> m_customDiviations;
-  std::ofstream m_htmlFile{};
 
   void PrintHtmlStart();
   void PrintHtmlEnd();
   void PrintTableRow(const ComplianceData&, bool);
   void PrintHtmpComplianceReport();
   void PrintHtmlComplianceHeader();
-  void PrintFileExtra(const std::filesystem::path &fileName, const std::string &data, std::ios_base::openmode mode);
 
   std::string GetMisraCCode(const std::string&);
   std::pair<bool, std::string> GetComplianceResult();
