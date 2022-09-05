@@ -420,41 +420,49 @@ nlohmann::json Warning::ConvertToJson(Warning w)
   };
 
   {
+    assert(!w.positions.empty() && "\"Positions\" field was empty.");
     std::vector<SourceFilePosition> joinedPositions;
-    joinedPositions.reserve(w.positions.size());
-    std::string_view currentFileName;
-
-    for (auto &position : w.positions)
+    if (!w.positions.empty())
     {
-      if (!EqualPaths(currentFileName, position.file))
+      joinedPositions.reserve(w.positions.size());
+
+      auto positionIt = w.positions.begin();
+      std::string_view currentFileName = joinedPositions.emplace_back(std::move(positionIt->file),
+                                                                      std::vector{ static_cast<size_t>(positionIt->line) })
+                                                        .file;
+      for (++positionIt; positionIt != w.positions.end(); ++positionIt)
       {
-        currentFileName = joinedPositions.emplace_back(std::move(position.file),
-                                                       std::vector { static_cast<size_t>(position.line) })
-          .file;
+        auto &position = *positionIt;
+        if (!EqualPaths(currentFileName, position.file))
+        {
+          currentFileName = joinedPositions.emplace_back(std::move(position.file),
+                                                         std::vector { static_cast<size_t>(position.line) })
+                                           .file;
+        }
+        else
+        {
+          joinedPositions.back().lines.push_back(position.line);
+        }
       }
-      else
+
+      auto &navigation = w.positions.front().navigation;
+
+      if (w.HasCWE())
       {
-        joinedPositions.back().lines.push_back(position.line);
+        j.emplace("cwe", w.cwe);
       }
+
+      if (w.HasSAST())
+      {
+        WriteOption(j, "sastId",   std::move(w.sastId));
+      }
+
+      WriteOption(j, "prevLine", std::move(navigation.previousLineString));
+      WriteOption(j, "currLine", std::move(navigation.currentLineString));
+      WriteOption(j, "nextLine", std::move(navigation.nextLineString));
     }
 
     j.emplace("positions", std::move(joinedPositions));
-
-    auto navigation = w.positions.front().navigation;
-
-    if (w.HasCWE())
-    {
-      j.emplace("cwe", w.cwe);
-    }
-
-    if (w.HasSAST())
-    {
-      WriteOption(j, "sastId",   std::move(w.sastId));
-    }
-
-    WriteOption(j, "prevLine", std::move(navigation.previousLineString));
-    WriteOption(j, "currLine", std::move(navigation.currentLineString));
-    WriteOption(j, "nextLine", std::move(navigation.nextLineString));
   }
 
   return j;
