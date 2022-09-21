@@ -18,6 +18,7 @@
 #include "Formats/misracomplianceoutput.h"
 #include "Formats/jsonoutput.h"
 #include "Formats/totalsoutput.h"
+#include "Formats/gitlaboutput.h"
 #include "outputfactory.h"
 
 namespace PlogConverter
@@ -51,6 +52,7 @@ OutputFactory::OutputFactory()
       CreateOutputFormatRecord<MisraComplianceOutput>(),
       CreateOutputFormatRecord<JsonOutput>(),
       CreateOutputFormatRecord<TotalsOutput>(),
+      CreateOutputFormatRecord<GitLabOutput>()
     }
 {
 }

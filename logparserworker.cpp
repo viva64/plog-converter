@@ -31,6 +31,7 @@
 #include "Formats/errorfileverboseoutput.h"
 #include "Formats/tasklistoutput.h"
 #include "Formats/tasklistverboseoutput.h"
+#include "Formats/gitlaboutput.h"
 
 namespace PlogConverter
 {
@@ -197,7 +198,8 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   }
 
   std::unique_ptr<MisraComplianceOutput, std::default_delete<BaseFormatOutput>> misraCompliance;
-  std::unique_ptr<JsonOutput, std::default_delete<BaseFormatOutput>> jsonOutput;
+  std::unique_ptr<JsonOutput,   std::default_delete<BaseFormatOutput>> jsonOutput;
+  std::unique_ptr<GitLabOutput, std::default_delete<BaseFormatOutput>> gitlabOutput;
 
   MultipleOutput<Warning> transformPipeline;
   for (const auto &format : formats)
@@ -217,6 +219,10 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     else if (optionsSrc.projectRoot.empty() && IsA<JsonOutput>(f))
     {
       jsonOutput = UnsafeTo<JsonOutput>(std::move(f));
+    }
+    else if (optionsSrc.projectRoot.empty() && IsA<GitLabOutput>(f))
+    {
+      gitlabOutput = UnsafeTo<GitLabOutput>(std::move(f));
     }
     else if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f) 
                                  || IsA<TaskListOutput> (f) || IsA<TaskListVerboseOutput> (f)))
@@ -239,6 +245,10 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   if (jsonOutput)
   {
     filterPipeline.Add(std::move(jsonOutput));
+  }
+  if (gitlabOutput)
+  {
+    filterPipeline.Add(std::move(gitlabOutput));
   }
 
   MultipleOutput<Warning> output;

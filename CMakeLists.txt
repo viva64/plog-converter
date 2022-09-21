@@ -51,6 +51,8 @@ add_library(plog STATIC
     Formats/errorfileoutput.h
     Formats/errorfileverboseoutput.cpp
     Formats/errorfileverboseoutput.h
+    Formats/gitlaboutput.cpp
+    Formats/gitlaboutput.h
     Formats/htmloutput.cpp
     Formats/htmloutput.h
     Formats/jsonoutput.h

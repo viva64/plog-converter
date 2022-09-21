@@ -3,6 +3,7 @@
 //  2020-2022 (c) PVS-Studio LLC
 
 #include "charmap.h"
+#include "utils.h"
 
 using namespace CharMap;
 
@@ -56,7 +57,8 @@ char CharMap::Decode(char ch)
 
 bool CharMap::IsStartEncodedMarker(const std::string &str)
 {
-  return str == "d99cf3ba-6fcd-43f9-9260-1179fa3a9bed";
+  using namespace std::literals;
+  return PlogConverter::StartsWith(str, "d99cf3ba-6fcd-43f9-9260-1179fa3a9bed"s);
 }
 
 void CharMap::Encode(std::string &str)
