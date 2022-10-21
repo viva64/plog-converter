@@ -56,6 +56,8 @@ bool GitLabOutput::Write(const Warning& msg)
   linesGitLab["begin"] = position.line;
 
   locationGitLab["lines"] = std::move(linesGitLab);
+
+  ReplaceRelativeRoot(position.file, "");
   locationGitLab["path"] = std::move(position.file);
 
   msgGitLab["location"] = std::move(locationGitLab);

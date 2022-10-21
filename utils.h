@@ -166,6 +166,8 @@ constexpr auto WriteOption(nlohmann::json& j, Key&& fieldName, Value&& value)
 bool          EqualPaths(std::string_view lhs, std::string_view rhs) noexcept;
 bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 
+
+void ReplaceRelativeRoot(std::string& str, const std::string& root);
 }
 
 unsigned GetHashCodePVS(std::string_view msg) noexcept;

@@ -12,8 +12,6 @@ namespace PlogConverter
   using namespace std::string_literals;
   using namespace std::string_view_literals;
 
-  namespace
-  {
 
   const std::string &GetSourceTreeRootMarker()
   {
@@ -51,8 +49,6 @@ namespace PlogConverter
   void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
   {
     ReplacePathPrefix(str, root);
-  }
-
   }
 
   SourceRootTransformer::SourceRootTransformer(IOutput<Warning>* output, const ProgramOptions& options)
