@@ -52,8 +52,7 @@ bool MessageFilter::Check(const Warning &message) const
   return CheckCode(message)
       && CheckFalseAlarm(message)
       && CheckKeywords(message)
-      && CheckLevel(message)
-      && CheckPath(message);
+      && CheckLevel(message);
 }
 
 bool MessageFilter::CheckCode(const Warning &message) const
@@ -109,15 +108,6 @@ bool MessageFilter::CheckLevel(const Warning &message) const
       || message.level > Analyzer::LevelsCount
       || type == AnalyzerType::Unknown
       || m_enabledAnalyzerLevels[AnalyzerLevelIndex(type, message.level)];
-}
-
-bool MessageFilter::CheckPath(const Warning& message) const
-{
-  return std::none_of(m_disabledPaths.begin(), m_disabledPaths.end(),
-                      [&](const std::string &path)
-                      {
-                      	return message.GetFile().find(path) != std::string::npos;
-                      });
 }
 
 }

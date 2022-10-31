@@ -65,6 +65,11 @@ void Split(const std::string& src, const std::string& delim, OutIt it)
   Split(src, delim, it, [](std::string &&s)->std::string&& { return std::move(s); });
 }
 
+inline bool IsGlobPath(std::string_view path)
+ {
+     return path.find_first_of("*?") != std::string_view::npos;
+ }
+
 inline std::vector<std::string> Split(std::string text, const std::string &separator)
 {
   size_t pos = 0;
@@ -168,6 +173,11 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 
 
 void ReplaceRelativeRoot(std::string& str, const std::string& root);
+const std::string &GetSourceTreeRootMarker();
+bool MatchPath(const char* pszFile, const char* pszSpec);
+bool ContainsSubPath(const std::filesystem::path wcHaystack, const std::filesystem::path wcNeedle);
+bool ContainsSubstring(std::string_view, std::string_view) noexcept;
+std::string GetCanonicalPath(const std::string& path);
 }
 
 unsigned GetHashCodePVS(std::string_view msg) noexcept;

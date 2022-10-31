@@ -5,17 +5,20 @@
 #include <cstddef>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
 #include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 // for WideCharToMultiByte, MultiByteToWideChar
 #include <stringapiset.h>
 #else
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fnmatch.h>
 #endif
 #include <unordered_map>
 
@@ -24,6 +27,76 @@
 
 namespace PlogConverter
 {
+  bool MatchPath(const char* pszFile, const char* pszSpec)
+  {
+#ifdef _WIN32
+    return PathMatchSpec(pszFile, pszSpec);
+#elif defined (__GNUC__)
+    return fnmatch(pszSpec, pszFile, 0) == 0;
+#else
+#error no definition of PathMatchSpec(const char*, const char*) or fnmatch(const char*, const char*) function.
+#endif
+  }
+
+  bool ContainsSubPath(const std::filesystem::path wcHaystack, const std::filesystem::path wcNeedle)
+  {
+    if (   !wcHaystack.has_root_directory() 
+        || !wcNeedle.has_root_directory())
+    {
+      return false;
+    }
+
+    auto hasystackStart = std::begin(wcHaystack);
+    auto needleStart = std::begin(wcNeedle);
+
+    for (; hasystackStart != std::end(wcHaystack) 
+        && needleStart != std::end(wcNeedle); 
+        ++hasystackStart, ++needleStart)
+    {
+      if (*hasystackStart != *needleStart)
+      {
+        return false;
+      }
+    }
+
+    if (   hasystackStart == std::end(wcHaystack) 
+        && needleStart != std::end(wcNeedle))
+    {
+      return false;
+    }
+    return true;
+  }
+ 
+  std::string GetCanonicalPath(const std::string& pathStr)
+  {
+    namespace stdfs = std::filesystem;
+    std::string expandPath { Expand(Trim(pathStr)) };
+    
+    if (!IsGlobPath(expandPath))
+    {
+      try
+      {         
+        return stdfs::weakly_canonical(expandPath).string();
+      }
+      catch (std::exception e)
+      {
+        std::cout << "Path invalid syntax: " << pathStr << std::endl;
+        std::cout << "Exeption: " << e.what() << std::endl;
+      }
+    }
+
+    return expandPath;
+  }
+
+  bool ContainsSubstring(std::string_view haystack, std::string_view needle) noexcept
+  {
+    if (haystack.empty() || needle.empty())
+    {
+      return false;
+    }
+
+    return haystack.find(needle) != std::string_view::npos;
+  }
 
 std::string Trim(const std::string& src)
 {

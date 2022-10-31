@@ -32,6 +32,8 @@ add_library(plog STATIC
     logparserworker.h
     messagefilter.cpp
     messagefilter.h
+    PathFilter.cpp
+    PathFilter.h
     messageparser.cpp
     messageparser.h
     multipleoutput.h

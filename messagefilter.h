@@ -30,7 +30,6 @@ private:
   bool CheckFalseAlarm(const Warning& message) const;
   bool CheckKeywords(const Warning& message) const;
   bool CheckLevel(const Warning& message) const;
-  bool CheckPath(const Warning& message) const;
 };
 
 }

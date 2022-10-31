@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <regex>
 
+#include "PathFilter.h"
 #include "application.h"
 #include "charmap.h"
 #include "helpmessageoutput.h"
@@ -201,7 +202,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   std::unique_ptr<JsonOutput,   std::default_delete<BaseFormatOutput>> jsonOutput;
   std::unique_ptr<GitLabOutput, std::default_delete<BaseFormatOutput>> gitlabOutput;
 
-  MultipleOutput<Warning> transformPipeline;
+  MultipleOutput<Warning> pathFilterPipeline;
   for (const auto &format : formats)
   {
     auto f = format(options);
@@ -227,28 +228,39 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     else if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f) 
                                  || IsA<TaskListOutput> (f) || IsA<TaskListVerboseOutput> (f)))
     {
-      transformPipeline.Add(std::make_unique<HelpMessageOutput>(std::move(f)));
+      pathFilterPipeline.Add(std::make_unique<HelpMessageOutput>(std::move(f)));
     }
     else
     {
-      transformPipeline.Add(std::move(f));
+      pathFilterPipeline.Add(std::move(f));
     }
   }
 
-  MultipleOutput<Warning> filterPipeline;
+  MultipleOutput<Warning> transformPipeline;
+  if (!pathFilterPipeline.empty())
+  {
+    transformPipeline.Add(std::make_unique<PathFilter>(&pathFilterPipeline, options));
+  }
+  
+  MultipleOutput<Warning> noTransformPipeline;
+  if (jsonOutput)
+  {
+    noTransformPipeline.Add(std::move(jsonOutput));
+  }
+  if (gitlabOutput)
+  {
+    noTransformPipeline.Add(std::move(gitlabOutput));
+  }
 
+  MultipleOutput<Warning> filterPipeline;
   if (!transformPipeline.empty())
   {
     filterPipeline.Add(std::make_unique<SourceRootTransformer>(&transformPipeline, options));
   }
 
-  if (jsonOutput)
+  if (!noTransformPipeline.empty())
   {
-    filterPipeline.Add(std::move(jsonOutput));
-  }
-  if (gitlabOutput)
-  {
-    filterPipeline.Add(std::move(gitlabOutput));
+    filterPipeline.Add(std::make_unique<PathFilter>(&noTransformPipeline, options));
   }
 
   MultipleOutput<Warning> output;
@@ -257,9 +269,11 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     output.Add(std::make_unique<MessageFilter>( &filterPipeline, options ));
   }
 
+  MultipleOutput<Warning> misraPathFilterPipline;
   if (misraCompliance)
   {
-    output.Add(std::make_unique<SourceRootTransformer>(misraCompliance.get(), options));
+    misraPathFilterPipline.Add(std::make_unique<PathFilter>(misraCompliance.get(), options));
+    output.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
   }
   else
   {
