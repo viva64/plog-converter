@@ -15,13 +15,7 @@ static bool IsExcludePath(std::string_view srcPath, std::string_view excludePath
 {
   if (!IsGlobPath(excludePath))
   {      
-    if (ContainsSubPath(srcPath, excludePath))
-    {
-      return true;
-    }
-
-    std::string excludePathPattern {"*" + std::string{ excludePath } + "*"};
-    return MatchPath(srcPath.data(), excludePathPattern.c_str());
+    return ContainsSubPath(srcPath, excludePath);
   }
 
   return MatchPath(srcPath.data(), excludePath.data());
