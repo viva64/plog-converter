@@ -177,7 +177,7 @@ const std::string &GetSourceTreeRootMarker();
 bool MatchPath(const char* pszFile, const char* pszSpec);
 bool ContainsSubPath(const std::filesystem::path wcHaystack, const std::filesystem::path wcNeedle);
 bool ContainsSubstring(std::string_view, std::string_view) noexcept;
-std::string GetCanonicalPath(const std::string& path);
+std::string GetAbsolutePath(const std::string& path);
 }
 
 unsigned GetHashCodePVS(std::string_view msg) noexcept;

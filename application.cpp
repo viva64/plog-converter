@@ -341,7 +341,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.useStdout = useStdout;
     m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
     m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
-    std::transform(std::begin(excludePaths), std::end(excludePaths), std::back_inserter(m_options.disabledPaths), &GetCanonicalPath);
+    std::transform(std::begin(excludePaths), std::end(excludePaths), std::back_inserter(m_options.disabledPaths), &GetAbsolutePath);
 
     Split(get(excludedCodes), ",", std::inserter(m_options.disabledWarnings, m_options.disabledWarnings.begin()));
     ParseEnabledAnalyzers(get(analyzer), m_options.enabledAnalyzers);

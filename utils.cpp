@@ -70,7 +70,7 @@ namespace PlogConverter
     return true;
   }
  
-  std::string GetCanonicalPath(const std::string& pathStr)
+  std::string GetAbsolutePath(const std::string& pathStr)
   {
     namespace stdfs = std::filesystem;
     std::string expandPath { Expand(Trim(pathStr)) };
@@ -79,7 +79,7 @@ namespace PlogConverter
     {
       try
       {         
-        return stdfs::weakly_canonical(expandPath).string();
+        return stdfs::absolute(expandPath).string();
       }
       catch (const std::exception& e)
       {
