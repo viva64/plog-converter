@@ -78,7 +78,7 @@ namespace PlogConverter
       {         
         return stdfs::weakly_canonical(expandPath).string();
       }
-      catch (std::exception e)
+      catch (const std::exception& e)
       {
         std::cout << "Path invalid syntax: " << pathStr << std::endl;
         std::cout << "Exeption: " << e.what() << std::endl;
