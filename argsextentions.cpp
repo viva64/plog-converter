@@ -54,6 +54,10 @@ It StringSplitter::SkipAnySeparator(It strIt, It last) const noexcept
     {
       return SkipAnySeparator(skipped, last);
     }
+    else if (skipped == last)
+    {
+      return skipped;
+    }
   }
 
   return strIt;
@@ -84,11 +88,21 @@ std::vector<std::string_view> StringSplitter::operator()(std::string_view str) c
        previous != last; 
        substr = FindSeparator(substr, last))
   {
-    result.emplace_back(&*previous, std::distance(previous, substr));
+    if (auto dist = std::distance(previous, substr); dist != 0)
+    {
+      result.emplace_back(&*previous, dist);
+    }
 
     if (substr != last)
     { 
+      auto before = substr;
       substr = SkipAnySeparator(substr, last);
+      
+      // infinit cycle guard
+      if (substr == before)
+      {
+        substr = last;
+      }
     }
 
     previous = substr;
@@ -99,5 +113,10 @@ std::vector<std::string_view> StringSplitter::operator()(std::string_view str) c
 
 DefaultSplitter::DefaultSplitter()
   : StringSplitter { std::vector<std::string>{ ","s } }
+{
+}
+
+PathSplitter::PathSplitter()
+  : StringSplitter { std::vector<std::string>{ ";"s } }
 {
 }

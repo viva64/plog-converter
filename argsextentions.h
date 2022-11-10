@@ -39,6 +39,12 @@ public:
   DefaultSplitter();
 };
 
+class PathSplitter final : public StringSplitter
+{
+public:
+  PathSplitter();
+};
+
 template <typename K, typename AllocFuntion,
           typename Splitter = DefaultSplitter,
           template <typename...> class List = std::vector,
@@ -46,8 +52,8 @@ template <typename K, typename AllocFuntion,
           template <typename...> class Map = std::unordered_map>
 class MapFlagListMulti : public args::MapFlagList<K, AllocFuntion, List, Reader, Map>
 {
-  using Base = args::MapFlagList<K, AllocFuntion>;
-  using args::MapFlagList<K, AllocFuntion>::MapFlagList;
+  using Base = args::MapFlagList<K, AllocFuntion, List, Reader, Map>;
+  using Base::Base;
 
   void ParseValue(const std::vector<std::string> &values_) override
   {
@@ -57,6 +63,25 @@ class MapFlagListMulti : public args::MapFlagList<K, AllocFuntion, List, Reader,
     for (const auto &rawKey : keys)
     {
       Base::ParseValue({ std::string { rawKey } });
+    }
+  }
+};
+
+template <typename T, typename Splitter = DefaultSplitter,
+          template <typename...> class List = std::vector,
+          typename Reader = args::ValueReader>
+class ValueFlagListMulti : public args::ValueFlagList<T, List, Reader>
+{
+  using Base = args::ValueFlagList<T, List, Reader>;
+  using Base::Base;
+
+  void ParseValue(const std::vector<std::string> &values_) override
+  {
+    const std::string &valueListStr = values_.at(0);
+     
+    for(const auto &value : Splitter{}(valueListStr))
+    {
+      Base::ParseValue({std::string { value }});
     }
   }
 };
