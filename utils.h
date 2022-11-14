@@ -175,7 +175,7 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 void ReplaceRelativeRoot(std::string& str, const std::string& root);
 const std::string &GetSourceTreeRootMarker();
 bool MatchPath(const char* pszFile, const char* pszSpec);
-bool ContainsSubPath(const std::filesystem::path wcHaystack, const std::filesystem::path wcNeedle);
+bool ContainsSubPath(const std::filesystem::path &haystack, const std::filesystem::path &needle);
 bool ContainsSubstring(std::string_view, std::string_view) noexcept;
 std::string GetAbsolutePath(const std::string& path);
 }

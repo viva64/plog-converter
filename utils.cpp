@@ -38,7 +38,7 @@ namespace PlogConverter
 #endif
   }
 
-  bool ContainsSubPath(const std::filesystem::path haystack, const std::filesystem::path needle)
+  bool ContainsSubPath(const std::filesystem::path &haystack, const std::filesystem::path &needle)
   {
     std::filesystem::path wcHaystack = std::filesystem::weakly_canonical(haystack);
     std::filesystem::path wcNeedle   = std::filesystem::weakly_canonical(needle);
