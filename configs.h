@@ -43,6 +43,7 @@ struct ProgramOptions
   std::vector<SecurityCodeMapping>            codeMappings;
   std::set<std::string>                       disabledWarnings;
   std::vector<std::string>                    disabledPaths;
+  std::vector<std::string>                    enabledPaths;
   std::set<std::string>                       disabledKeywords;
   std::vector<Analyzer>                       enabledAnalyzers;
   std::vector<std::string>                    enabledFiles;

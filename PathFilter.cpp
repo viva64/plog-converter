@@ -11,19 +11,20 @@
 namespace PlogConverter
 {
 
-static bool IsExcludePath(std::string_view srcPath, std::string_view excludePath)
+bool static IsPathMatch(const std::string& srcPath, const std::string& pathMask)
 {
-  if (!IsGlobPath(excludePath))
+  if (!IsGlobPath(pathMask))
   {      
-    return ContainsSubPath(srcPath, excludePath);
+    return ContainsSubPath(srcPath, pathMask);
   }
 
-  return MatchPath(srcPath.data(), excludePath.data());
+  return MatchPath(srcPath.c_str(), pathMask.c_str());
 }
 
 PathFilter::PathFilter(IOutput<Warning>* output, const ProgramOptions& options)
   : IFilter(output)
   , m_disabledPaths(options.disabledPaths)
+  , m_enabledPaths(options.enabledPaths)
 {
 }
 
@@ -31,7 +32,7 @@ PathFilter::~PathFilter() = default;
 
 bool PathFilter::Check(const Warning &message) const
 {
-  if (m_sourceTreeRootFound || m_disabledPaths.empty())
+  if (m_sourceTreeRootFound || (m_disabledPaths.empty() && m_enabledPaths.empty()))
   {
     return true;
   }
@@ -47,11 +48,33 @@ bool PathFilter::Check(const Warning &message) const
     return true;
   }
 
-  return std::none_of(m_disabledPaths.begin(), m_disabledPaths.end(),
-                      [&sourceFile](const std::string &path)
-                      {
-                        return IsExcludePath(sourceFile, path);
-                      });
+  return IsIncludedPath(sourceFile) && !IsExcludedPath(sourceFile);
+}
+
+bool PathFilter::IsIncludedPath(const std::string &srcPath) const
+{
+  if (m_enabledPaths.empty() || srcPath.empty())
+  {
+    return true;
+  }
+
+  return std::any_of(std::begin(m_enabledPaths), std::end(m_enabledPaths), [srcPath](const std::string& include)
+                                                                                    {
+                                                                                      return IsPathMatch(srcPath, include);
+                                                                                    });
+}
+
+bool PathFilter::IsExcludedPath(const std::string &srcPath) const
+{
+  if (m_disabledPaths.empty() || srcPath.empty())
+  {
+    return false;
+  }
+
+  return std::any_of(std::begin(m_disabledPaths), std::end(m_disabledPaths), [&srcPath](const std::string& exclude)
+                                                                                       {
+                                                                                         return IsPathMatch(srcPath, exclude);
+                                                                                       });
 }
 
 }
