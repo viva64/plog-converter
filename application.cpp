@@ -287,8 +287,8 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
   ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2'",
                                   { CmdAnalyzerFlagName_Short, CmdAnalyzerFlagName_Full }, "GA:1,2", Options::Single);
-  ValueFlagListMulti<std::string, PathSplitter> excludePaths{ parser, "PATH", "Excludes from the report all warnings issued in certain files. Separate the paths or masks with the ';' character.", {'E', "excludePath"} };
-  ValueFlagListMulti<std::string, PathSplitter> includePaths{ parser, "PATH", "Include in the report only warnings issued on specified files. Separate the paths or masks with the ';' character.", {'I', "includePath"} };
+  ValueFlagListMulti<std::string, PathSplitter> excludePaths{ parser, "PATH", "Excludes from the report all warnings issued in certain files. Separate the paths or masks with the ';' character.", {'E', "excludePaths"} };
+  ValueFlagListMulti<std::string, PathSplitter> includePaths{ parser, "PATH", "Include in the report only warnings issued on specified files. Separate the paths or masks with the ';' character.", {'I', "includePaths"} };
   ValueFlag<std::string> excludedCodes(parser, "CODES", "Error codes to disable, i.e. V112,V122.", { 'd', "excludedCodes" }, Options::Single);
   ValueFlag<std::string> settings(parser, "FILE", "Path to PVS-Studio settings file. Can be used to specify additional disabled error codes.",
                                   { 's', "settings" }, Options::Single);
