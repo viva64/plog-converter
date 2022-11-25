@@ -30,7 +30,7 @@ namespace PlogConverter
   bool MatchPath(const char* pszFile, const char* pszSpec)
   {
 #ifdef _WIN32
-    return PathMatchSpec(pszFile, pszSpec);
+    return PathMatchSpecA(pszFile, pszSpec);
 #elif defined (__GNUC__)
     return fnmatch(pszSpec, pszFile, 0) == 0;
 #else
