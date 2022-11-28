@@ -412,7 +412,10 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
     return false;
   };
 #else
-  constexpr PathComparator pathCmp = &std::operator<;
+  constexpr PathComparator pathCmp = [](std::string_view lhs, std::string_view rhs)
+  {
+    return lhs < rhs;
+  };
 #endif
 
   return pathCmp(lhs, rhs);
