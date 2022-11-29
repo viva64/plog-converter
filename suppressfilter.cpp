@@ -47,6 +47,7 @@ SuppressFilter::SuppressFilter(IOutput<Warning>* output, const ProgramOptions &o
   for (size_t count = 0; count < options.enabledFiles.size(); ++count)
   {
     auto &file = options.enabledFiles[count];
+    auto& enabledFile = m_enabledFiles[count];
 
     if (auto linePos = file.rfind(':');
         linePos != std::string::npos)
@@ -56,18 +57,19 @@ SuppressFilter::SuppressFilter(IOutput<Warning>* output, const ProgramOptions &o
 
       try
       {
-        m_enabledFiles[count].line = std::stoul(line);
+        enabledFile.line = std::stoul(line);
       }
       catch (std::invalid_argument &)
       {
         name = file;
       }
 
-      m_enabledFiles[count].name = name;
+      using std::swap;
+      swap(enabledFile.name, name);
     }
     else
     {
-      m_enabledFiles[count].name = file;
+      enabledFile.name = file;
     }
   }
 }
