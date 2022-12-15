@@ -33,7 +33,7 @@ It StringSplitter::SkipSeparator(It strIt, It last, std::string_view sep) const 
 template<typename It>
 bool StringSplitter::IsAnySeparator(It strIt, It last) const noexcept
 {
-  for (auto sep : m_separators)
+  for (const auto &sep : m_separators)
   {
     if (SkipSeparator(strIt, last, sep) != strIt)
     {
@@ -47,7 +47,7 @@ bool StringSplitter::IsAnySeparator(It strIt, It last) const noexcept
 template <typename It>
 It StringSplitter::SkipAnySeparator(It strIt, It last) const noexcept
 {
-  for (auto sep : m_separators)
+  for (const auto &sep : m_separators)
   {
     if (auto skipped = SkipSeparator(strIt, last, sep); 
         skipped != last && skipped != strIt)
