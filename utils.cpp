@@ -253,6 +253,38 @@ std::string FileExtension(const std::string &filePath)
   return (dotPos != std::string::npos) ? filePath.substr(dotPos + 1) : "";
 }
 
+bool IsXmlFile(std::ifstream &fs)
+{
+  if (!fs.is_open())
+  {
+    return false;
+  }
+
+  std::string header = {};
+
+  bool isXml = false;
+
+  while (std::getline(fs, header, '\n'))
+  {
+    header = Trim(header);
+
+    if (header.empty() || StartsWith(header, "<!--"))
+    {
+      continue;
+    }
+
+    if (StartsWith(header, "<?xml"))
+    {
+      isXml = true;
+    }
+
+    break;
+  }
+
+  fs.seekg(0, std::ios_base::beg);
+  return isXml;
+}
+
 bool IsDirectory(const std::string &path)
 {
 #ifdef _WIN32

@@ -120,6 +120,7 @@ std::string FileBaseName(const std::string &filePath);
 std::string FileStem(const std::string &path);
 std::string FileExtension(const std::string &path);
 
+bool IsXmlFile(std::ifstream &fs);
 bool IsDirectory(const std::string &path);
 bool MakeDirectory(const std::string &path);
 bool Exists(const std::string &path);

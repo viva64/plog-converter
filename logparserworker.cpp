@@ -94,6 +94,23 @@ void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
 
 void LogParserWorker::ParseRawLog(InputFile &file)
 {
+  if (EndsWith(file.path, ".plog") || IsXmlFile(file.stream))
+  {
+    using namespace std::literals;
+    static constexpr auto message =
+#ifdef _WIN32
+      "This tool does not support analyzer reports in XML format. Please use the PlogConverter.exe tool instead."sv;
+#else
+      "This tool does not support analyzer reports in XML format. Please save analyzer report in JSON format."sv;
+#endif
+    
+    std::cout << message << std::endl;
+    m_warning.Clear();
+    m_warning.message = message;
+    OnWarning(m_warning);
+    return;
+  }
+
   bool decode = false;
 
   while (std::getline(file.stream, m_line))
