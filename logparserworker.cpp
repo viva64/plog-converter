@@ -94,7 +94,7 @@ void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
 
 void LogParserWorker::ParseRawLog(InputFile &file)
 {
-  if (EndsWith(file.path, ".plog") || IsXmlFile(file.stream))
+  if (IsXmlFile(file.stream))
   {
     using namespace std::literals;
     static constexpr auto message =
