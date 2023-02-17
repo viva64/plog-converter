@@ -26,7 +26,8 @@ public:
   [[nodiscard]]
   static std::string_view OutputSuffix() noexcept
   {
-    static auto suffix = std::string{ "vscode." }.append(SarifOutput::OutputSuffix());
+    using namespace std::literals;
+    static auto suffix = "vscode."s + std::string { SarifOutput::OutputSuffix() };
     return suffix;
   }
 };

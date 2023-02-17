@@ -92,7 +92,8 @@ public:
   [[nodiscard]]
   static std::string_view OutputSuffix() noexcept
   {
-    static auto suffix = std::string{ FormatName() }.append(".html");
+    using namespace std::literals;
+    static auto suffix = std::string { FormatName() } + ".html"s;
     return suffix;
   }
 

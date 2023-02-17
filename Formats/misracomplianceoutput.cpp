@@ -446,19 +446,19 @@ std::string MisraComplianceOutput::GetSummaryGuidelines(Compliance compliance, i
   if (mandatoryCount > 0)
   {
     auto str = std::to_string(mandatoryCount) + " mandatory guideline" + (mandatoryCount > 1 ? "s" : "");
-    content.push_back(std::move(str));
+    content.push_back(std::move(str)); //-V823
   }
 
   if (requiredCount > 0)
   {
     auto str = std::to_string(requiredCount) + " required guideline" + (requiredCount > 1 ? "s" : "");
-    content.push_back(std::move(str));
+    content.push_back(std::move(str)); //-V823
   }
 
   if (advisoryCount > 0)
   {
     auto str = std::to_string(advisoryCount) + " advisory guideline" + (advisoryCount > 1 ? "s" : "");
-    content.push_back(std::move(str));
+    content.push_back(std::move(str)); //-V823
   }
 
   std::string summary;

@@ -26,7 +26,8 @@ public:
   [[nodiscard]]
   static std::string_view OutputSuffix() noexcept
   {
-    static auto suffix = std::string{ "verbose." }.append(TaskListOutput::OutputSuffix());
+    using namespace std::literals;
+    static auto suffix = "verbose."s + std::string { TaskListOutput::OutputSuffix() };
     return suffix;
   }
 };
