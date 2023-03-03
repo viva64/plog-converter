@@ -3798,10 +3798,13 @@ private:
   }
   
   void print_header(std::ostream &os, [[maybe_unused]] size_t thread_id) {
+    os << "This file was created because PVS-Studio encountered an unexpected error.\n";
+    os << "It contains a list of addresses in the analyzer process that will allow us to trace the problem.\n";
+    os << "Please send this file to our support so that we can fix it.\n\n";
 #ifdef IDS_APP_VERSION
-  os << "PVS-Studio version: " << IDS_APP_VERSION << "\n";
+    os << "PVS-Studio version: " << IDS_APP_VERSION << "\n";
 #else
-  os << "PVS-Studio version: unknown\n";
+    os << "PVS-Studio version: unknown\n";
 #endif
 #ifdef WIN32
     os << "Base address: " << (void*)GetModuleHandle(NULL) << "\n";
@@ -3811,7 +3814,7 @@ private:
     os << "Base address: " << (void*)dlopen(NULL, RTLD_LAZY) << "\n";
 #endif
 #ifdef __APPLE__
-   os << "image slide is: " << (void*)ImageSlide() << "\n";
+    os << "image slide is: " << (void*)ImageSlide() << "\n";
 #endif
   }
 
