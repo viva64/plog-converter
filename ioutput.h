@@ -52,14 +52,14 @@ class BaseFormatOutput : public IOutput<Warning>, public IOutputIfoProvider
 {
 public:
   virtual ~BaseFormatOutput() = default;
-  void ClearOutput(bool removeEmptyFile = true) noexcept;
-  void HardClearOutput() noexcept;
+  void ClearOutput(bool removeEmptyFile = true) noexcept override;
+  void HardClearOutput() noexcept override;
 
   virtual void Start() override {};
   virtual bool Write(const Warning& message) override = 0;
   virtual void Finish() override;
 
-  [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept = 0;
+  [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept override = 0;
   [[nodiscard]] virtual bool OutputIsFile_() const noexcept = 0;
   [[nodiscard]] virtual std::string_view OutputSuffix_() const noexcept = 0;
 

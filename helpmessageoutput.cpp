@@ -74,5 +74,6 @@ namespace PlogConverter
     {
       return base->SupportsRelativePath_();
     }
+    return false;
   }
 }
