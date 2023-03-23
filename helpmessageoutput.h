@@ -12,7 +12,7 @@
 namespace PlogConverter
 {
 
-  class HelpMessageOutput : public IOutput<Warning>
+  class HelpMessageOutput : public IOutput<Warning>, public IOutputIfoProvider
   {
   public:
     using NextOutputPtr = std::unique_ptr<IOutput<Warning>>;
@@ -23,6 +23,10 @@ namespace PlogConverter
     virtual void Start()                       override;
     virtual bool Write(const Warning& message) override;
     virtual void Finish()                      override;
+    [[nodiscard]] virtual std::string_view FormatName_() const noexcept override;
+    virtual void ClearOutput(bool removeEmptyFile = true) noexcept override;
+    virtual void HardClearOutput() noexcept override;
+    [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept override;
 
   private:
     NextOutputPtr m_nextOutput;

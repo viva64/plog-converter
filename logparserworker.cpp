@@ -24,6 +24,7 @@
 #include "multipleoutput.h"
 #include "outputfactory.h"
 #include "sourceroottransformer.h"
+#include "sourcetreerootremover.h"
 #include "utils.h"
 
 #include "Formats/jsonoutput.h"
@@ -219,6 +220,21 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   std::unique_ptr<JsonOutput,   std::default_delete<BaseFormatOutput>> jsonOutput;
   std::unique_ptr<GitLabOutput, std::default_delete<BaseFormatOutput>> gitlabOutput;
 
+  auto generateOutput = [&options](auto ptr) -> IOutput<PlogConverter::Warning>*
+  {
+    if (auto base = dynamic_cast<ISupportsRelativePath *>(ptr.get()))
+    {
+      if (base->SupportsRelativePath_())
+      {
+        return new SourceRootRemover(std::move(ptr), options);
+      }
+      else
+      {
+        return new SourceRootChecker(std::move(ptr), options);
+      }
+    }
+  };
+
   MultipleOutput<Warning> pathFilterPipeline;
   for (const auto &format : formats)
   {
@@ -242,14 +258,18 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     {
       gitlabOutput = UnsafeTo<GitLabOutput>(std::move(f));
     }
-    else if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f) 
-                                 || IsA<TaskListOutput> (f) || IsA<TaskListVerboseOutput> (f)))
-    {
-      pathFilterPipeline.Add(std::make_unique<HelpMessageOutput>(std::move(f)));
-    }
     else
     {
-      pathFilterPipeline.Add(std::move(f));
+      if (!options.noHelp && (IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f)
+        || IsA<TaskListOutput>(f) || IsA<TaskListVerboseOutput>(f)))
+      {
+        auto help = std::make_unique<HelpMessageOutput>(std::move(f));
+        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(help))));
+      }
+      else
+      {
+        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))));
+      }
     }
   }
 
@@ -266,7 +286,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   }
   if (gitlabOutput)
   {
-    noTransformPipeline.Add(std::move(gitlabOutput));
+    noTransformPipeline.Add(std::make_unique<SourceRootRemover>(std::move(gitlabOutput), options));
   }
 
   MultipleOutput<Warning> filterPipeline;

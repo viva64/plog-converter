@@ -42,4 +42,37 @@ namespace PlogConverter
       m_nextOutput->Finish();
     }
   }
+
+  [[nodiscard]] std::string_view HelpMessageOutput::FormatName_() const noexcept
+  {
+    if (auto base = dynamic_cast<INameable *>(m_nextOutput.get()))
+    {
+      return base->FormatName_();
+    }
+    return std::string_view("");
+  }
+
+  void HelpMessageOutput::ClearOutput(bool removeEmptyFile) noexcept
+  {
+    if (auto base = dynamic_cast<IFileClearable *>(m_nextOutput.get()))
+    {
+      return base->ClearOutput(removeEmptyFile);
+    }
+  }
+
+  void HelpMessageOutput::HardClearOutput() noexcept
+  {
+    if (auto base = dynamic_cast<IFileClearable *>(m_nextOutput.get()))
+    {
+      return base->HardClearOutput();
+    }
+  }
+
+  [[nodiscard]] bool HelpMessageOutput::SupportsRelativePath_() const noexcept
+  {
+    if (auto base = dynamic_cast<ISupportsRelativePath *>(m_nextOutput.get()))
+    {
+      return base->SupportsRelativePath_();
+    }
+  }
 }

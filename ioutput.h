@@ -27,65 +27,47 @@ public:
   virtual void Finish() = 0;
 };
 
-class BaseFormatOutput : public IOutput<Warning>
+class INameable
+{
+public:
+  [[nodiscard]] virtual std::string_view FormatName_() const noexcept = 0;
+};
+
+class IFileClearable
+{
+public:
+  virtual void ClearOutput(bool removeEmptyFile = true) noexcept = 0;
+  virtual void HardClearOutput() noexcept = 0;
+};
+
+class ISupportsRelativePath
+{
+public:
+  [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept = 0;
+};
+
+class IOutputIfoProvider : public INameable, public IFileClearable, public ISupportsRelativePath{};
+
+class BaseFormatOutput : public IOutput<Warning>, public IOutputIfoProvider
 {
 public:
   virtual ~BaseFormatOutput() = default;
-  void ClearOutput(bool removeEmptyFile = true) noexcept
-  {
-    m_buf.pubsync();
-    if (auto& fstream = m_buf.m_ofstream)
-    {
-      if (fstream->is_open())
-      {
-        fstream->close();
-      }
-
-      std::error_code ignored;
-      if (removeEmptyFile && std::filesystem::is_empty(m_output, ignored))
-      {
-        std::filesystem::remove(m_output, ignored);
-      }
-    }
-    if (m_buf.m_ostream)
-    {
-      m_buf.m_ostream->flush();
-    }
-  }
+  void ClearOutput(bool removeEmptyFile = true) noexcept;
+  void HardClearOutput() noexcept;
 
   virtual void Start() override {};
   virtual bool Write(const Warning& message) override = 0;
-  virtual void Finish() override
-  {
-    ClearOutput(false);
-  };
+  virtual void Finish() override;
 
   [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept = 0;
   [[nodiscard]] virtual bool OutputIsFile_() const noexcept = 0;
-  [[nodiscard]] virtual std::string_view FormatName_() const noexcept = 0;
   [[nodiscard]] virtual std::string_view OutputSuffix_() const noexcept = 0;
 
 protected:
   friend class OutputFactory;
   BaseFormatOutput() = default;
 
-  void DetectShowTags(bool& showCWE, bool& showSAST) const
-  {
-    showSAST = false;
-    showCWE = false;
-
-    for (const auto& security : m_errorCodeMappings)
-    {
-      if (security == SecurityCodeMapping::MISRA || security == SecurityCodeMapping::AUTOSAR || security == SecurityCodeMapping::OWASP)
-      {
-        showSAST = true;
-      }
-      if (security == SecurityCodeMapping::CWE)
-      {
-        showCWE = true;
-      }
-    }
-  }
+  void DetectShowTags(bool &showCWE, bool &showSAST) const;
 
   template <size_t BufSize = BUFSIZ>
   struct streamsbuf : public std::streambuf

@@ -26,6 +26,7 @@ add_library(plog STATIC
     helpmessageoutput.cpp
     helpmessageoutput.h
     ioutput.h
+    ioutput.cpp
     iworker.cpp
     JsonUtils.h
     logparserworker.cpp
@@ -41,6 +42,8 @@ add_library(plog STATIC
     outputfactory.h
     sourceroottransformer.cpp
     sourceroottransformer.h
+    sourcetreerootremover.cpp
+    sourcetreerootremover.h
     suppressfilter.cpp
     suppressfilter.h
     utils.cpp
