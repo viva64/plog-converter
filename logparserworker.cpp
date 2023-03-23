@@ -233,6 +233,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
         return new SourceRootChecker(std::move(ptr), options);
       }
     }
+    return nullptr;
   };
 
   MultipleOutput<Warning> pathFilterPipeline;
