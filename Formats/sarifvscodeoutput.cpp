@@ -47,4 +47,16 @@ std::vector<nlohmann::json> SarifVSCodeOutputProcessor::GetRelatedLocations(cons
   return {};
 }
 
+[[nodiscard]] std::string_view SarifVSCodeOutput::FormatName() noexcept
+{
+  return "sarif-vscode";
+}
+
+[[nodiscard]] std::string_view SarifVSCodeOutput::OutputSuffix() noexcept
+{
+  using namespace std::literals;
+  static auto suffix = "vscode."s + std::string { SarifOutput::OutputSuffix() };
+  return suffix;
+}
+
 }

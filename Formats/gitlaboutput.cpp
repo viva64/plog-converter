@@ -74,4 +74,25 @@ void GitLabOutput::Finish()
   BasicFormatOutput<GitLabOutput>::Finish();
 }
 
+[[nodiscard]] bool GitLabOutput::SupportsRelativePath() noexcept
+{
+  return true;
+}
+
+[[nodiscard]] bool GitLabOutput::OutputIsFile() noexcept
+{
+  return true;
+}
+
+[[nodiscard]] std::string_view GitLabOutput::FormatName() noexcept
+{
+  return "gitlab";
+}
+
+[[nodiscard]] std::string_view GitLabOutput::OutputSuffix() noexcept
+{
+  static std::string suffix{ std::string{ FormatName() }.append(".json") };
+  return suffix;
+}
+
 }

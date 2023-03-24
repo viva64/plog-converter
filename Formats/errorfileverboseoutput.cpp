@@ -54,4 +54,16 @@ bool ErrorFileVerboseOutput::Write(const Warning& msg)
   return false;
 }
 
+[[nodiscard]] std::string_view ErrorFileVerboseOutput::OutputSuffix() noexcept
+{
+  using namespace std::literals;
+  static auto suffix = "verbose."s + std::string { ErrorFileOutput::OutputSuffix() };
+  return suffix;
+}
+
+[[nodiscard]] std::string_view ErrorFileVerboseOutput::FormatName() noexcept
+{
+  return "errorfile-verbose";
+}
+
 }

@@ -43,4 +43,16 @@ bool TaskListVerboseOutput::Write(const Warning &msg)
   return false;
 }
 
+[[nodiscard]] std::string_view TaskListVerboseOutput::FormatName() noexcept
+{
+  return "tasklist-verbose";
+}
+
+[[nodiscard]] std::string_view TaskListVerboseOutput::OutputSuffix() noexcept
+{
+  using namespace std::literals;
+  static auto suffix = "verbose."s + std::string { TaskListOutput::OutputSuffix() };
+  return suffix;
+}
+
 }

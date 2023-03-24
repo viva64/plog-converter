@@ -17,19 +17,8 @@ public:
 
   void Finish() override;
 
-  [[nodiscard]]
-  static std::string_view FormatName() noexcept
-  {
-    return "sarif-vscode";
-  }
-
-  [[nodiscard]]
-  static std::string_view OutputSuffix() noexcept
-  {
-    using namespace std::literals;
-    static auto suffix = "vscode."s + std::string { SarifOutput::OutputSuffix() };
-    return suffix;
-  }
+  [[nodiscard]] static std::string_view FormatName() noexcept;
+  [[nodiscard]] static std::string_view OutputSuffix() noexcept;
 };
 
 }

@@ -17,19 +17,8 @@ public:
 
   bool Write(const Warning& msg) override;
 
-  [[nodiscard]]
-  static std::string_view FormatName() noexcept
-  {
-    return "errorfile-verbose";
-  }
-
-  [[nodiscard]]
-  static std::string_view OutputSuffix() noexcept
-  {
-    using namespace std::literals;
-    static auto suffix = "verbose."s + std::string { ErrorFileOutput::OutputSuffix() };
-    return suffix;
-  }
+  [[nodiscard]] static std::string_view FormatName() noexcept;
+  [[nodiscard]] static std::string_view OutputSuffix() noexcept;
 };
 
 }

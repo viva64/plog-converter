@@ -826,4 +826,30 @@ MisraComplianceOutput::CategoriesMap &MisraComplianceOutput::Categories()
   return misra_c;
 }
 
+[[nodiscard]]
+bool MisraComplianceOutput::SupportsRelativePath() noexcept
+{
+  return false;
+}
+
+[[nodiscard]]
+bool MisraComplianceOutput::OutputIsFile() noexcept
+{
+  return true;
+}
+
+[[nodiscard]]
+std::string_view MisraComplianceOutput::FormatName() noexcept
+{
+  return "misra-compliance";
+}
+
+[[nodiscard]]
+std::string_view MisraComplianceOutput::OutputSuffix() noexcept
+{
+  using namespace std::literals;
+  static auto suffix = std::string { FormatName() } + ".html"s;
+  return suffix;
+}
+
 }

@@ -19,30 +19,10 @@ public:
   bool Write(const Warning& msg) override;
   void Finish() override;
 
-  [[nodiscard]]
-  static bool SupportsRelativePath() noexcept
-  {
-    return true;
-  }
-
-  [[nodiscard]]
-  static bool OutputIsFile() noexcept
-  {
-    return true;
-  }
-
-  [[nodiscard]]
-  static std::string_view FormatName() noexcept
-  {
-    return "gitlab";
-  }
-
-  [[nodiscard]]
-  static std::string_view OutputSuffix() noexcept
-  {
-    static std::string suffix{ std::string{ FormatName() }.append(".json") };
-    return suffix;
-  }
+  [[nodiscard]] static bool SupportsRelativePath() noexcept;
+  [[nodiscard]] static bool OutputIsFile() noexcept;
+  [[nodiscard]] static std::string_view FormatName() noexcept;
+  [[nodiscard]] static std::string_view OutputSuffix() noexcept;
 
 private:
   nlohmann::json m_gitLabOutput;

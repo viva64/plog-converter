@@ -71,31 +71,10 @@ public:
   bool Write(const Warning& msg) override;
   void Finish() override;
 
-  [[nodiscard]]
-  static bool SupportsRelativePath() noexcept
-  {
-    return false;
-  }
-
-  [[nodiscard]]
-  static bool OutputIsFile() noexcept
-  {
-    return true;
-  }
-
-  [[nodiscard]]
-  static std::string_view FormatName() noexcept
-  {
-    return "misra-compliance";
-  }
-
-  [[nodiscard]]
-  static std::string_view OutputSuffix() noexcept
-  {
-    using namespace std::literals;
-    static auto suffix = std::string { FormatName() } + ".html"s;
-    return suffix;
-  }
+  [[nodiscard]] static bool SupportsRelativePath() noexcept;
+  [[nodiscard]] static bool OutputIsFile() noexcept;
+  [[nodiscard]] static std::string_view FormatName() noexcept;
+  [[nodiscard]] static std::string_view OutputSuffix() noexcept;
 
   static CategoriesMap& Categories();
 
