@@ -284,6 +284,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
   ValueFlag<std::string> outputFile(parser, "FILE", "Output file.", { 'o', "output" }, Options::Single);
   outputFile.HelpDefault("<stdout>");
   Flag useStdout(parser, "USESTDOUT", "Display the report to standard output when '--output' parameter specified.", { "stdout" }, Options::Single);
+  Flag separateNonCriticalToInfo(parser, "SEPARATENONCRITICAL", "Tag all the warnings from the 64-bit diagnostic groups and micro-optimization diagnostic groups as informational. Only for fullhtml report.", { "separateNonCriticalToInfo" }, Options::Single | Options::Hidden);
   ValueFlag<std::string> sourceRoot(parser, "PATH", "A path to the project directory.", { 'r', "srcRoot" }, Options::Single);
   ValueFlag<std::string> analyzer(parser, "TYPES", "Specifies analyzer(s) and level(s) to be used for filtering, i.e. 'GA:1,2;64:1;OP:1,2,3;CS:1;MISRA:1,2'",
                                   { CmdAnalyzerFlagName_Short, CmdAnalyzerFlagName_Full }, "GA:1,2", Options::Single);
@@ -340,6 +341,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.useStderr = useCerr;
     m_options.noHelp = noHelp;
     m_options.useStdout = useStdout;
+    m_options.separateNonCriticalToInfo = separateNonCriticalToInfo;
     m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
     m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
     std::transform(std::begin(excludePaths), std::end(excludePaths), std::back_inserter(m_options.disabledPaths), &GetAbsolutePath);

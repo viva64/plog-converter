@@ -25,9 +25,11 @@
 #include "outputfactory.h"
 #include "sourceroottransformer.h"
 #include "sourcetreerootremover.h"
+#include "leveltransform.h"
 #include "utils.h"
 
 #include "Formats/jsonoutput.h"
+#include "Formats/htmloutput.h"
 #include "Formats/misracomplianceoutput.h"
 #include "Formats/errorfileoutput.h"
 #include "Formats/errorfileverboseoutput.h"
@@ -219,6 +221,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   std::unique_ptr<MisraComplianceOutput, std::default_delete<BaseFormatOutput>> misraCompliance;
   std::unique_ptr<JsonOutput,   std::default_delete<BaseFormatOutput>> jsonOutput;
   std::unique_ptr<GitLabOutput, std::default_delete<BaseFormatOutput>> gitlabOutput;
+  std::unique_ptr<HTMLOutput, std::default_delete<BaseFormatOutput>> fullHtmlOutput;
 
   auto generateOutput = [&options](auto ptr) -> IOutput<PlogConverter::Warning>*
   {
@@ -261,11 +264,15 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
     else
     {
-      if (!options.noHelp && (IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f)
-        || IsA<TaskListOutput>(f) || IsA<TaskListVerboseOutput>(f)))
-      {
+      if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f)
+                              || IsA<TaskListOutput>(f)  || IsA<TaskListVerboseOutput>(f)))
+      {  
         auto help = std::make_unique<HelpMessageOutput>(std::move(f));
         pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(help))));
+      }
+      else if (IsA<HTMLOutput>(f))
+      {
+        pathFilterPipeline.Add(std::make_unique<LevelTransform>(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))), options));
       }
       else
       {
@@ -304,7 +311,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   MultipleOutput<Warning> output;
   if (!filterPipeline.empty())
   {
-    output.Add(std::make_unique<MessageFilter>( &filterPipeline, options ));
+    output.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
   }
 
   MultipleOutput<Warning> misraPathFilterPipline;

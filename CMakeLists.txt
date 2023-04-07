@@ -29,6 +29,8 @@ add_library(plog STATIC
     ioutput.cpp
     iworker.cpp
     JsonUtils.h
+    leveltransform.cpp
+    leveltransform.h
     logparserworker.cpp
     logparserworker.h
     messagefilter.cpp

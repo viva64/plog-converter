@@ -160,6 +160,10 @@ static std::string TextLevel(unsigned level)
     {
       return "Low";
     }
+    case 4:
+    {
+      return "Info";
+    }
     default:
     {
       return "";
@@ -182,6 +186,10 @@ static std::string ColorLevel(unsigned level)
     case 3:
     {
       return "#CACA00";
+    }
+    case 4:
+    {
+      return "#0A55F7";
     }
     default:
     {
