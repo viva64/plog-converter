@@ -177,7 +177,7 @@ struct Warning
           Format format,
           size_t line = 1,
           unsigned level = 0)
-    : message { std::move(message) }
+    : message { message }
     , level { level }
     , format { format }
   {
