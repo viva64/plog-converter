@@ -222,9 +222,9 @@ static std::set<std::string> ParseMisraDiviations(std::string_view flagValue)
   return result;
 }
 
-static PathTransformationMode ParsePathTransformationMode(std::string_view flagValue, std::string_view srcRoot)
+static PathTransformationMode ParsePathTransformationMode(const args::ValueFlag<std::string> & flag, std::string_view flagValue)
 {
-  if (srcRoot.empty())
+  if (!flag)
   {
     return PathTransformationMode::NoTransform;
   }
@@ -343,7 +343,8 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.useStdout = useStdout;
     m_options.separateNonCriticalToInfo = separateNonCriticalToInfo;
     m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
-    m_options.pathTransformationMode = ParsePathTransformationMode(get(pathTransformationMode), m_options.projectRoot);
+    m_options.pathTransformationMode = ParsePathTransformationMode(sourceRoot, get(pathTransformationMode));
+    
     std::transform(std::begin(excludePaths), std::end(excludePaths), std::back_inserter(m_options.disabledPaths), &GetAbsolutePath);
     std::transform(std::begin(includePaths), std::end(includePaths), std::back_inserter(m_options.enabledPaths), &GetAbsolutePath);
 

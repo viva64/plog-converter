@@ -17,7 +17,7 @@ namespace PlogConverter
 
   Warning SourceRootRemover::Transform(Warning message) const
   {
-    if (m_options.pathTransformationMode != PathTransformationMode::ToRelative)
+    if (m_options.pathTransformationMode == PathTransformationMode::NoTransform)
     {
       for (auto &position : message.positions)
       {
