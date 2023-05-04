@@ -57,7 +57,7 @@ namespace PlogConverter
       };
 
 
-      if (m_options.projectRoot.empty())
+      if (m_options.pathTransformationMode == PathTransformationMode::NoTransform)
       {
         if (StartsWith(warning.GetFile(), GetSourceTreeRootMarker()))
         {

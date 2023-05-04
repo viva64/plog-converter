@@ -59,7 +59,7 @@ namespace PlogConverter
 
   Warning SourceRootTransformer::Transform(Warning message) const
   {
-    if (!m_options.projectRoot.empty())
+    if (m_options.pathTransformationMode != PathTransformationMode::NoTransform)
     {
       for (auto &position : message.positions)
       {
