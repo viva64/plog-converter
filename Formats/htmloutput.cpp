@@ -42,14 +42,14 @@ HTMLOutput::HTMLOutput(const ProgramOptions &options)
     throw FilesystemException("Couldn't open " + indexPath.string());
   }
 
-  m_desc.emplace(AnalyzerType::Fail, "Fail/Info");
-  m_desc.emplace(AnalyzerType::General, "General Analysis");
-  m_desc.emplace(AnalyzerType::Optimization, "Micro-optimizations");
-  m_desc.emplace(AnalyzerType::Viva64, "64-bit errors");
-  m_desc.emplace(AnalyzerType::CustomerSpecific, "Customers Specific");
-  m_desc.emplace(AnalyzerType::Misra, "MISRA");
-  m_desc.emplace(AnalyzerType::Autosar, "AUTOSAR");
-  m_desc.emplace(AnalyzerType::Owasp, "OWASP");
+  m_desc.try_emplace(AnalyzerType::Fail, "Fail/Info");
+  m_desc.try_emplace(AnalyzerType::General, "General Analysis");
+  m_desc.try_emplace(AnalyzerType::Optimization, "Micro-optimizations");
+  m_desc.try_emplace(AnalyzerType::Viva64, "64-bit errors");
+  m_desc.try_emplace(AnalyzerType::CustomerSpecific, "Customers Specific");
+  m_desc.try_emplace(AnalyzerType::Misra, "MISRA");
+  m_desc.try_emplace(AnalyzerType::Autosar, "AUTOSAR");
+  m_desc.try_emplace(AnalyzerType::Owasp, "OWASP");
 }
 
 static constexpr std::string_view HtmlHead =
@@ -525,7 +525,7 @@ bool HTMLOutput::Write(const Warning &msg)
 {
   if (!Trim(msg.GetFile()).empty() && m_map.find(msg.GetFile()) == m_map.end())
   {
-    m_map.emplace(msg.GetFile(), m_currentId++);
+    m_map.try_emplace(msg.GetFile(), m_currentId++);
   }
 
   const auto analyzerType = msg.GetType();
