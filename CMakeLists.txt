@@ -55,6 +55,8 @@ add_library(plog STATIC
 
     Formats/csvoutput.cpp
     Formats/csvoutput.h
+    Formats/defectdojooutput.cpp
+    Formats/defectdojooutput.h
     Formats/errorfileoutput.h
     Formats/errorfileverboseoutput.cpp
     Formats/errorfileverboseoutput.h
