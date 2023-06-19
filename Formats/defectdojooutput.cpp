@@ -62,11 +62,11 @@ namespace PlogConverter
     msgDefectDojo["file_path"] = position.file;
     msgDefectDojo["line"] = position.line;
     msgDefectDojo["references"] = msg.GetVivaUrl();
-    msgDefectDojo["active"] = false;
+    msgDefectDojo["active"] = false; //-V601 
 
     if (msg.falseAlarm) 
     {
-      msgDefectDojo["false_p"] = msg.falseAlarm;
+      msgDefectDojo["false_p"] = msg.falseAlarm; //-V601
     }
 
     m_defectDojoOutput["findings"].emplace_back(std::move(msgDefectDojo));
