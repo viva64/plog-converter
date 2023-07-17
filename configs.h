@@ -60,6 +60,7 @@ struct ProgramOptions
   bool                                        noHelp = false;
   bool                                        indicateWarnings = false;
   bool                                        separateNonCriticalToInfo = false;
+  bool                                        keepFalseAlarms = false;
 };
 
 }

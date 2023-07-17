@@ -27,6 +27,7 @@ MessageFilter::MessageFilter(IOutput<Warning>* output, const ProgramOptions &opt
   , m_disabledKeywords(options.disabledKeywords)
   , m_disabledPaths(options.disabledPaths)
   , m_disabledWarnings(options.disabledWarnings)
+  , m_keepFalseAlarms(options.keepFalseAlarms)
 {
   for (const Analyzer& it : options.enabledAnalyzers)
   {
@@ -62,7 +63,7 @@ bool MessageFilter::CheckCode(const Warning &message) const
 
 bool MessageFilter::CheckFalseAlarm(const Warning &message) const
 {
-  return !message.falseAlarm;
+  return m_keepFalseAlarms || !message.falseAlarm;
 }
 
 bool MessageFilter::CheckKeywords(const Warning &message) const

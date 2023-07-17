@@ -320,6 +320,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
                                                   { 'R', "pathTransformationMode" },
                                                   Options::Single
                                                 };
+  Flag keepFalseAlarms(parser, "KEEPFALSEALARMS", "Set this option to preserve warnings marked as False Alarms in the report.", { 'f', "keepFalseAlarms" }, Options::Single);
 
   try
   {
@@ -344,6 +345,7 @@ void Application::SetCmdOptions(int argc, const char** argv)
     m_options.separateNonCriticalToInfo = separateNonCriticalToInfo;
     m_options.indicateWarnings = indicateWarnings || indicateWarningsDeprecated;
     m_options.pathTransformationMode = ParsePathTransformationMode(sourceRoot, get(pathTransformationMode));
+    m_options.keepFalseAlarms = keepFalseAlarms;
     
     std::transform(std::begin(excludePaths), std::end(excludePaths), std::back_inserter(m_options.disabledPaths), &GetAbsolutePath);
     std::transform(std::begin(includePaths), std::end(includePaths), std::back_inserter(m_options.enabledPaths), &GetAbsolutePath);

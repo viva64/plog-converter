@@ -18,6 +18,7 @@ class MessageFilter : public IFilter<Warning>
   std::set<std::string> m_disabledKeywords;
   std::vector<std::string> m_disabledPaths;
   std::set<std::string> m_disabledWarnings;
+  bool m_keepFalseAlarms;
 
 public:
   explicit MessageFilter(IOutput<Warning>* output, const ProgramOptions& options);
