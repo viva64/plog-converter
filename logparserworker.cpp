@@ -27,6 +27,7 @@
 #include "sourcetreerootremover.h"
 #include "leveltransform.h"
 #include "utils.h"
+#include "samewarningsadaptor.h"
 
 #include "Formats/jsonoutput.h"
 #include "Formats/htmloutput.h"
@@ -308,17 +309,17 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     filterPipeline.Add(std::make_unique<PathFilter>(&noTransformPipeline, options));
   }
 
-  MultipleOutput<Warning> output;
+  MultipleOutput<Warning> outputsPipeline;
   if (!filterPipeline.empty())
   {
-    output.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
+    outputsPipeline.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
   }
 
   MultipleOutput<Warning> misraPathFilterPipline;
   if (misraCompliance)
   {
     misraPathFilterPipline.Add(std::make_unique<PathFilter>(misraCompliance.get(), options));
-    output.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
+    outputsPipeline.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
   }
   else
   {
@@ -331,6 +332,12 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     {
       std::cout << "The use of the 'misra_deviations' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
     }
+  }
+
+  MultipleOutput<Warning> output;
+  if (!outputsPipeline.empty())
+  {
+    output.Add(std::make_unique<SameWarningsAdaptor>(&outputsPipeline));
   }
 
   ParseLog(inputFiles, output, options.projectRoot);

@@ -33,8 +33,14 @@ add_library(plog STATIC
     leveltransform.h
     logparserworker.cpp
     logparserworker.h
+    samewarningsfilter.cpp
+    samewarningsfilter.h
+    samewarningsadaptor.cpp
+    samewarningsadaptor.h
     messagefilter.cpp
     messagefilter.h
+    suppressfilter.cpp
+    suppressfilter.h
     PathFilter.cpp
     PathFilter.h
     messageparser.cpp
@@ -46,8 +52,6 @@ add_library(plog STATIC
     sourceroottransformer.h
     sourcetreerootremover.cpp
     sourcetreerootremover.h
-    suppressfilter.cpp
-    suppressfilter.h
     utils.cpp
     utils.h
     warning.cpp
