@@ -7,29 +7,18 @@ namespace PlogConverter
   {
     std::size_t PlogWarningHasher::operator()(const PlogConverter::Warning &w) const
     {
-      auto hash = hash_combine(std::hash<int>        {}(w.level),
-                               std::hash<int>        {}(w.GetErrorCode()),
-                               std::hash<std::string>{}(w.message));
-    
-      for (auto &pos : w.positions)
-      {
-        hash = hash_combine(hash,
-                            std::hash<std::string>{}(pos.file),
-                            std::hash<int>        {}(pos.line),
-                            std::hash<unsigned>   {}(pos.navigation.currentLine),
-                            std::hash<unsigned>   {}(pos.navigation.previousLine),
-                            std::hash<unsigned>   {}(pos.navigation.nextLine));
-      }
-    
+      auto hash = hash_combine(std::hash<std::decay_t<decltype(w.level)>>          {}(w.level),
+                               std::hash<std::decay_t<decltype(w.GetErrorCode())>> {}(w.GetErrorCode()),
+                               std::hash<std::decay_t<decltype(w.message)>>        {}(w.message),
+                               std::hash<std::decay_t<decltype(w.GetFile())>>      {}(w.GetFile()),
+                               std::hash<std::decay_t<decltype(w.GetLine())>>      {}(w.GetLine()));
       return hash;
     }
 
     bool PlogWarningEqual::operator()(const Warning &lhs, const Warning &rhs) const
     {
-      return    lhs.level == rhs.level
-             && lhs.GetErrorCode() == rhs.GetErrorCode()
-             && lhs.message == rhs.message
-             && !(lhs.positions < rhs.positions || rhs.positions < lhs.positions);
+      return    std::forward_as_tuple(lhs.level, lhs.GetErrorCode(), lhs.message, lhs.GetLine(), lhs.GetFile())
+             == std::forward_as_tuple(rhs.level, rhs.GetErrorCode(), rhs.message, rhs.GetLine(), rhs.GetFile());
     }
   }
 

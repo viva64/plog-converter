@@ -111,6 +111,7 @@ struct WarningPosition
   {}
 
   bool operator<(const WarningPosition& other) const noexcept;
+  bool operator==(const WarningPosition& other) const noexcept;
 
   template <typename T>
   void Serialize(T& stream)

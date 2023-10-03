@@ -581,4 +581,10 @@ bool WarningPosition::operator<(const WarningPosition& other) const noexcept
           < std::tuple{  other.line, other.endLine, other.column, other.endColumn, std::string_view { other.file } };
 }
 
+bool WarningPosition::operator==(const WarningPosition& other) const noexcept
+{
+  return    std::tuple{        line,       endLine,       column,       endColumn, std::string_view { file } }
+         == std::tuple{  other.line, other.endLine, other.column, other.endColumn, std::string_view { other.file } };
+}
+
 }
