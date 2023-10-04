@@ -272,7 +272,10 @@ class IFilter : public IOutput<T>
 {
 public:
   IFilter(IOutput<T>* output) : m_output(output) { };
-  virtual ~IFilter() = default;
+  virtual ~IFilter()
+  {
+    delete m_output;
+  }
 
   void Start() override
   {
@@ -316,7 +319,10 @@ class ITransform : public IOutput<T>
 {
 public:
   ITransform(IOutput<T>* output) : m_output(output) { };
-  virtual ~ITransform() = default;
+  virtual ~ITransform() 
+  {
+    delete m_output;
+  }
 
   void Start() override
   {

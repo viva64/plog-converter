@@ -240,7 +240,7 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     return nullptr;
   };
 
-  MultipleOutput<Warning> pathFilterPipeline;
+  auto pathFilterPipeline = std::make_unique<MultipleOutput<Warning>>();
   for (const auto &format : formats)
   {
     auto f = format(options);
@@ -269,57 +269,57 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
                               || IsA<TaskListOutput>(f)  || IsA<TaskListVerboseOutput>(f)))
       {  
         auto help = std::make_unique<HelpMessageOutput>(std::move(f));
-        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(help))));
+        pathFilterPipeline->Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(help))));
       }
       else if (IsA<HTMLOutput>(f))
       {
-        pathFilterPipeline.Add(std::make_unique<LevelTransform>(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))), options));
+        pathFilterPipeline->Add(std::make_unique<LevelTransform>(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))), options));
       }
       else
       {
-        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))));
+        pathFilterPipeline->Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))));
       }
     }
   }
 
-  MultipleOutput<Warning> transformPipeline;
-  if (!pathFilterPipeline.empty())
+  auto transformPipeline = std::make_unique<MultipleOutput<Warning>>();
+  if (!pathFilterPipeline->empty())
   {
-    transformPipeline.Add(std::make_unique<PathFilter>(&pathFilterPipeline, options));
+    transformPipeline->Add(std::make_unique<PathFilter>(pathFilterPipeline.release(), options));
   }
   
-  MultipleOutput<Warning> noTransformPipeline;
+  auto noTransformPipeline = std::make_unique<MultipleOutput<Warning>>();
   if (jsonOutput)
   {
-    noTransformPipeline.Add(std::move(jsonOutput));
+    noTransformPipeline->Add(std::move(jsonOutput));
   }
   if (gitlabOutput)
   {
-    noTransformPipeline.Add(std::make_unique<SourceRootRemover>(std::move(gitlabOutput), options));
+    noTransformPipeline->Add(std::make_unique<SourceRootRemover>(std::move(gitlabOutput), options));
   }
 
-  MultipleOutput<Warning> filterPipeline;
-  if (!transformPipeline.empty())
+  auto filterPipeline = std::make_unique<MultipleOutput<Warning>>();
+  if (!transformPipeline->empty())
   {
-    filterPipeline.Add(std::make_unique<SourceRootTransformer>(&transformPipeline, options));
+    filterPipeline->Add(std::make_unique<SourceRootTransformer>(transformPipeline.release(), options));
   }
 
-  if (!noTransformPipeline.empty())
+  if (!noTransformPipeline->empty())
   {
-    filterPipeline.Add(std::make_unique<PathFilter>(&noTransformPipeline, options));
+    filterPipeline->Add(std::make_unique<PathFilter>(noTransformPipeline.release(), options));
   }
 
-  MultipleOutput<Warning> outputsPipeline;
-  if (!filterPipeline.empty())
+  auto outputsPipeline = std::make_unique<MultipleOutput<Warning>>();
+  if (!filterPipeline->empty())
   {
-    outputsPipeline.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
+    outputsPipeline->Add(std::make_unique<MessageFilter>(filterPipeline.release(), options));
   }
 
-  MultipleOutput<Warning> misraPathFilterPipline;
+  auto misraPathFilterPipline = std::make_unique<MultipleOutput<Warning>>();
   if (misraCompliance)
   {
-    misraPathFilterPipline.Add(std::make_unique<PathFilter>(misraCompliance.get(), options));
-    outputsPipeline.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
+    misraPathFilterPipline->Add(std::make_unique<PathFilter>(misraCompliance.get(), options));
+    outputsPipeline->Add(std::make_unique<SourceRootTransformer>(misraPathFilterPipline.release(), options));
   }
   else
   {
@@ -334,13 +334,13 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     }
   }
 
-  MultipleOutput<Warning> output;
-  if (!outputsPipeline.empty())
+  auto output = std::make_unique<MultipleOutput<Warning>>();
+  if (!outputsPipeline->empty())
   {
-    output.Add(std::make_unique<SameWarningsAdaptor>(&outputsPipeline));
+    output->Add(std::make_unique<SameWarningsAdaptor>(outputsPipeline.release()));
   }
 
-  ParseLog(inputFiles, output, options.projectRoot);
+  ParseLog(inputFiles, *output, options.projectRoot);
 
   std::cout << "Total messages: " << m_countTotal << '\n'
             << "Filtered messages: " << m_countSuccess << std::endl;
