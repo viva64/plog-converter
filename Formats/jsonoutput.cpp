@@ -39,37 +39,39 @@ bool JsonOutput::Write(const Warning& msg)
 
   nlohmann::json msgJson;
 
-  msgJson["code"]  = msg.code;
-  msgJson["cwe"]   = msg.cwe;
+  msgJson["code"]   = msg.code;
+  msgJson["cwe"]    = msg.cwe;
   msgJson["sastId"] = msg.sastId;
-  msgJson["level"] = msg.level;
+  msgJson["level"]  = msg.level;
 
   std::vector<nlohmann::json> positionsJsons;
 
-  bool isFirstIteration = true;
-  for (auto position : msg.positions)
+  bool isFirstPosition = true;
+  for (auto &position : msg.positions)
   {
     auto &positionsJson = positionsJsons.emplace_back();
 
-    ANSItoUTF8(position.file);
-    positionsJson["file"] = position.file;
-    positionsJson["line"] = position.line;
-    positionsJson["endLine"] = position.endLine;
-    positionsJson["column"] = position.column;
+    auto utf8file = position.file;
+    ANSItoUTF8(utf8file);
+
+    positionsJson["file"]      = std::move(utf8file);
+    positionsJson["line"]      = position.line;
+    positionsJson["endLine"]   = position.endLine;
+    positionsJson["column"]    = position.column;
     positionsJson["endColumn"] = position.endColumn;
 
-    if (isFirstIteration)
+    if (isFirstPosition)
     {
       nlohmann::json navigationJson;
-      const auto& nav = position.navigation;
-      navigationJson["previousLine"] = static_cast<int>(PvsStudio::PvsHash(nav.previousLineString));
-      navigationJson["currentLine"] = static_cast<int>(PvsStudio::PvsHash(nav.currentLineString));
-      navigationJson["nextLine"] = static_cast<int>(PvsStudio::PvsHash(nav.nextLineString));
-      navigationJson["columns"] = nav.columns;
+      const auto& nav                = position.navigation;
+      navigationJson["previousLine"] = static_cast<std::int32_t>(nav.previousLine);
+      navigationJson["currentLine"]  = static_cast<std::int32_t>(nav.currentLine);
+      navigationJson["nextLine"]     = static_cast<std::int32_t>(nav.nextLine);
+      navigationJson["columns"]      = nav.columns;
 
-      positionsJson["navigation"] = navigationJson;
+      positionsJson["navigation"]    = std::move(navigationJson);
 
-      isFirstIteration = false;
+      isFirstPosition                = false;
     }
   }
 

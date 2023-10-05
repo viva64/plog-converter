@@ -595,6 +595,8 @@ namespace PvsStudio
 
   uint32_t PvsHash(std::string_view line, unsigned version) noexcept
   {
+    if (line.empty()) { return 0; }
+
     if (version < 2)
     {
       auto lineFixed = FixErrorString(std::string{ line });

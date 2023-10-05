@@ -44,20 +44,21 @@ struct NavigationInfo
   std::string         previousLineString;
   std::string         currentLineString;
   std::string         nextLineString;
-  unsigned            previousLine = 0;
-  unsigned            currentLine = 0;
-  unsigned            nextLine = 0;
-  unsigned            columns = 0;
+
+  std::uint32_t       previousLine = 0;
+  std::uint32_t       currentLine  = 0;
+  std::uint32_t       nextLine     = 0;
+  std::uint32_t       columns      = 0;
 
   NavigationInfo() = default;
 
-  NavigationInfo(std::string previousLineString,
-                 std::string currentLineString,
-                 std::string nextLineString,
-                 unsigned    previousLine = 0,
-                 unsigned    currentLine = 0,
-                 unsigned    nextLine = 0,
-                 unsigned    columns = 0) noexcept
+  NavigationInfo(std::string   previousLineString,
+                 std::string   currentLineString,
+                 std::string   nextLineString,
+                 std::uint32_t previousLine = 0,
+                 std::uint32_t currentLine  = 0,
+                 std::uint32_t nextLine     = 0,
+                 std::uint32_t columns      = 0) noexcept
     : previousLineString { RemoveNonAscii(std::move(previousLineString)) }
     , currentLineString  { RemoveNonAscii(std::move(currentLineString)) }
     , nextLineString     { RemoveNonAscii(std::move(nextLineString)) }

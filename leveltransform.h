@@ -14,7 +14,10 @@ namespace PlogConverter
 	{
 	public:
 		explicit LevelTransform(std::unique_ptr<IOutput<Warning>> warnings, const ProgramOptions &opt);
-		~LevelTransform() override = default;
+    ~LevelTransform() override
+    {
+      delete m_output;
+    }
 
 	private:
 		Warning Transform(Warning warning) const override;

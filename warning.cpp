@@ -509,6 +509,10 @@ Warning Warning::Parse(const std::string& srcLine)
     readOption(j, "currLine", navigation.currentLineString);
     readOption(j, "nextLine", navigation.nextLineString);
 
+    navigation.previousLine = PvsStudio::PvsHash(navigation.previousLineString);
+    navigation.currentLine  = PvsStudio::PvsHash(navigation.currentLineString);
+    navigation.nextLine     = PvsStudio::PvsHash(navigation.nextLineString);
+
     warning.format = Warning::Format::RawJson;
   }
   else
@@ -538,6 +542,10 @@ Warning Warning::Parse(const std::string& srcLine)
     navigation.previousLineString = std::move(fields[9]);
     navigation.currentLineString = std::move(fields[10]);
     navigation.nextLineString = std::move(fields[11]);
+    
+    navigation.previousLine = PvsStudio::PvsHash(navigation.previousLineString);
+    navigation.currentLine  = PvsStudio::PvsHash(navigation.currentLineString);
+    navigation.nextLine     = PvsStudio::PvsHash(navigation.nextLineString);
 
     std::vector<size_t> lines;
     Split(fields[12], ",", std::back_inserter(lines), ParseUint);
