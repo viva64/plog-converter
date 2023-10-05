@@ -16,7 +16,10 @@ namespace PlogConverter
   {
   public:
     explicit SourceRootRemover(std::unique_ptr<IOutput<Warning>> output, const ProgramOptions &options);
-    ~SourceRootRemover() override = default;
+    ~SourceRootRemover() override
+    {
+      delete m_output;
+    }
 
   private:
     Warning Transform(Warning message) const override;
@@ -35,7 +38,11 @@ namespace PlogConverter
       , m_options{ options }
     {
     }
-    ~SourceRootChecker() override = default;
+
+    ~SourceRootChecker() override
+    {
+      delete m_output;
+    }
 
   private:
     bool Check(const Warning &warning) const override
