@@ -41,8 +41,7 @@ namespace PlogConverter
 
     nlohmann::json msgDefectDojo;
 
-    msgDefectDojo["title"] = msg.code;
-    msgDefectDojo["description"] = msg.code + ": " + msg.message;
+    msgDefectDojo["title"] = msgDefectDojo["description"] = msg.code + ": " + msg.message;
     msgDefectDojo["severity"] = GetDefectDojoSeverityString(msg.level);
     msgDefectDojo["cwe"] = msg.cwe;
 
