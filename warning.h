@@ -289,7 +289,7 @@ struct Warning
 public:
   struct UniqueLess
   {
-    constexpr bool operator()(const Warning &lhs, const Warning &rhs) const noexcept
+    bool operator()(const Warning &lhs, const Warning &rhs) const noexcept
     {
       return   std::forward_as_tuple(lhs.GetFile(), lhs.level, lhs.GetErrorCode(), lhs.GetLine(), lhs.message)
              < std::forward_as_tuple(rhs.GetFile(), rhs.level, rhs.GetErrorCode(), rhs.GetLine(), rhs.message);
