@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <regex>
 
@@ -27,7 +28,6 @@
 #include "sourcetreerootremover.h"
 #include "leveltransform.h"
 #include "utils.h"
-#include "samewarningsadaptor.h"
 
 #include "Formats/jsonoutput.h"
 #include "Formats/htmloutput.h"
@@ -42,19 +42,19 @@ namespace PlogConverter
 {
 
   InputFile::InputFile(std::string path_)
-    : path(std::move(path_)), stream(OpenFile(path))
+    : m_stream(OpenFile(path_))
+    , m_path(std::move(path_))
+  {}
+
+  bool InputFile::operator<(const InputFile &other) const noexcept
   {
+    return m_path < other.m_path;
   }
 
   LogParserWorker::~LogParserWorker() = default;
 
-  void LogParserWorker::OnWarning(Warning &warning)
+  void LogParserWorker::OnWarning(const Warning &warning)
   {
-    for (auto &position : warning.positions)
-    {
-      UTF8toANSI(position.file);
-    }
-
     if (m_output && m_output->Write(warning))
     {
       ++m_countSuccess;
@@ -73,32 +73,38 @@ void LogParserWorker::ParseLog(std::vector<InputFile> &inputFiles,
                                const std::string &root)
 {
   m_output = &output;
-  m_root = root;
+  m_root   = root;
 
   output.Start();
+  WarningsLogContent outputContent{};
 
   for (auto &inputFile : inputFiles)
   {
-    if (EndsWith(inputFile.path, ".json"))
+    if (EndsWith(inputFile.Path(), ".json"))
     {
-      ParseJsonLog(inputFile);
+      ParseJsonLog(inputFile, outputContent);
     }
-    else if (EndsWith(inputFile.path, ".cerr"))
+    else if (EndsWith(inputFile.Path(), ".cerr"))
     {
-      ParseCerrLog(inputFile);
+      ParseCerrLog(inputFile, outputContent);
     }
     else
     {
-      ParseRawLog(inputFile);
+      ParseRawLog(inputFile, outputContent);
     }
+  }
+
+  for (auto &warning : outputContent)
+  {
+    OnWarning(warning);
   }
 
   output.Finish();
 }
 
-void LogParserWorker::ParseRawLog(InputFile &file)
+void LogParserWorker::ParseRawLog(InputFile &file, WarningsLogContent &warnings)
 {
-  if (IsXmlFile(file.stream))
+  if (IsXmlFile(file.Stream()))
   {
     using namespace std::literals;
     static constexpr auto message =
@@ -109,15 +115,15 @@ void LogParserWorker::ParseRawLog(InputFile &file)
 #endif
     
     std::cout << message << std::endl;
-    m_warning.Clear();
-    m_warning.message = message;
-    OnWarning(m_warning);
+    Warning warning{};
+    warning.message = message;
+    warnings.insert(std::move(warning));
     return;
   }
 
   bool decode = false;
 
-  while (std::getline(file.stream, m_line))
+  while (std::getline(file.Stream(), m_line))
   {
     if (CharMap::IsStartEncodedMarker(m_line))
     {
@@ -135,42 +141,47 @@ void LogParserWorker::ParseRawLog(InputFile &file)
       CharMap::Decode(m_line);
     }
 
-    auto it = m_hashTable.emplace(std::move(m_line));
-    if (it.second)
+    Warning warning{};
+    m_messageParser.Parse(m_line, warning);
+
+    for (auto &position : warning.positions)
     {
-      m_messageParser.Parse(*it.first, m_warning);
-      OnWarning(m_warning);
+      UTF8toANSI(position.file);
     }
+
+    warnings.insert(std::move(warning));
   }
 }
 
-void LogParserWorker::ParseCerrLog(InputFile& file)
+void LogParserWorker::ParseCerrLog(InputFile& file, WarningsLogContent &warnings)
 {
   std::smatch match;
   std::regex re("(.+):([0-9]+):([0-9]+): *(note|warn|warning|error) *: *(.*) *");
 
-  while (std::getline(file.stream, m_line))
+  while (std::getline(file.Stream(), m_line))
   {
     if (std::regex_search(m_line, match, re) && match.size() == 6)
     {
-      auto it = m_hashTable.emplace(std::move(m_line));
-      if (it.second)
+      Warning warning{};
+      m_messageParser.Parse(match.str(1),
+                            match.str(2),
+                            match.str(4),
+                            match.str(5),
+                            warning);
+
+      for (auto &position : warning.positions)
       {
-        m_messageParser.Parse(
-          match.str(1),
-          match.str(2),
-          match.str(4),
-          match.str(5),
-          m_warning);
-        OnWarning(m_warning);
+        UTF8toANSI(position.file);
       }
+
+      warnings.insert(std::move(warning));
     }
   }
 }
 
 struct JsonDocument
 {
-  std::vector<Warning> warnings;
+  std::deque<Warning> warnings;
 
   template <typename Stream>
   void Serialize(Stream &stream)
@@ -179,18 +190,15 @@ struct JsonDocument
   }
 };
 
-void LogParserWorker::ParseJsonLog(InputFile &file)
+void LogParserWorker::ParseJsonLog(InputFile &file, WarningsLogContent &warnings)
 {
-  nlohmann::json j;
+  WarningJsonExtractor warningJsonExtractor{ warnings };
+  
+  auto j = nlohmann::json::parse(file.Stream(), warningJsonExtractor);
+
+  // TODO: Remove JsonDocument
   JsonDocument doc;
-
-  file.stream >> j;
   doc = j;
-
-  for (auto &warning : doc.warnings)
-  {
-    OnWarning(warning);
-  }
 }
 
 void LogParserWorker::Run(const ProgramOptions &optionsSrc)
@@ -202,6 +210,8 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   {
     inputFiles.emplace_back(path);
   }
+
+  std::sort(inputFiles.begin(), inputFiles.end());
 
   auto &formats = options.formats;
   if (formats.empty())
@@ -309,17 +319,17 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     filterPipeline.Add(std::make_unique<PathFilter>(&noTransformPipeline, options));
   }
 
-  MultipleOutput<Warning> outputsPipeline;
+  MultipleOutput<Warning> output;
   if (!filterPipeline.empty())
   {
-    outputsPipeline.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
+    output.Add(std::make_unique<MessageFilter>(&filterPipeline, options));
   }
 
   MultipleOutput<Warning> misraPathFilterPipline;
   if (misraCompliance)
   {
     misraPathFilterPipline.Add(std::make_unique<PathFilter>(misraCompliance.get(), options));
-    outputsPipeline.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
+    output.Add(std::make_unique<SourceRootTransformer>(&misraPathFilterPipline, options));
   }
   else
   {
@@ -332,12 +342,6 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
     {
       std::cout << "The use of the 'misra_deviations' flag is valid only for the 'misra' format. Otherwise, it will be ignored." << std::endl;
     }
-  }
-
-  MultipleOutput<Warning> output;
-  if (!outputsPipeline.empty())
-  {
-    output.Add(std::make_unique<SameWarningsAdaptor>(&outputsPipeline));
   }
 
   ParseLog(inputFiles, output, options.projectRoot);

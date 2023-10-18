@@ -33,10 +33,6 @@ add_library(plog STATIC
     leveltransform.h
     logparserworker.cpp
     logparserworker.h
-    samewarningsfilter.cpp
-    samewarningsfilter.h
-    samewarningsadaptor.cpp
-    samewarningsadaptor.h
     messagefilter.cpp
     messagefilter.h
     suppressfilter.cpp

@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
-#include <vector>
+#include <deque>
 
 #include "ioutput.h"
 
@@ -17,7 +17,7 @@ namespace PlogConverter
 class HTMLOutput : public BasicFormatOutput<HTMLOutput>
 {
   std::ofstream m_indexFile{};
-  std::vector<Warning> m_messages;
+  std::deque<Warning> m_messages;
 
   size_t m_ga = 0;
   size_t m_op = 0;

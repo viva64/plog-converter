@@ -238,7 +238,7 @@ std::vector<nlohmann::json> SarifOutputProcessor::GetRelatedLocations(const Warn
   std::vector<nlohmann::json> relatedLocations;
   std::set<WarningPosition> uniquePositions;
 
-  // TODO Check error. Standart says that 'relatedLocations' represents a locations relevant to understanding the result. But we pass all of them.
+  // TODO Check error. Standard says that 'relatedLocations' represents a locations relevant to understanding the result. But we pass all of them.
   uniquePositions.insert(warning.positions.begin(), warning.positions.end());
 
   for (const auto &position : uniquePositions)

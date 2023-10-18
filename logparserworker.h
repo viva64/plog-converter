@@ -18,26 +18,42 @@
 namespace PlogConverter
 {
 
-struct InputFile
+class InputFile
 {
-  const std::string path;
-  std::ifstream stream;
+public:
+  InputFile()                            = delete;
+  InputFile(const InputFile&)            = delete;
+  InputFile& operator=(const InputFile&) = delete;
+
+  InputFile(InputFile&&)                 = default;
+  InputFile& operator=(InputFile&&)      = default;
+  ~InputFile()                           = default;
 
   InputFile(std::string path_);
+
+  bool operator<(const InputFile &other) const noexcept;
+
+  std::string_view Path() const noexcept { return m_path;   }
+  std::ifstream&   Stream()     noexcept { return m_stream; }
+
+private:
+  std::ifstream m_stream;
+  std::string   m_path;
 };
 
 class LogParserWorker : public IWorker
 {
+private:
+  using WarningsLogContent = WarningJsonExtractor::Container;
+
 public:
   ~LogParserWorker() override;
 
   void Run(const ProgramOptions &options) override;
 
-  void ParseLog(
-    std::vector<InputFile> &inputFiles,
-    IOutput<Warning> &output,
-    const std::string &root
-  );
+  void ParseLog(std::vector<InputFile> &inputFiles,
+                IOutput<Warning> &output,
+                const std::string &root);
 
   size_t GetTotalWarnings() const;
   size_t GetPrintedWarnings() const;
@@ -46,10 +62,10 @@ public:
   bool IsErrorHappend() const noexcept override;
 
 private:
-  void ParseRawLog(InputFile &file);
-  void ParseJsonLog(InputFile &file);
-  void ParseCerrLog(InputFile& file);
-  void OnWarning(Warning &warning);
+  void ParseRawLog(InputFile &file,  WarningsLogContent &warnings);
+  void ParseJsonLog(InputFile &file, WarningsLogContent &warnings);
+  void ParseCerrLog(InputFile& file, WarningsLogContent &warnings);
+  void OnWarning(const Warning &warning);
 
   template<typename Format>
   bool CheckUnsupporterdTransformation(const Format &fmt,
@@ -73,13 +89,9 @@ private:
   size_t m_countTotal = 0;
   IOutput<Warning>* m_output = nullptr;
   std::string m_root;
-
   std::string m_line;
-  std::unordered_set<std::string> m_hashTable {4096};
 
   bool m_isUnsopporterdTransformationErrorHappend = false;
-
-  Warning m_warning;
 };
 
 }

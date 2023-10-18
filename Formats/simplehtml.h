@@ -6,7 +6,7 @@
 
 #include "ioutput.h"
 
-#include <vector>
+#include <deque>
 
 namespace PlogConverter
 {
@@ -50,14 +50,14 @@ public:
   static const int DefaultMessageColumnWidth;
 
 private:
-  std::vector<Warning> m_ga;
-  std::vector<Warning> m_op;
-  std::vector<Warning> m_64;
-  std::vector<Warning> m_cs;
-  std::vector<Warning> m_misra;
-  std::vector<Warning> m_info;
-  std::vector<Warning> m_autosar;
-  std::vector<Warning> m_owasp;
+  std::deque<Warning> m_ga;
+  std::deque<Warning> m_op;
+  std::deque<Warning> m_64;
+  std::deque<Warning> m_cs;
+  std::deque<Warning> m_misra;
+  std::deque<Warning> m_info;
+  std::deque<Warning> m_autosar;
+  std::deque<Warning> m_owasp;
 
   int GetMessageColumnWidth() const;
   int GetCweColumnWidth() const;
@@ -68,7 +68,7 @@ private:
   void PrintTableCaption();
   void PrintTableBody();
   void PrintHeading(const std::string &);
-  void PrintMessages(const std::vector<Warning>&, const std::string &);
+  void PrintMessages(const std::deque<Warning>&, const std::string &);
 };
 
 }

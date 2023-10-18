@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "JsonUtils.h"
 #include "utils.h"
@@ -157,7 +158,12 @@ struct Warning
 
   Format                            format = Format::OldStyle;
 
-  Warning() = default;
+  Warning()                          = default;
+  Warning(const Warning&)            = default;
+  Warning(Warning&&)                 = default;
+  Warning& operator=(const Warning&) = default;
+  Warning& operator=(Warning&&)      = default;
+  ~Warning()                         = default;
 
   Warning(std::string code, //-V688
           std::string message,
@@ -236,6 +242,9 @@ struct Warning
           .Optional("trialMode", trialMode);
   }
 
+  bool operator<(const Warning &other) const noexcept;
+
+  static Warning                    Parse(std::string_view str);
   static Warning                    GetDocumentationLinkMessage();
 
   bool                              IsDocumentationLinkMessage() const;
@@ -254,7 +263,7 @@ struct Warning
   unsigned                          GetStartColumn() const;
   unsigned                          GetEndColumn() const;
   const std::string &               GetFile() const;
-  const std::string                 GetFileUTF8() const;
+  std::string                       GetFileUTF8() const;
   const NavigationInfo &            GetNavigationInfo() const;
   std::string                       GetVivaUrl() const;
   std::string                       GetCWEUrl() const;
@@ -266,8 +275,6 @@ struct Warning
   std::string_view                  GetLevelString(std::string_view l01, std::string_view l2, std::string_view l3) const noexcept;
   std::string_view                  GetLevelString(std::string_view l0, std::string_view l1, std::string_view l2, std::string_view l3) const noexcept;
 
-  static Warning Parse(const std::string& str);
-
   std::string                       GetOldstyleOutput() const &;
   std::string                       GetOldstyleOutput() &&;
 
@@ -277,11 +284,72 @@ struct Warning
   std::string                       GetJsonOutput() const &;
   std::string                       GetJsonOutput() &&;
 
-
   void                              Clear();
+
+public:
+  struct UniqueLess
+  {
+    constexpr bool operator()(const Warning &lhs, const Warning &rhs) const noexcept
+    {
+      return   std::forward_as_tuple(lhs.GetFile(), lhs.level, lhs.GetErrorCode(), lhs.GetLine(), lhs.message)
+             < std::forward_as_tuple(rhs.GetFile(), rhs.level, rhs.GetErrorCode(), rhs.GetLine(), rhs.message);
+    }
+  };
 
 private:
   static nlohmann::json ConvertToJson(Warning w);
+};
+
+class WarningJsonExtractor
+{
+private:
+  using parse_event_t = nlohmann::json::parse_event_t;
+
+public:
+  using Container = std::set<Warning, Warning::UniqueLess>;
+
+  WarningJsonExtractor(Container &parsedWarnings)
+    : m_parsedWarnings{ parsedWarnings }
+  {}
+
+  bool operator()(int depth, parse_event_t event, nlohmann::json &json)
+  {
+    using namespace std::literals;
+
+    if (event != parse_event_t::object_end || depth != 2) { return true; }
+
+    if (!json.is_object() || !json.contains("cwe") || !json.contains("code"))
+    {
+      throw std::runtime_error{"Unknown error during parsing PlogConverter::Warning from input JSON file"};
+    }
+
+    Warning parsedWarning{ json };
+
+    // We put Warning in std::set, so we need to change the encoding here,
+    // because the values in std::set are constants
+    for (auto &position : parsedWarning.positions)
+    {
+      UTF8toANSI(position.file);
+    }
+
+    if (auto it = m_parsedWarnings.lower_bound(parsedWarning);
+        it == m_parsedWarnings.end() || m_parsedWarnings.key_comp()(parsedWarning, *it))
+    {
+      m_parsedWarnings.insert(it, std::move(parsedWarning));
+    }
+    else if (parsedWarning < *it)
+    {
+      auto pos     = std::next(it);
+      auto node    = m_parsedWarnings.extract(it);
+      node.value() = std::move(parsedWarning);
+      m_parsedWarnings.insert(pos, std::move(node));
+    }
+
+    return false;
+  }
+
+private:
+  Container &m_parsedWarnings;
 };
 
 }

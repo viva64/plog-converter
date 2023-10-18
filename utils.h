@@ -24,10 +24,10 @@ public:
   explicit FilesystemException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
-std::pair<std::string, std::string> SplitKeyValue(const std::string& srcRaw);
-std::string Trim(const std::string& src);
-void Replace(std::string& src, const std::string& toReplace, const std::string& replacer);
-void ReplaceAll(std::string& src, const std::string& toReplace, const std::string& replacer);
+std::pair<std::string, std::string> SplitKeyValue(std::string_view srcRaw);
+std::string_view Trim(std::string_view src);
+void Replace(std::string& src, std::string_view toReplace, std::string_view replacer);
+void ReplaceAll(std::string& src, std::string_view toReplace, std::string_view replacer);
 std::string EscapeHtml(const std::string& src);
 std::string ToLower(std::string_view src);
 
@@ -36,33 +36,31 @@ std::string LeftPad(const std::string &str, size_t size, char ch = ' ');
 void UTF8toANSI(std::string& source);
 void ANSItoUTF8(std::string& source);
 
-bool StartsWith(const std::string& src, const std::string& prefix);
-bool EndsWith(const std::string& src, const std::string& suffix);
+bool StartsWith(std::string_view src, std::string_view prefix);
+bool EndsWith(std::string_view src, std::string_view suffix);
 
 template <typename OutIt, typename Fn>
-void Split(const std::string& src, const std::string& delim, OutIt it, Fn fn)
+void Split(std::string_view src, std::string_view delim, OutIt it, Fn &&fn)
 {
-  if (src.empty() || delim.empty())
-  {
-    return;
-  }
+  if (src.empty() || delim.empty()) { return; }
 
-  std::string::size_type pos = 0;
-  std::string::size_type next_pos;
+  std::string_view::size_type pos = 0;
+  std::string_view::size_type next_pos;
+
   do
   {
     next_pos = src.find(delim, pos);
-    std::string::size_type pieceLength = next_pos - pos;
-    *it = fn(src.substr(pos, pieceLength));
+    std::string_view::size_type pieceLength = next_pos - pos;
+    *it = fn(std::string{ src.substr(pos, pieceLength) });
     ++it;
     pos = next_pos + delim.size();
-  } while (next_pos != std::string::npos);
+  } while (next_pos != std::string_view::npos);
 }
 
 template <typename OutIt>
-void Split(const std::string& src, const std::string& delim, OutIt it)
+void Split(std::string_view src, std::string_view delim, OutIt it)
 {
-  Split(src, delim, it, [](std::string &&s)->std::string&& { return std::move(s); });
+  Split(src, delim, it, [](std::string &&s) -> std::string&& { return std::move(s); });
 }
 
 inline bool IsGlobPath(std::string_view path)
@@ -70,16 +68,18 @@ inline bool IsGlobPath(std::string_view path)
      return path.find_first_of("*?") != std::string_view::npos;
  }
 
-inline std::vector<std::string> Split(std::string text, const std::string &separator)
+inline std::vector<std::string> Split(std::string_view text, std::string_view separator)
 {
   size_t pos = 0;
   std::vector<std::string> tokens;
+
   while ((pos = text.find(separator)) != std::string::npos)
   {
-    tokens.push_back(Trim(text.substr(0, pos))); //-V823
-    text.erase(0, pos + separator.length());
+    tokens.emplace_back(Trim(text.substr(0, pos)));
+    text = text.substr(pos + separator.length());
   }
-  tokens.push_back(Trim(text)); //-V823
+
+  tokens.emplace_back(Trim(text));
   return tokens;
 }
 
@@ -115,7 +115,7 @@ std::string Join(Range &&range, const std::string &delimiter = " ")
 unsigned ParseUint(const std::string &str);
 
 std::ifstream OpenFile(const std::filesystem::path &path);
-std::string Expand(const std::string &path);
+std::string Expand(std::string_view path);
 std::string FileBaseName(const std::string &filePath);
 std::string FileStem(const std::string &path);
 std::string FileExtension(const std::string &path);

@@ -128,7 +128,7 @@ void SimpleHTMLOutput::PrintTableCaption()
   m_ostream << R"(    </tr>)" << std::endl;
 }
 
-void SimpleHTMLOutput::PrintMessages(const std::vector<Warning> &messages, const std::string &caption)
+void SimpleHTMLOutput::PrintMessages(const std::deque<Warning> &messages, const std::string &caption)
 {
   if (messages.empty())
   {

@@ -198,12 +198,12 @@ static std::string ColorLevel(unsigned level)
   }
 }
 
-static std::string PVSStudioVersion()
+static std::string_view PVSStudioVersion()
 {
 #ifdef IDS_APP_VERSION
-  return IDS_APP_VERSION;
+  return std::string_view{ IDS_APP_VERSION };
 #else
-  return "Beta";
+  return std::string_view{ "Beta" };
 #endif
 }
 
@@ -264,7 +264,7 @@ void HTMLOutput::PrintHtmlEnd()
 
 void HTMLOutput::PrintTableInfo()
 {
-  auto print_tr_th = [&](const std::string &caption, const std::string &value)
+  auto print_tr_th = [&](std::string_view caption, std::string_view value)
   {
     m_indexFile << R"(     <tr><th id="col_info">)" << caption << R"(</th><td>)" << value << R"(</td></tr>)" << '\n';
   };
@@ -372,11 +372,11 @@ void HTMLOutput::PrintTableBody()
       }
       else if (err.projects.size() == 1)
       {
-        m_indexFile << R"(      <td id="col_projects"><p>)" << err.projects[0] << R"(</p></td>)" << '\n';
+        m_indexFile << R"(      <td id="col_projects"><p>)" << err.projects.front() << R"(</p></td>)" << '\n';
       }
       else
       {
-        m_indexFile << R"(      <td id="col_projects"><p title=")" << Join(err.projects, ", ") << R"(">)" << err.projects[0] << R"( (...)</p></td>)" << std::endl;
+        m_indexFile << R"(      <td id="col_projects"><p title=")" << Join(err.projects, ", ") << R"(">)" << err.projects.front() << R"( (...)</p></td>)" << std::endl;
       }
     }
     if (shortFileName.empty())

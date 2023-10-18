@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "ioutput.h"
 
 namespace PlogConverter
@@ -29,6 +31,8 @@ public:
 
   bool Write(const Warning &msg) override
   {
+    using namespace std::literals;
+
     std::string securityPrefix;
 
     bool showSAST = false;
@@ -37,25 +41,34 @@ public:
     Base::DetectShowTags(showCWE, showSAST);
 
     if (showCWE && msg.HasCWE())
-      securityPrefix += msg.GetCWEString();
+    {
+      securityPrefix = msg.GetCWEString();
+    }
 
     if (showSAST && msg.HasSAST())
     {
+      static constexpr auto separator = ", "sv;
+      auto maxPossibleSize = securityPrefix.size() + msg.sastId.size() + separator.size();
+      securityPrefix.reserve(maxPossibleSize);
+      
       if (!securityPrefix.empty())
-        securityPrefix += ", ";
+      {
+        securityPrefix += separator;
+      }
 
       securityPrefix += msg.sastId;
     }
 
+    Base::m_ostream << msg.GetFileUTF8() << "\t" << msg.GetLine() << "\t"
+                    << msg.GetLevelString("err", "warn", "note") << "\t"
+                    << msg.code << " ";
+
     if (!securityPrefix.empty())
     {
-      securityPrefix = '[' + securityPrefix + "] ";
+      Base::m_ostream << '[' << securityPrefix << "] "sv;
     }
 
-    Base::m_ostream << msg.GetFileUTF8() << "\t" << msg.GetLine() << "\t"
-      << msg.GetLevelString("err", "warn", "note") << "\t"
-      << msg.code << " "
-      << securityPrefix << Escape(msg.message) << std::endl;
+    Base::m_ostream << Escape(msg.message) << std::endl;
 
     return true;
   }

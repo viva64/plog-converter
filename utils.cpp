@@ -101,59 +101,62 @@ namespace PlogConverter
     return haystack.find(needle) != std::string_view::npos;
   }
 
-std::string Trim(const std::string& src)
+constexpr static auto SpaceChars = std::string_view{ " \t\n\r" };
+
+std::string_view Trim(std::string_view src)
 {
-  const static std::string spaceChars(" \t\n");
-  std::string::size_type begin = src.find_first_not_of(spaceChars);
-  if(begin == std::string::npos)
-    begin = 0;
-  std::string::size_type end = src.find_last_not_of(spaceChars + '\r');
-  if(end != std::string::npos)
-    end -= (begin - 1);
-  else
-    end = 0;
-  return src.substr(begin, end);
+  auto begin = src.find_first_not_of(SpaceChars);
+  if (begin == std::string_view::npos) { return {}; }
+
+  auto end = src.find_last_not_of(SpaceChars);
+  if (end == std::string_view::npos) { return {}; }
+
+  return src.substr(begin, end - begin + 1);
 }
 
-std::pair<std::string, std::string> SplitKeyValue(const std::string& srcRaw)
+std::pair<std::string, std::string> SplitKeyValue(std::string_view srcRaw)
 {
-  if (srcRaw.empty())
-    return std::pair<std::string, std::string>();
-  const std::string src = Trim(srcRaw);
-  const static std::string spaceChars(" \t\n");
-  size_t firstWordBound = src.find('=');
+  if (srcRaw.empty()) { return {}; }
+
+  auto src = Trim(srcRaw);
+
   size_t tailBound;
+  auto firstWordBound = src.find('=');
+
   if (firstWordBound != std::string::npos)
   {
     tailBound = firstWordBound + 1;
-    while (tailBound < src.size() && spaceChars.find(src[tailBound]) != std::string::npos)
+    while (tailBound < src.size() && SpaceChars.find(src[tailBound]) != std::string::npos)
       ++tailBound;
-    while (firstWordBound != 1 && spaceChars.find(src[firstWordBound - 1]) != std::string::npos)
+    while (firstWordBound != 1 && SpaceChars.find(src[firstWordBound - 1]) != std::string::npos)
       --firstWordBound;
   }
   else
+  {
     tailBound = src.size();
-  return std::make_pair(src.substr(0, firstWordBound), src.substr(tailBound));
+  }
+
+  return { std::string{ src.substr(0, firstWordBound) }, std::string{ src.substr(tailBound) } };
 }
 
-bool StartsWith(const std::string &src, const std::string &prefix)
+bool StartsWith(std::string_view src, std::string_view prefix)
 {
   return prefix.empty() || (prefix.size() <= src.size() && src.compare(0, prefix.size(), prefix) == 0);
 }
 
-bool EndsWith(const std::string &src, const std::string &suffix)
+bool EndsWith(std::string_view src, std::string_view suffix)
 {
   return suffix.empty() || (suffix.size() <= src.size() && src.compare(src.size() - suffix.size(), suffix.size(), suffix) == 0);
 }
 
-void Replace(std::string &src, const std::string& toReplace, const std::string &replacer)
+void Replace(std::string &src, std::string_view toReplace, std::string_view replacer)
 {
   std::string::size_type pos = src.find(toReplace);
   if(pos != std::string::npos)
     src.replace(pos, toReplace.size(), replacer);
 }
 
-void ReplaceAll(std::string& src, const std::string& toReplace, const std::string& replacer)
+void ReplaceAll(std::string& src, std::string_view toReplace, std::string_view replacer)
 {
   std::string::size_type pos = src.find(toReplace);
   while(pos != std::string::npos)
@@ -188,9 +191,9 @@ std::ifstream OpenFile(const std::filesystem::path& path)
   return stream;
 }
 
-std::string Expand(const std::string& path)
+std::string Expand(std::string_view path)
 {
-  std::string res = path;
+  std::string res{ path };
 
   if (StartsWith(res, "~/"))
   {

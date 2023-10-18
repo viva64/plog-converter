@@ -16,7 +16,7 @@ JsonOutput::JsonOutput(const ProgramOptions& options) : BasicFormatOutput{ optio
 
 void JsonOutput::Start()
 {
-  m_jsonOutput["version"] = m_version;
+  m_jsonOutput["version"]  = m_version;
   m_jsonOutput["warnings"] = std::vector<nlohmann::json>{};
 }
 
@@ -63,27 +63,25 @@ bool JsonOutput::Write(const Warning& msg)
     if (isFirstPosition)
     {
       nlohmann::json navigationJson;
+
       const auto& nav                = position.navigation;
       navigationJson["previousLine"] = static_cast<std::int32_t>(nav.previousLine);
       navigationJson["currentLine"]  = static_cast<std::int32_t>(nav.currentLine);
       navigationJson["nextLine"]     = static_cast<std::int32_t>(nav.nextLine);
       navigationJson["columns"]      = nav.columns;
-
       positionsJson["navigation"]    = std::move(navigationJson);
 
       isFirstPosition                = false;
     }
   }
 
-  msgJson["positions"] = positionsJsons;
-
+  msgJson["positions"]  = std::move(positionsJsons);
   msgJson["projects"]   = msg.projects;
-
-  msgJson["message"] = msg.message;
+  msgJson["message"]    = msg.message;
   msgJson["falseAlarm"] = msg.falseAlarm;
-  msgJson["favorite"] = msg.favorite;
+  msgJson["favorite"]   = msg.favorite;
 
-  m_jsonOutput["warnings"].emplace_back(msgJson);
+  m_jsonOutput["warnings"].push_back(std::move(msgJson));
 
   return true;
 }

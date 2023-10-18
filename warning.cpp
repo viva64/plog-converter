@@ -72,6 +72,21 @@ AnalyzerType Warning::GetType() const
   return AnalyzerType::Unknown;
 }
 
+bool Warning::operator<(const Warning &other) const noexcept
+{
+  if (this == &other) { return false; }
+
+  return   std::forward_as_tuple(GetFile(), level, GetErrorCode(), GetLine(),
+                                 cwe, sastId, message, !favorite,
+                                 !falseAlarm, projects, trialMode, stacktrace,
+                                 positions)
+         <
+           std::forward_as_tuple(other.GetFile(), other.level, other.GetErrorCode(), other.GetLine(),
+                                 other.cwe, other.sastId, other.message, !other.favorite,
+                                 !other.falseAlarm, other.projects, other.trialMode, other.stacktrace,
+                                 other.positions);
+}
+
 Warning Warning::GetDocumentationLinkMessage()
 {
   Warning docsMessage;
@@ -245,7 +260,7 @@ const std::string &Warning::GetFile() const
   return positions.empty() ? empty : positions.front().file;
 }
 
-const std::string Warning::GetFileUTF8() const
+std::string Warning::GetFileUTF8() const
 {
   static const std::string empty;
   if (positions.empty())
@@ -468,11 +483,11 @@ nlohmann::json Warning::ConvertToJson(Warning w)
   return j;
 }
 
-Warning Warning::Parse(const std::string& srcLine)
+Warning Warning::Parse(std::string_view srcLine)
 {
   Warning warning;
 
-  std::string line = Trim(srcLine);
+  auto line = Trim(srcLine);
   if (StartsWith(line, "{") && EndsWith(line, "}"))
   {
     auto j = nlohmann::json::parse(line);
@@ -485,7 +500,7 @@ Warning Warning::Parse(const std::string& srcLine)
     std::vector<SourceFilePosition> sourcePositions;
     j["positions"].get_to(sourcePositions);
 
-    for (auto&& p : sourcePositions)
+    for (auto &&p : sourcePositions)
     {
       for (auto l : p.lines)
       {
@@ -517,7 +532,7 @@ Warning Warning::Parse(const std::string& srcLine)
   }
   else
   {
-    const std::string delimiter = "<#~>";
+    constexpr std::string_view delimiter = "<#~>";
     std::vector<std::string> fields;
     fields.reserve(14);
     Split(line, delimiter, std::back_inserter(fields));
@@ -585,14 +600,14 @@ Warning Warning::Parse(const std::string& srcLine)
 
 bool WarningPosition::operator<(const WarningPosition& other) const noexcept
 {
-  return    std::tuple{        line,       endLine,       column,       endColumn, std::string_view { file } }
-          < std::tuple{  other.line, other.endLine, other.column, other.endColumn, std::string_view { other.file } };
+  return   std::forward_as_tuple(file,             line,       endLine,       column,       endColumn)
+         < std::forward_as_tuple(other.file, other.line, other.endLine, other.column, other.endColumn);
 }
 
 bool WarningPosition::operator==(const WarningPosition& other) const noexcept
 {
-  return    std::tuple{        line,       endLine,       column,       endColumn, std::string_view { file } }
-         == std::tuple{  other.line, other.endLine, other.column, other.endColumn, std::string_view { other.file } };
+  return    std::forward_as_tuple(file,             line,       endLine,       column,       endColumn)
+         == std::forward_as_tuple(other.file, other.line, other.endLine, other.column, other.endColumn);
 }
 
 }
