@@ -117,7 +117,7 @@ void LogParserWorker::ParseRawLog(InputFile &file, WarningsLogContent &warnings)
     std::cout << message << std::endl;
     Warning warning{};
     warning.message = message;
-    warnings.insert(std::move(warning));
+    warnings.emplace(std::move(warning));
     return;
   }
 
@@ -149,7 +149,7 @@ void LogParserWorker::ParseRawLog(InputFile &file, WarningsLogContent &warnings)
       UTF8toANSI(position.file);
     }
 
-    warnings.insert(std::move(warning));
+    warnings.emplace(std::move(warning));
   }
 }
 
@@ -174,7 +174,7 @@ void LogParserWorker::ParseCerrLog(InputFile& file, WarningsLogContent &warnings
         UTF8toANSI(position.file);
       }
 
-      warnings.insert(std::move(warning));
+      warnings.emplace(std::move(warning));
     }
   }
 }
@@ -198,7 +198,7 @@ void LogParserWorker::ParseJsonLog(InputFile &file, WarningsLogContent &warnings
 
   // TODO: Remove JsonDocument
   JsonDocument doc;
-  doc = j;
+  doc = j; //-V1001
 }
 
 void LogParserWorker::Run(const ProgramOptions &optionsSrc)

@@ -335,7 +335,7 @@ public:
     if (auto it = m_parsedWarnings.lower_bound(parsedWarning);
         it == m_parsedWarnings.end() || m_parsedWarnings.key_comp()(parsedWarning, *it))
     {
-      m_parsedWarnings.insert(it, std::move(parsedWarning));
+      m_parsedWarnings.emplace_hint(it, std::move(parsedWarning));
     }
     else if (parsedWarning < *it)
     {
