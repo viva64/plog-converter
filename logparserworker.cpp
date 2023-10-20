@@ -141,15 +141,26 @@ void LogParserWorker::ParseRawLog(InputFile &file, WarningsLogContent &warnings)
       CharMap::Decode(m_line);
     }
 
-    Warning warning{};
-    m_messageParser.Parse(m_line, warning);
+    Warning parsedWarning{};
+    m_messageParser.Parse(m_line, parsedWarning);
 
-    for (auto &position : warning.positions)
+    for (auto &position : parsedWarning.positions)
     {
       UTF8toANSI(position.file);
     }
 
-    warnings.emplace(std::move(warning));
+    if (auto notLess = warnings.lower_bound(parsedWarning);
+        notLess == warnings.end() || warnings.key_comp()(parsedWarning, *notLess))
+    {
+      warnings.emplace_hint(notLess, std::move(parsedWarning));
+    }
+    else if (parsedWarning < *notLess)
+    {
+      auto pos     = std::next(notLess);
+      auto node    = warnings.extract(notLess);
+      node.value() = std::move(parsedWarning);
+      warnings.insert(pos, std::move(node));
+    }
   }
 }
 
@@ -162,19 +173,30 @@ void LogParserWorker::ParseCerrLog(InputFile& file, WarningsLogContent &warnings
   {
     if (std::regex_search(m_line, match, re) && match.size() == 6)
     {
-      Warning warning{};
+      Warning parsedWarning{};
       m_messageParser.Parse(match.str(1),
                             match.str(2),
                             match.str(4),
                             match.str(5),
-                            warning);
+                            parsedWarning);
 
-      for (auto &position : warning.positions)
+      for (auto &position : parsedWarning.positions)
       {
         UTF8toANSI(position.file);
       }
 
-      warnings.emplace(std::move(warning));
+      if (auto notLess = warnings.lower_bound(parsedWarning);
+          notLess == warnings.end() || warnings.key_comp()(parsedWarning, *notLess))
+      {
+        warnings.emplace_hint(notLess, std::move(parsedWarning));
+      }
+      else if (parsedWarning < *notLess)
+      {
+        auto pos = std::next(notLess);
+        auto node = warnings.extract(notLess);
+        node.value() = std::move(parsedWarning);
+        warnings.insert(pos, std::move(node));
+      }
     }
   }
 }
