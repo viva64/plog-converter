@@ -28,8 +28,8 @@ namespace PlogConverter
 
 nlohmann::ordered_json SarifOutputProcessor::operator()(const WarningList &warnings) const
 {
-  nlohmann::ordered_json rules;
-  nlohmann::ordered_json results;
+  auto rules = nlohmann::json::array();
+  auto results = nlohmann::json::array();
   std::set<std::string> ruleIDs;
 
   for (const auto &warning : warnings)
