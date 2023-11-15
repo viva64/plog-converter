@@ -33,7 +33,7 @@ enum class AnalyzerType
 
 struct Analyzer
 {
-  constexpr static const int LevelsCount = 3;
+  constexpr static const int LevelsCount = 4;
   constexpr static const int AnalyzersCount = static_cast<size_t>(AnalyzerType::Unknown);
 
   std::vector<int>    levels;
