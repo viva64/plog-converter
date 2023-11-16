@@ -44,6 +44,7 @@ class ISupportsRelativePath
 {
 public:
   [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept = 0;
+  [[nodiscard]] virtual bool SupportsSourceRootMarker_() const noexcept  = 0;
 };
 
 class IOutputIfoProvider : public INameable, public IFileClearable, public ISupportsRelativePath{};
@@ -60,6 +61,7 @@ public:
   virtual void Finish() override;
 
   [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept override = 0;
+  [[nodiscard]] virtual bool SupportsSourceRootMarker_() const noexcept  override = 0;
   [[nodiscard]] virtual bool OutputIsFile_() const noexcept = 0;
   [[nodiscard]] virtual std::string_view OutputSuffix_() const noexcept = 0;
 
@@ -253,6 +255,10 @@ public:
   {
     return FormatOutput::SupportsRelativePath();
   }
+  [[nodiscard]] virtual bool SupportsSourceRootMarker_() const noexcept override
+  {
+    return FormatOutput::SupportsSourceRootMarker();  
+  }
   [[nodiscard]] virtual bool OutputIsFile_() const noexcept override
   {
     return FormatOutput::OutputIsFile();
@@ -264,6 +270,11 @@ public:
   [[nodiscard]] virtual std::string_view OutputSuffix_() const noexcept override
   {
     return FormatOutput::OutputSuffix();
+  }
+protected:
+  [[nodiscard]] static bool SupportsSourceRootMarker() noexcept
+  {
+    return false;
   }
 };
 

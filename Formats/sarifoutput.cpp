@@ -12,20 +12,11 @@ namespace stdfs = std::filesystem;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-namespace
-{
-  inline std::string to_hex(unsigned char x)
-  {
-    std::string hex;
-    hex.resize(2);
-    snprintf(hex.data(), hex.size() + 1, "%2X", static_cast<uint32_t>(x));
-    return std::string{ "%" } + (x < 0x10 ? "0" : "") + hex;
-  }
-}
 
 namespace PlogConverter
 {
-
+  const std::string SarifOutputProcessor::relativePathPrefixWithDot = "/./";
+  
 nlohmann::ordered_json SarifOutputProcessor::operator()(const WarningList &warnings) const
 {
   auto rules = nlohmann::ordered_json::array(); //-V656
@@ -105,7 +96,7 @@ std::string SarifOutputProcessor::UriFileEscape(std::string filePath)
       }
       else
       {
-        output.append(to_hex(ch));
+        output.append(PlogConverter::to_hex(ch));
       }
     }
 
@@ -114,7 +105,10 @@ std::string SarifOutputProcessor::UriFileEscape(std::string filePath)
 
   std::string output;
   output.reserve(10);       // reserved for scheme and Windows drive letter
-  output.append("file://");
+  if( !path.root_directory().empty() )
+  {
+    output.append("file://");
+  }
   cacheIter->second = output + PlogConverter::Join(path, escapeElement, "");
 
   return cacheIter->second;
@@ -137,10 +131,13 @@ nlohmann::ordered_json SarifOutputProcessor::MakeLocationJson(const std::string 
     location = nlohmann::ordered_json::object({ MakeMessageJson(message) });
   }
 
+  auto uri_copy = uri;
+  PlogConverter::Replace(uri_copy, relativePathPrefixWithDot, "");
+
   location["physicalLocation"] =
   {
     { "artifactLocation",
-      nlohmann::ordered_json::object({ { "uri", uri } })
+      nlohmann::ordered_json::object({ { "uri", std::move(uri_copy) } })
     },
     { "region",
       {

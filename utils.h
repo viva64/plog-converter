@@ -24,10 +24,18 @@ public:
   explicit FilesystemException(const std::string& msg) : std::runtime_error(msg) {}
 };
 
+std::string to_hex(unsigned char x);
+
+std::string GetSourceTreeRootMarker();
+
 std::pair<std::string, std::string> SplitKeyValue(std::string_view srcRaw);
 std::string_view Trim(std::string_view src);
 void Replace(std::string& src, std::string_view toReplace, std::string_view replacer);
 void ReplaceAll(std::string& src, std::string_view toReplace, std::string_view replacer);
+void ReplacePathPrefix(std::string &toReplace, std::string_view replacer);
+void ReplaceRelativeRoot(std::string& str, const std::string& root);
+void ReplaceAbsolutePrefix(std::string& str, const std::string& root);
+
 std::string EscapeHtml(const std::string& src);
 std::string ToLower(std::string_view src);
 
@@ -174,12 +182,12 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept;
 
 
 void ReplaceRelativeRoot(std::string& str, const std::string& root);
-const std::string &GetSourceTreeRootMarker();
 bool MatchPath(const char* pszFile, const char* pszSpec);
 bool ContainsSubPath(const std::filesystem::path &haystack, const std::filesystem::path &needle);
 bool ContainsSubstring(std::string_view, std::string_view) noexcept;
 std::string GetAbsolutePath(const std::string& path);
-}
+
+} //namespace PlogConverter
 
 unsigned GetHashCodePVS(std::string_view msg) noexcept;
 

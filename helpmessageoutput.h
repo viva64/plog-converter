@@ -27,7 +27,7 @@ namespace PlogConverter
     virtual void ClearOutput(bool removeEmptyFile = true) noexcept override;
     virtual void HardClearOutput() noexcept override;
     [[nodiscard]] virtual bool SupportsRelativePath_() const noexcept override;
-
+    [[nodiscard]] virtual bool SupportsSourceRootMarker_() const noexcept override;
   private:
     NextOutputPtr m_nextOutput;
     bool m_helpMsgPrinted;

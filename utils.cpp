@@ -21,6 +21,7 @@
 #include <fnmatch.h>
 #endif
 #include <unordered_map>
+#include <algorithm>
 
 #include "utils.h"
 
@@ -456,7 +457,55 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
   return pathCmp(lhs, rhs);
 }
 
-}
+  std::string to_hex(unsigned char x)
+  {
+    char buf[3];
+    snprintf(buf, sizeof(buf), "%2X", static_cast<uint32_t>(x));
+    return std::string{ "%" } + (x < 0x10 ? "0" : "") + std::string{buf};
+  }
+
+  std::string GetSourceTreeRootMarker()
+  {
+    using namespace std::string_literals;
+
+    static auto ret = "|?|"s;
+    return ret;
+  }
+
+  const std::string &GetPathSeparator()
+  {
+    using namespace std::string_literals;
+#ifdef _WIN32
+    static auto sep { "\\"s };
+#else
+    static auto sep { "/"s  };
+#endif
+
+    return sep;
+  }
+
+  void ReplacePathPrefix(std::string &toReplace, std::string_view replacer)
+  {
+    std::error_code rc;
+    auto relative = std::filesystem::relative(toReplace, replacer, rc); //-V821
+
+    if (!rc && !relative.empty())
+    {
+      toReplace = GetSourceTreeRootMarker() + GetPathSeparator() + relative.string();
+    }
+  }
+
+  void ReplaceRelativeRoot(std::string& str, const std::string& root)
+  {
+    Replace(str, GetSourceTreeRootMarker(), root);
+  }
+
+  void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
+  {
+    ReplacePathPrefix(str, root);
+  }
+
+} //namespace PlogConverter
 
 unsigned GetHashCodePVS(std::string_view msg) noexcept
 {

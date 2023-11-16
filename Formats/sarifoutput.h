@@ -7,6 +7,7 @@
 #include <list>
 
 #include "ioutput.h"
+#include "utils.h"
 
 namespace PlogConverter
 {
@@ -28,6 +29,8 @@ protected:
     unsigned int startColumn;
     unsigned int endColumn;
   };
+
+  static const std::string relativePathPrefixWithDot;
 
   static std::string UriFileEscape(std::string filePath);
   static nlohmann::ordered_json MakeMessageJson(const std::string &message);
@@ -73,7 +76,7 @@ public:
   [[nodiscard]]
   static bool SupportsRelativePath() noexcept
   {
-    return false;
+    return true;
   }
 
   [[nodiscard]]

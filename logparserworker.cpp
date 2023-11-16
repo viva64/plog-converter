@@ -256,19 +256,23 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
   std::unique_ptr<GitLabOutput, std::default_delete<BaseFormatOutput>> gitlabOutput;
   std::unique_ptr<HTMLOutput, std::default_delete<BaseFormatOutput>> fullHtmlOutput;
 
-  auto generateOutput = [&options](auto ptr) -> IOutput<PlogConverter::Warning>*
+  auto generateOutput = [&options](auto ptr) -> std::unique_ptr<IOutput<PlogConverter::Warning>>
   {
     if (auto base = dynamic_cast<ISupportsRelativePath *>(ptr.get()))
     {
-      if (base->SupportsRelativePath_())
+      if( !base->SupportsRelativePath_() )
       {
-        return new SourceRootRemover(std::move(ptr), options);
+        return std::unique_ptr<IOutput<PlogConverter::Warning>> { new SourceRootChecker(std::move(ptr), options) };
       }
-      else
+
+      if ( !base->SupportsSourceRootMarker_() )
       {
-        return new SourceRootChecker(std::move(ptr), options);
+        return std::unique_ptr<IOutput<PlogConverter::Warning>> { new SourceRootRemover(std::move(ptr), options) };
       }
+
+      return std::unique_ptr<IOutput<PlogConverter::Warning>> { ptr.release() };
     }
+
     return nullptr;
   };
 
@@ -300,16 +304,15 @@ void LogParserWorker::Run(const ProgramOptions &optionsSrc)
       if (!options.noHelp && (   IsA<ErrorFileOutput>(f) || IsA<ErrorFileVerboseOutput>(f)
                               || IsA<TaskListOutput>(f)  || IsA<TaskListVerboseOutput>(f)))
       {  
-        auto help = std::make_unique<HelpMessageOutput>(std::move(f));
-        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(help))));
+        pathFilterPipeline.Add(generateOutput(std::make_unique<HelpMessageOutput>(std::move(f))));
       }
       else if (IsA<HTMLOutput>(f))
       {
-        pathFilterPipeline.Add(std::make_unique<LevelTransform>(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))), options));
+        pathFilterPipeline.Add(std::make_unique<LevelTransform>(generateOutput(std::move(f)), options));
       }
       else
       {
-        pathFilterPipeline.Add(std::unique_ptr<IOutput<Warning>>(generateOutput(std::move(f))));
+        pathFilterPipeline.Add(generateOutput(std::move(f)));
       }
     }
   }

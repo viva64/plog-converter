@@ -9,48 +9,6 @@
 
 namespace PlogConverter
 {
-  using namespace std::string_literals;
-  using namespace std::string_view_literals;
-
-
-  const std::string &GetSourceTreeRootMarker()
-  {
-    static auto sourceTreeRootMarker { "|?|"s };
-    return sourceTreeRootMarker;
-  }
-
-  const std::string &GetPathSeparator()
-  {
-#ifdef _WIN32
-    static auto sep { "\\"s };
-#else
-    static auto sep { "/"s  };
-#endif
-
-    return sep;
-  }
-
-  void ReplacePathPrefix(std::string &toReplace, std::string_view replacer)
-  {
-    std::error_code rc;
-    auto relative = std::filesystem::relative(toReplace, replacer, rc); //-V821
-
-    if (!rc && !relative.empty())
-    {
-      toReplace = GetSourceTreeRootMarker() + GetPathSeparator() + relative.string();
-    }
-  }
-
-  void ReplaceRelativeRoot(std::string& str, const std::string& root)
-  {
-    Replace(str, GetSourceTreeRootMarker(), root);
-  }
-
-  void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
-  {
-    ReplacePathPrefix(str, root);
-  }
-
   SourceRootTransformer::SourceRootTransformer(IOutput<Warning>* output, const ProgramOptions& options)
     : ITransform<Warning>(output)
     , m_options(options)

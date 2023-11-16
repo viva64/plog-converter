@@ -76,4 +76,13 @@ namespace PlogConverter
     }
     return false;
   }
+
+  [[nodiscard]] bool HelpMessageOutput::SupportsSourceRootMarker_() const noexcept
+  {
+    if (auto base = dynamic_cast<ISupportsRelativePath *>(m_nextOutput.get()))
+    {
+      return base->SupportsSourceRootMarker_();
+    }
+    return false;
+  }
 }

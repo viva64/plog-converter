@@ -43,6 +43,12 @@ public:
     return FormatName();
   }
 
+  [[nodiscard]] 
+  static bool SupportsSourceRootMarker() noexcept
+  {
+    return true;
+  }
+
 private:
   static constexpr size_t m_version{ 2u };
   nlohmann::json m_jsonOutput;

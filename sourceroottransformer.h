@@ -8,6 +8,7 @@
 #include "ioutput.h"
 #include "utils.h"
 #include "warning.h"
+#include "utils.h"
 
 namespace PlogConverter
 {
