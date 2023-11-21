@@ -486,13 +486,10 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
 
   void ReplacePathPrefix(std::string &toReplace, std::string_view replacer)
   {
-    std::error_code rc;
-    auto relative = std::filesystem::relative(toReplace, replacer, rc); //-V821
-
-    if (!rc && !relative.empty())
-    {
-      toReplace = GetSourceTreeRootMarker() + GetPathSeparator() + relative.string();
-    }
+    auto normalized_toReplace = std::filesystem::path { toReplace }.lexically_normal();
+    auto normalized_replacer  = std::filesystem::path { replacer  }.lexically_normal();
+    auto relative = normalized_toReplace.lexically_relative(normalized_replacer); //-V821
+    toReplace = (GetSourceTreeRootMarker() / relative).string();
   }
 
   void ReplaceRelativeRoot(std::string& str, const std::string& root)
@@ -502,6 +499,8 @@ bool LexicallyLesserPath(std::string_view lhs, std::string_view rhs) noexcept
 
   void ReplaceAbsolutePrefix(std::string& str, const std::string& root)
   {
+    if (StartsWith(str, GetSourceTreeRootMarker())) return;
+
     ReplacePathPrefix(str, root);
   }
 
