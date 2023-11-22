@@ -43,19 +43,6 @@
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
-
-intptr_t ImageSlide(void)
-{
-    char path[1024];
-    uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) != 0) return -1;
-    for (uint32_t i = 0; i < _dyld_image_count(); i++)
-    {
-        if (strcmp(_dyld_get_image_name(i), path) == 0)
-            return _dyld_get_image_vmaddr_slide(i);
-    }
-    return 0;
-}
 #endif 
 // You can define one of the following (or leave it to the auto-detection):
 //
@@ -441,6 +428,29 @@ const char kBackwardPathDelimiter[] = ":";
 } // namespace details
 } // namespace backward
 
+
+// Namespace for PVS customization
+namespace PVS_Studio::Customization
+{
+  static constexpr auto MaximumStackDepth = size_t{ 262144 };
+
+#ifdef __APPLE__
+  static inline intptr_t ImageSlide(void)
+  {
+    char path[1024];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) != 0) return -1;
+    for (uint32_t i = 0; i < _dyld_image_count(); i++)
+    {
+      if (strcmp(_dyld_get_image_name(i), path) == 0)
+        return _dyld_get_image_vmaddr_slide(i);
+    }
+    return 0;
+  }
+#endif 
+}
+
+
 namespace backward {
 
 namespace system_tag {
@@ -564,7 +574,7 @@ public:
 
   void update(T new_val) {
     _val = new_val;
-    _empty = static_cast<bool>(new_val);
+    _empty = !static_cast<bool>(new_val);
   }
 
   operator const dummy *() const {
@@ -948,10 +958,14 @@ public:
     s.AddrStack.Mode = AddrModeFlat;
     s.AddrFrame.Mode = AddrModeFlat;
     s.AddrPC.Mode = AddrModeFlat;
-#ifdef _M_X64
+#if defined(_M_X64)
     s.AddrPC.Offset = ctx_->Rip;
     s.AddrStack.Offset = ctx_->Rsp;
     s.AddrFrame.Offset = ctx_->Rbp;
+#elif defined(_M_ARM64) // edit: add ARM64 support
+    s.AddrPC.Offset = ctx_->Pc;
+    s.AddrStack.Offset = ctx_->Sp;
+    s.AddrFrame.Offset = ctx_->Fp;
 #else
     s.AddrPC.Offset = ctx_->Eip;
     s.AddrStack.Offset = ctx_->Esp;
@@ -959,8 +973,10 @@ public:
 #endif
 
     if (!machine_type_) {
-#ifdef _M_X64
+#if defined(_M_X64)
       machine_type_ = IMAGE_FILE_MACHINE_AMD64;
+#elif defined(_M_ARM64) // edit: add ARM64 support
+      machine_type_ = IMAGE_FILE_MACHINE_ARM64;
 #else
       machine_type_ = IMAGE_FILE_MACHINE_I386;
 #endif
@@ -1102,7 +1118,7 @@ public:
     if (st.size() == 0) {
       return;
     }
-    _symbols.reset(backtrace_symbols(st.begin(), (int)st.size()));
+    _symbols.reset(backtrace_symbols(st.begin(), static_cast<int>(st.size())));
   }
 
   ResolvedTrace resolve(ResolvedTrace trace) {
@@ -3387,22 +3403,24 @@ public:
 
     char name[256];
 
-    memset(&sym, 0, sizeof sym);
+    memset(&sym, 0, sizeof(sym));
     sym.sym.SizeOfStruct = sizeof(SYMBOL_INFO);
     sym.sym.MaxNameLen = max_sym_len;
 
     if (!SymFromAddr(process, (ULONG64)t.addr, &displacement, &sym.sym)) {
       // TODO:  error handling everywhere
-      LPTSTR lpMsgBuf;
+      char* lpMsgBuf;
       DWORD dw = GetLastError();
 
-      FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                        FORMAT_MESSAGE_FROM_SYSTEM |
-                        FORMAT_MESSAGE_IGNORE_INSERTS,
-                    NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    (LPTSTR)&lpMsgBuf, 0, NULL);
+      if (FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                             FORMAT_MESSAGE_FROM_SYSTEM |
+                             FORMAT_MESSAGE_IGNORE_INSERTS,
+                         NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                         (char*)&lpMsgBuf, 0, NULL)) {
+        std::fprintf(stderr, "%s\n", lpMsgBuf);
+        LocalFree(lpMsgBuf);
+      }
 
-      printf(lpMsgBuf);
       // abort();
     }
     UnDecorateSymbolName(sym.sym.Name, (PSTR)name, 256, UNDNAME_COMPLETE);
@@ -3797,24 +3815,53 @@ private:
     }
   }
   
-  void print_header(std::ostream &os, [[maybe_unused]] size_t thread_id) {
+  void print_header(std::ostream &os, [[maybe_unused]] size_t thread_id) 
+  {
+    constexpr auto GetPlatformStr = []() -> std::string_view
+      {
+        using namespace std::string_view_literals;
+#if defined(_M_X64)
+        return "X64"sv;
+#elif defined(_M_ARM64)
+        return "ARM64"sv;
+#else
+        return "Unknown"sv;
+#endif
+      };
+
+    constexpr auto GetOSStr = []() -> std::string_view
+      {
+        using namespace std::string_view_literals;
+#if defined(WIN32)
+        return "Windows"sv;
+#elif defined(__APPLE__)
+        return "macOS"sv;
+#else
+        return "Linux"sv;
+#endif
+      };
+
+    constexpr auto GetPVSVersionStr = []() -> std::string_view
+      {
+        using namespace std::string_view_literals;
+#ifdef IDS_APP_VERSION
+        return { IDS_APP_VERSION };
+#else
+        return "Unknown"sv;
+#endif
+      };
+
     os << "This file was created because PVS-Studio encountered an unexpected error.\n";
     os << "It contains a list of addresses in the analyzer process that will allow us to trace the problem.\n";
     os << "Please send this file to our support so that we can fix it.\n\n";
-#ifdef IDS_APP_VERSION
-    os << "PVS-Studio version: " << IDS_APP_VERSION << "\n";
-#else
-    os << "PVS-Studio version: unknown\n";
-#endif
-#ifdef WIN32
-    os << "Base address: " << (void*)GetModuleHandle(NULL) << "\n";
-#endif
-#if 0 
-#include <dlfcn.h>
-    os << "Base address: " << (void*)dlopen(NULL, RTLD_LAZY) << "\n";
-#endif
-#ifdef __APPLE__
-    os << "image slide is: " << (void*)ImageSlide() << "\n";
+    os << "PVS-Studio version: " << GetPVSVersionStr() << '\n';
+    os << "Platform: "           << GetPlatformStr() << '\n';
+    os << "OS: "                 << GetOSStr() << '\n';
+
+#if defined(WIN32)
+    os << "Base address: " << static_cast<void*>(GetModuleHandle(NULL)) << "\n";
+#elif defined(__APPLE__)
+    os << "image slide is: " << reinterpret_cast<void*>(PVS_Studio::Customization::ImageSlide()) << "\n";
 #endif
   }
 
@@ -4048,9 +4095,9 @@ public:
 #warning ":/ sorry, ain't know no nothing none not of your architecture!"
 #endif
       if (error_addr) {
-        st.load_from(error_addr, 32);
+        st.load_from(error_addr, PVS_Studio::Customization::MaximumStackDepth);
       } else {
-        st.load_here(32);
+        st.load_here(PVS_Studio::Customization::MaximumStackDepth);
       }
 
       Printer printer;
@@ -4281,7 +4328,7 @@ private:
       st.set_machine_type(printer.resolver().machine_type());
       st.set_context(ctx());
       st.set_thread_handle(thread_handle());
-      st.load_here(32u + skip_frames);
+      st.load_here(PVS_Studio::Customization::MaximumStackDepth + skip_frames);
       st.skip_n_firsts(skip_frames);
       
       printer.address = true;
